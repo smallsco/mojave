@@ -35,7 +35,7 @@ function Snake.new( opt )
     self.next_y = 1
     
     -- Starting direction
-    self.direction = love.math.random(4)
+    self.direction = opt.direction or love.math.random(4)
     
     -- Starting length
     self.length = 1
@@ -169,6 +169,10 @@ end
 
 function Snake:getLength()
     return self.length
+end
+
+function Snake:getPosition()
+    return self.x, self.y
 end
 
 function Snake:getNextPosition()

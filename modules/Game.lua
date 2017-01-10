@@ -57,7 +57,7 @@ function Game.new( opt )
     -- Add snakes to the map
     local snakes = {}
     for i = 1, #self.snakes do
-        local x, y = self.map:setTileAtRandomFreeLocation( Map.TILE_SNAKE )
+        local x, y = self.map:setTileAtRandomFreeLocation( Map.TILE_HEAD )
         
         local snake = Snake({
             id = self.snakes[i]['id'],
@@ -212,8 +212,9 @@ function Game:update( dt )
             end
         end
         
-        -- TODO: implement case where two snakes move into the same position
-        -- simultaneously
+        -- FIXME: implement case where two snakes move into the same position
+        -- simultaneously... right now this glitches out the game as you can
+        -- end up with multiple snakes occupying the same space!
         
         -- Inspect the tile at each snake's next position
         for i = 1, #self.snakes do
@@ -229,14 +230,18 @@ function Game:update( dt )
                     -- Get the tile
                     local tile = self.map:getTile( x, y )
                     
-                    if tile == Map.TILE_WALL then
+                    if tile == Map.TILE_HEAD or tile == Map.TILE_TAIL then
+                        -- If Snake A runs into Snake B's tail...
+                        -- Snake A dies
+                        -- Snake B is credited with a kill
+                        -- Snake B's life is reset to 100
+                        -- Snake B's length is increased by 50% of snake A's length (rounded down)
+                        self.snakes[i]:kill()
+                        log.debug(string.format('snake "%s" hits another snake and dies', self.snakes[i]:getName()))
+                    elseif tile == Map.TILE_WALL then
                         -- If it's a wall, the snake dies.
                         self.snakes[i]:kill()
                         log.debug(string.format('snake "%s" hits a wall and dies', self.snakes[i]:getName()))
-                    elseif tile == Map.TILE_SNAKE then
-                        -- If it's another snake (or your own tail), the (current) snake dies.
-                        self.snakes[i]:kill()
-                        log.debug(string.format('snake "%s" hits another snake and dies', self.snakes[i]:getName()))
                     elseif tile == Map.TILE_FOOD then
                         -- If the tile contains food, the snake eats.
                         self.snakes[i]:eatFood()
@@ -275,23 +280,39 @@ function Game:update( dt )
             
         end -- inspect tile
         
-        -- Move all living snakes to the next position
         -- Remove snakes that died this turn from the map
         for i = 1, #self.snakes do
-            if self.snakes[i]:isAlive() then
-                local x, y = self.snakes[i]:getNextPosition()
-                local tailEnd = self.snakes[i]:moveNextPosition()
-                if tailEnd ~= nil then
-                    self.map:setTile(tailEnd[1], tailEnd[2], Map.TILE_FREE)
-                end
-                self.map:setTile(x, y, Map.TILE_SNAKE)
-                self.snakes[i]:incrAge()
-            else
+            if not self.snakes[i]:isAlive() then
                 local history = self.snakes[i]:getHistory()
                 for _, v in ipairs(history) do
                     self.map:setTile(v[1], v[2], Map.TILE_FREE)
                 end
                 self.snakes[i]:clearHistory()
+            end
+        end
+        
+        -- Move all living snakes to the next position
+        for i = 1, #self.snakes do
+            if self.snakes[i]:isAlive() then
+                local x, y = self.snakes[i]:getPosition()
+                local next_x, next_y = self.snakes[i]:getNextPosition()
+                local tailEnd = self.snakes[i]:moveNextPosition()
+                
+                -- move head to next position
+                self.map:setTile(next_x, next_y, Map.TILE_HEAD)
+                
+                -- set the previous position of the head to a tail square...
+                -- ... as long as the snake is bigger than 1 square
+                if self.snakes[i]:getLength() > 1 then
+                    self.map:setTile(x, y, Map.TILE_TAIL)
+                end
+                
+                -- clear the tile containing the end of the snake
+                if tailEnd ~= nil then
+                    self.map:setTile(tailEnd[1], tailEnd[2], Map.TILE_FREE)
+                end
+                
+                self.snakes[i]:incrAge()
             end
         end
         

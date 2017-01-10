@@ -12,7 +12,8 @@ Map.TILE_FREE = 1   -- Tile contains nothing
 Map.TILE_WALL = 2   -- Tile is a wall / blocked
 Map.TILE_FOOD = 3   -- Tile contains food
 Map.TILE_GOLD = 4   -- Tile contains gold
-Map.TILE_SNAKE = 5  -- Tile contains a snake
+Map.TILE_HEAD = 5   -- Tile contains a snake head
+Map.TILE_TAIL = 6   -- Tile contains a snake tail
 
 
 --- Constructor / Factory Function
@@ -71,8 +72,12 @@ function Map:draw()
                 love.graphics.setColor(255,255,0,255)
                 radius = 50
                 mode = 'fill'
-            elseif tile == Map.TILE_SNAKE then
+            elseif tile == Map.TILE_HEAD then
                 love.graphics.setColor(255,0,0,255)
+                radius = 0
+                mode = 'fill'
+            elseif tile == Map.TILE_TAIL then
+                love.graphics.setColor(150,0,0,255)
                 radius = 0
                 mode = 'fill'
             end
