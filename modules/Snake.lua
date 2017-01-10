@@ -63,13 +63,13 @@ end
 function Snake:api( endpoint, data )
 
     log.debug(string.format('snake "%s" api call to "%s" endpoint', self.name, endpoint))
+    log.trace('POST data: ' .. data)
     if self.url == '' then
         log.debug(string.format('snake "%s" is human controlled, ignoring api call', self.name))
         return
     else
         local request_url = self.url .. '/' .. endpoint
         log.trace('Request URL: ' .. request_url)
-        log.trace('POST data: ' .. data)
         local response_body = {}
         local res, code, response_headers, status = http.request({
             url = request_url,
@@ -135,6 +135,12 @@ end
 
 function Snake:incrAge()
     self.age = self.age + 1
+end
+
+function Snake:incrGold()
+    SFXSnakeGold:stop()
+    SFXSnakeGold:play()
+    self.gold = self.gold + 1
 end
 
 function Snake:getAge()

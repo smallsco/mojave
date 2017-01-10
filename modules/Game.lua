@@ -24,23 +24,35 @@ function Game.new( opt )
             url = ''
         }
     }
-    self.num_walls = opt.num_walls or 10
+    self.mode = opt.mode or 'advanced'  -- "classic" or "advanced"
+    self.food_turn_start = opt.food_turn_start or 3
+    self.food_turns = opt.food_turns or 3
+    
+    self.wall_turn_start = opt.wall_turn_start or 50
+    self.wall_turns = opt.wall_turns or 5
     
     self.map = Map()
     self.timer = 0
     self.turn = 0
     self.walls = {}
+    self.food = {}
+    self.gold = {}
     
-    -- Add a food to the map randomly
-    self.food_x, self.food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
-    log.debug( string.format( 'added food at (%s, %s)', self.food_x, self.food_y ) )
+    -- Add a gold to the map randomly
+    if self.mode == 'advanced' then
+        local gold_x, gold_y = self.map:setTileAtRandomFreeLocation( Map.TILE_GOLD )
+        table.insert(self.gold, {gold_x, gold_y})
+        log.debug( string.format( 'added gold at (%s, %s)', self.gold_x, self.gold_y ) )
+    end
     
     -- Add walls to the map randomly
+    -- Battlesnake doesn't do this at the start of the game, so leave it commented out...
+    --[[self.num_walls = opt.num_walls or 10
     for i = 1, self.num_walls do
         local x, y = self.map:setTileAtRandomFreeLocation( Map.TILE_WALL )
         table.insert(self.walls, {x,y})
         log.debug( string.format( 'added wall at (%s, %s)', x, y ) )
-    end
+    end]]
     
     -- Add snakes to the map
     local snakes = {}
@@ -133,14 +145,14 @@ function Game:getState()
     
     return {
         game = self.name,
-        mode = 'advanced',
+        mode = self.mode,
         turn = self.turn,
         height = self.map:getHeight(),
         width = self.map:getWidth(),
         snakes = snakes,
-        food = convert_coordinates({{self.food_x, self.food_y}}, 'topython'),
+        food = convert_coordinates(self.food, 'topython'),
         walls = convert_coordinates(self.walls, 'topython'),
-        gold = {}
+        gold = convert_coordinates(self.gold, 'topython')
     }
 end
 
@@ -189,8 +201,6 @@ function Game:update( dt )
         self.timer = 0
         self.turn = self.turn + 1
         log.trace( 'tick' )
-    
-        local foodEaten = false
         
         -- Get each snake's next position (but don't move them yet)
         for i = 1, #self.snakes do
@@ -229,8 +239,25 @@ function Game:update( dt )
                     elseif tile == Map.TILE_FOOD then
                         -- If the tile contains food, the snake eats.
                         self.snakes[i]:eatFood()
-                        foodEaten = true
+                        for j = 1, #self.food do
+                            if self.food[j][1] == x and self.food[j][2] == y then
+                                table.remove(self.food, j)
+                                log.debug( string.format( 'removed food at (%s, %s)', x, y ) )
+                                break
+                            end
+                        end
                         log.debug(string.format('snake "%s" finds food and grows', self.snakes[i]:getName()))
+                    elseif tile == Map.TILE_GOLD then
+                        -- If the tile contains gold, the snake gets richer.
+                        self.snakes[i]:incrGold()
+                        for j = 1, #self.gold do
+                            if self.gold[j][1] == x and self.gold[j][2] == y then
+                                table.remove(self.gold, j)
+                                log.debug( string.format( 'removed gold at (%s, %s)', x, y ) )
+                                break
+                            end
+                        end
+                        log.debug(string.format('snake "%s" finds gold and gets richer', self.snakes[i]:getName()))
                     else
                         -- Free tile, decrement the snake's health by 1
                         self.snakes[i]:decrementHealth()
@@ -267,10 +294,18 @@ function Game:update( dt )
             end
         end
         
-        -- If a snake ate food this turn, spawn another food tile
-        if foodEaten then
-            self.food_x, self.food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
-            log.debug( string.format( 'added food at (%s, %s)', self.food_x, self.food_y ) )
+        -- Add a food to the map at a random location if it's time
+        if self.turn >= self.food_turn_start and self.turn % self.food_turns == 0 then
+            local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
+            table.insert(self.food, {food_x, food_y})
+            log.debug( string.format( 'added food at (%s, %s)', food_x, food_y ) )
+        end
+        
+        -- Add a wall to the map at a random location if it's time
+        if self.mode == 'advanced' and self.turn >= self.wall_turn_start and self.turn % self.wall_turns == 0 then
+            local wall_x, wall_y = self.map:setTileAtRandomFreeLocation( Map.TILE_WALL )
+            table.insert(self.walls, {wall_x, wall_y})
+            log.debug( string.format( 'added wall at (%s, %s)', wall_x, wall_y ) )
         end
         
         -- If one or less snakes are alive, then end the game.

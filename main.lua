@@ -41,16 +41,32 @@ function love.load()
 
     -- Audio
     SFXSnakeFood = love.audio.newSource('PowerUp5.mp3', 'static')
+    SFXSnakeGold = love.audio.newSource('Bells6.mp3', 'static')
     SFXSnakeDeath = love.audio.newSource('PowerDown1.mp3', 'static')
     BGM = love.audio.newSource("Trashy-Aliens.mp3")
     BGM:setLooping( true )
 
     local options = {
         snakes = {
-            {
+            --[[{
                 id = '',
                 name = 'human',
                 url = ''
+            },]]
+            {
+                id = '97d0f99f-8bff-4d53-9e65-9f4d25cc6527',
+                name = 'snake1',
+                url = 'http://localhost:5000'
+            },
+            {
+                id = 'f729b53e-3477-447d-b07e-c79d7e326c82',
+                name = 'snake2',
+                url = 'http://localhost:5001'
+            },
+            {
+                id = 'ae68ef2a-2fc7-47a0-8b6b-cc7ae5b80d66',
+                name = 'snake3',
+                url = 'http://localhost:5002'
             }
         }
     }
