@@ -52,6 +52,9 @@ function Snake.new( opt )
     -- Starting age
     self.age = 0
     
+    -- Starting kills
+    self.kills = 0
+    
     -- History of movement
     self.history = {{self.x, self.y}}
     self.status = 'alive'
@@ -163,12 +166,16 @@ function Snake:getId()
     return self.id
 end
 
-function Snake:getName()
-    return self.name
+function Snake:getKills()
+    return self.kills
 end
 
 function Snake:getLength()
     return self.length
+end
+
+function Snake:getName()
+    return self.name
 end
 
 function Snake:getPosition()
@@ -195,7 +202,18 @@ function Snake:isAlive()
     return self.status == 'alive'
 end
 
-function Snake:kill()
+function Snake:kill(othersnake)
+    -- If Snake A runs into Snake B's tail...
+    -- Snake A dies
+    -- Snake B is credited with a kill
+    -- Snake B's life is reset to 100
+    -- Snake B's length is increased by 50% of snake A's length (rounded down)    
+    self.kills = self.kills + 1
+    self.health = 100
+    self.length = self.length + math.floor(othersnake:getLength() / 2)
+end
+
+function Snake:die()
     SFXSnakeDeath:stop()
     SFXSnakeDeath:play()
     self.status = 'dead'

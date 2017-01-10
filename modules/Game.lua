@@ -108,6 +108,7 @@ function Game:draw()
         str = str .. "\tAge: " .. self.snakes[i]:getAge() .. "\n"
         str = str .. "\tGold: " .. self.snakes[i]:getGold() .. "\n"
         str = str .. "\tHealth: " .. self.snakes[i]:getHealth() .. "\n"
+        str = str .. "\tKills: " .. self.snakes[i]:getKills() .. "\n"
         str = str .. "\tLength: " .. self.snakes[i]:getLength() .. "\n"
         str = str .. "\n"
     end
@@ -227,23 +228,31 @@ function Game:update( dt )
                 if x < 1 or y < 1 or x > self.map:getWidth() or y > self.map:getHeight() then
                     -- If the next coordinate is off the game board, there's no tile
                     -- to inspect. Kill the snake.
-                    self.snakes[i]:kill()
+                    self.snakes[i]:die()
                     log.debug(string.format('snake "%s" hits the edge of the world and dies', self.snakes[i]:getName()))
                 else
                     -- Get the tile
                     local tile = self.map:getTile( x, y )
                     
                     if tile == Map.TILE_HEAD or tile == Map.TILE_TAIL then
-                        -- If Snake A runs into Snake B's tail...
-                        -- Snake A dies
-                        -- Snake B is credited with a kill
-                        -- Snake B's life is reset to 100
-                        -- Snake B's length is increased by 50% of snake A's length (rounded down)
-                        self.snakes[i]:kill()
-                        log.debug(string.format('snake "%s" hits another snake and dies', self.snakes[i]:getName()))
+                        -- find the snake we ran into and KILL IT
+                        for j = 1, #self.snakes do
+                            if i ~= j then
+                                local history = self.snakes[j]:getHistory()
+                                for k = 1, #history do
+                                    if history[k][1] == x and history[k][2] == y then
+                                        self.snakes[j]:kill(self.snakes[i])
+                                    end
+                                end
+                                log.debug(string.format('snake "%s" hits another snake and dies', self.snakes[i]:getName()))
+                            else
+                                log.debug(string.format('snake "%s" hits itself and dies', self.snakes[i]:getName()))
+                            end
+                        end
+                        self.snakes[i]:die()
                     elseif tile == Map.TILE_WALL then
                         -- If it's a wall, the snake dies.
-                        self.snakes[i]:kill()
+                        self.snakes[i]:die()
                         log.debug(string.format('snake "%s" hits a wall and dies', self.snakes[i]:getName()))
                     elseif tile == Map.TILE_FOOD then
                         -- If the tile contains food, the snake eats.
@@ -276,7 +285,7 @@ function Game:update( dt )
                 
                 -- If a snake's health is 0, that snake dies.
                 if self.snakes[i]:getHealth() == 0 then
-                    self.snakes[i]:kill()
+                    self.snakes[i]:die()
                     log.debug(string.format('snake "%s" runs out of health and dies', self.snakes[i]:getName()))
                 end
             end
