@@ -142,9 +142,9 @@ function Game:getState()
             age = self.snakes[i]:getAge(),
             health = self.snakes[i]:getHealth(),
             coords = convert_coordinates(self.snakes[i]:getHistory(), 'topython'),
-            kills = 0,
+            kills = self.snakes[i]:getKills(),
             food = self.snakes[i]:getLength(),
-            gold = 0
+            gold = self.snakes[i]:getGold()
         })
     end
     
