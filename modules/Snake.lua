@@ -183,6 +183,10 @@ function Snake:getTaunt()
     return self.taunt
 end
 
+function Snake:getURL()
+    return self.url
+end
+
 function Snake:setTaunt( taunt )
     self.taunt = taunt
 end

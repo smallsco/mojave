@@ -31,6 +31,9 @@ function Game.new( opt )
     self.wall_turn_start = opt.wall_turn_start or 50
     self.wall_turns = opt.wall_turns or 5
     
+    self.gold_turns = opt.gold_turns or 75
+    self.gold_to_win = opt.gold_to_win or 5
+    
     self.map = Map()
     self.timer = 0
     self.turn = 0
@@ -330,19 +333,38 @@ function Game:update( dt )
             log.debug( string.format( 'added wall at (%s, %s)', wall_x, wall_y ) )
         end
         
+        -- Add a gold to the map at a random location if it's time
+        if self.mode == 'advanced' and self.turn % self.gold_turns == 0 then
+            local gold_x, gold_y = self.map:setTileAtRandomFreeLocation( Map.TILE_GOLD )
+            table.insert(self.gold, {gold_x, gold_y})
+            log.debug( string.format( 'added gold at (%s, %s)', self.gold_x, self.gold_y ) )
+        end
+        
         -- If one or less snakes are alive, then end the game.
+        local humanPlayer = false
         local livingSnakes = {}
         for i = 1, #self.snakes do
             if self.snakes[i]:isAlive() then
                 table.insert(livingSnakes, i)
             end
+            if self.snakes[i]:getURL() == '' then
+                humanPlayer = true
+            end
         end
         if #livingSnakes == 0 then
             log.info('Game Over, all snakes are dead')
             self:stop()
-        --elseif #livingSnakes == 1 then
-            --log.info(string.format('Game over, last snake remaining is "%s"', self.snakes[livingSnakes[1]]:getName()))
-            --self:stop()
+        elseif #livingSnakes == 1 and not humanPlayer then
+            log.info(string.format('Game over, last snake remaining is "%s"', self.snakes[livingSnakes[1]]:getName()))
+            self:stop()
+        end
+        
+        -- If any snake has 5 gold, that snake wins!
+        for i = 1, #self.snakes do
+            if self.snakes[i]:getGold() >= self.gold_to_win then
+                log.info(string.format('Game over, "%s" took home all the gold!', self.snakes[livingSnakes[1]]:getName()))
+                self:stop()
+            end
         end
         
     end -- if self.running
