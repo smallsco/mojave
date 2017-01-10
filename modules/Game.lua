@@ -103,6 +103,7 @@ function Game:draw()
         str = str .. self.snakes[i]:getName() .. "\n"
         str = str .. "\tAlive: " .. tostring(self.snakes[i]:isAlive()) .. "\n"
         str = str .. "\tAge: " .. self.snakes[i]:getAge() .. "\n"
+        str = str .. "\tGold: " .. self.snakes[i]:getGold() .. "\n"
         str = str .. "\tHealth: " .. self.snakes[i]:getHealth() .. "\n"
         str = str .. "\tLength: " .. self.snakes[i]:getLength() .. "\n"
         str = str .. "\n"

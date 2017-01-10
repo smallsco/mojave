@@ -147,6 +147,10 @@ function Snake:getAge()
     return self.age
 end
 
+function Snake:getGold()
+    return self.gold
+end
+
 function Snake:getHealth()
     return self.health
 end
