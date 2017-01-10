@@ -236,17 +236,23 @@ function Game:update( dt )
                     
                     if tile == Map.TILE_HEAD or tile == Map.TILE_TAIL then
                         -- find the snake we ran into and KILL IT
+                        local killed = false
                         for j = 1, #self.snakes do
                             if i ~= j then
                                 local history = self.snakes[j]:getHistory()
                                 for k = 1, #history do
                                     if history[k][1] == x and history[k][2] == y then
                                         self.snakes[j]:kill(self.snakes[i])
+                                        killed = true
+                                        break
                                     end
                                 end
                                 log.debug(string.format('snake "%s" hits another snake and dies', self.snakes[i]:getName()))
                             else
                                 log.debug(string.format('snake "%s" hits itself and dies', self.snakes[i]:getName()))
+                            end
+                            if killed then
+                                break
                             end
                         end
                         self.snakes[i]:die()
