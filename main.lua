@@ -45,6 +45,10 @@ function love.load()
     SFXSnakeDeath = love.audio.newSource('PowerDown1.mp3', 'static')
     BGM = love.audio.newSource("Trashy-Aliens.mp3")
     BGM:setLooping( true )
+    
+    -- Debug logging
+    -- set to 'debug' or 'trace' if you really like logspam (and lag)
+    log.level = 'info'
 
     local options = {
         snakes = {
@@ -54,19 +58,29 @@ function love.load()
                 url = ''
             },]]
             {
-                id = '97d0f99f-8bff-4d53-9e65-9f4d25cc6527',
-                name = 'snake1',
+                id = '3d2f2b54-6c65-402f-b1ea-75b72d2ccbfb',
+                name = 'moxuz/Python-Battlesnake-AI',
                 url = 'http://localhost:5000'
             },
             {
                 id = 'f729b53e-3477-447d-b07e-c79d7e326c82',
-                name = 'snake2',
+                name = 'jennifertigner/battlesnake-2016',
                 url = 'http://localhost:5001'
             },
             {
                 id = 'ae68ef2a-2fc7-47a0-8b6b-cc7ae5b80d66',
-                name = 'snake3',
+                name = 'zevisert/battlesnake2016',
                 url = 'http://localhost:5002'
+            },
+            {
+                id = '039b3cce-ce9e-4263-b568-9dadf9cf6ee5',
+                name = 'The Mutaneers', -- omnistegan/battlesnake_advanced
+                url = 'http://localhost:5003'
+            },
+            {
+                id = 'd1ed0f87-8a13-445f-a9ed-b7064f7858e0',
+                name = 'mitchellri/snakes_on_a_biplane',
+                url = 'http://localhost:5004'
             }
         }
     }

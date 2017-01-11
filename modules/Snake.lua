@@ -38,7 +38,7 @@ function Snake.new( opt )
     self.direction = opt.direction or love.math.random(4)
     
     -- Starting length
-    self.length = 1
+    self.length = opt.length or 1
     
     -- Starting health
     self.health = 100

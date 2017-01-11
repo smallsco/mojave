@@ -216,9 +216,35 @@ function Game:update( dt )
             end
         end
         
-        -- FIXME: implement case where two snakes move into the same position
-        -- simultaneously... right now this glitches out the game as you can
-        -- end up with multiple snakes occupying the same space!
+        -- Handle head-to-head collisions
+        for i = 1, #self.snakes do
+            if self.snakes[i]:isAlive() then
+                for j = i+1, #self.snakes do
+                    if self.snakes[j]:isAlive() then
+                        local i_x, i_y = self.snakes[i]:getNextPosition()
+                        local j_x, j_y = self.snakes[j]:getNextPosition()
+                        if i_x == j_x and i_y == j_y then
+                            log.debug(string.format('head to head collision between "%s" and "%s"', self.snakes[i]:getName(), self.snakes[j]:getName()))
+                            local len_i = self.snakes[i]:getLength()
+                            local len_j = self.snakes[j]:getLength()
+                            if len_i > len_j then
+                                log.debug(string.format('snake "%s" is shorter and dies', self.snakes[j]:getName()))
+                                self.snakes[i]:kill(self.snakes[j])
+                                self.snakes[j]:die()
+                            elseif len_i < len_j then
+                                log.debug(string.format('snake "%s" is shorter and dies', self.snakes[i]:getName()))
+                                self.snakes[j]:kill(self.snakes[i])
+                                self.snakes[i]:die()
+                            else
+                                log.debug(string.format('snakes "%s" and "%s" are the same length and both die', self.snakes[i]:getName(), self.snakes[j]:getName()))
+                                self.snakes[i]:die()
+                                self.snakes[j]:die()
+                            end
+                        end
+                    end
+                end
+            end
+        end
         
         -- Inspect the tile at each snake's next position
         for i = 1, #self.snakes do
@@ -234,7 +260,7 @@ function Game:update( dt )
                     -- Get the tile
                     local tile = self.map:getTile( x, y )
                     
-                    if tile == Map.TILE_HEAD or tile == Map.TILE_TAIL then
+                    if tile == Map.TILE_TAIL then
                         -- find the snake we ran into and KILL IT
                         local killed = false
                         for j = 1, #self.snakes do
@@ -247,7 +273,7 @@ function Game:update( dt )
                                         break
                                     end
                                 end
-                                log.debug(string.format('snake "%s" hits another snake and dies', self.snakes[i]:getName()))
+                                log.debug(string.format('snake "%s" hits another snake tail and dies', self.snakes[i]:getName()))
                             else
                                 log.debug(string.format('snake "%s" hits itself and dies', self.snakes[i]:getName()))
                             end
