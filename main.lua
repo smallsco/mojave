@@ -60,11 +60,6 @@ function love.load()
             {
                 id = '3d2f2b54-6c65-402f-b1ea-75b72d2ccbfb',
                 name = 'moxuz/Python-Battlesnake-AI',
-                url = 'http://localhost:5000'
-            },
-            {
-                id = 'f729b53e-3477-447d-b07e-c79d7e326c82',
-                name = 'jennifertigner/battlesnake-2016',
                 url = 'http://localhost:5001'
             },
             {

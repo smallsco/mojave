@@ -143,7 +143,7 @@ function Game:getState()
             health = self.snakes[i]:getHealth(),
             coords = convert_coordinates(self.snakes[i]:getHistory(), 'topython'),
             kills = self.snakes[i]:getKills(),
-            food = self.snakes[i]:getLength(),
+            food = self.snakes[i]:getLength(),  -- FIXME: length != food, due to kills
             gold = self.snakes[i]:getGold()
         })
     end
@@ -224,19 +224,19 @@ function Game:update( dt )
                         local i_x, i_y = self.snakes[i]:getNextPosition()
                         local j_x, j_y = self.snakes[j]:getNextPosition()
                         if i_x == j_x and i_y == j_y then
-                            log.debug(string.format('head to head collision between "%s" and "%s"', self.snakes[i]:getName(), self.snakes[j]:getName()))
+                            log.info(string.format('head to head collision between "%s" and "%s"', self.snakes[i]:getName(), self.snakes[j]:getName()))
                             local len_i = self.snakes[i]:getLength()
                             local len_j = self.snakes[j]:getLength()
                             if len_i > len_j then
-                                log.debug(string.format('snake "%s" is shorter and dies', self.snakes[j]:getName()))
+                                log.info(string.format('snake "%s" is shorter and dies', self.snakes[j]:getName()))
                                 self.snakes[i]:kill(self.snakes[j])
                                 self.snakes[j]:die()
                             elseif len_i < len_j then
-                                log.debug(string.format('snake "%s" is shorter and dies', self.snakes[i]:getName()))
+                                log.info(string.format('snake "%s" is shorter and dies', self.snakes[i]:getName()))
                                 self.snakes[j]:kill(self.snakes[i])
                                 self.snakes[i]:die()
                             else
-                                log.debug(string.format('snakes "%s" and "%s" are the same length and both die', self.snakes[i]:getName(), self.snakes[j]:getName()))
+                                log.info(string.format('snakes "%s" and "%s" are the same length and both die', self.snakes[i]:getName(), self.snakes[j]:getName()))
                                 self.snakes[i]:die()
                                 self.snakes[j]:die()
                             end
@@ -255,7 +255,7 @@ function Game:update( dt )
                     -- If the next coordinate is off the game board, there's no tile
                     -- to inspect. Kill the snake.
                     self.snakes[i]:die()
-                    log.debug(string.format('snake "%s" hits the edge of the world and dies', self.snakes[i]:getName()))
+                    log.info(string.format('snake "%s" hits the edge of the world and dies', self.snakes[i]:getName()))
                 else
                     -- Get the tile
                     local tile = self.map:getTile( x, y )
@@ -273,9 +273,9 @@ function Game:update( dt )
                                         break
                                     end
                                 end
-                                log.debug(string.format('snake "%s" hits another snake tail and dies', self.snakes[i]:getName()))
+                                log.info(string.format('snake "%s" hits another snake tail and dies', self.snakes[i]:getName()))
                             else
-                                log.debug(string.format('snake "%s" hits itself and dies', self.snakes[i]:getName()))
+                                log.info(string.format('snake "%s" hits itself and dies', self.snakes[i]:getName()))
                             end
                             if killed then
                                 break
@@ -285,7 +285,7 @@ function Game:update( dt )
                     elseif tile == Map.TILE_WALL then
                         -- If it's a wall, the snake dies.
                         self.snakes[i]:die()
-                        log.debug(string.format('snake "%s" hits a wall and dies', self.snakes[i]:getName()))
+                        log.info(string.format('snake "%s" hits a wall and dies', self.snakes[i]:getName()))
                     elseif tile == Map.TILE_FOOD then
                         -- If the tile contains food, the snake eats.
                         self.snakes[i]:eatFood()
@@ -318,7 +318,7 @@ function Game:update( dt )
                 -- If a snake's health is 0, that snake dies.
                 if self.snakes[i]:getHealth() == 0 then
                     self.snakes[i]:die()
-                    log.debug(string.format('snake "%s" runs out of health and dies', self.snakes[i]:getName()))
+                    log.info(string.format('snake "%s" runs out of health and dies', self.snakes[i]:getName()))
                 end
             end
             
@@ -368,6 +368,7 @@ function Game:update( dt )
         end
         
         -- Add a wall to the map at a random location if it's time
+        -- FIXME: never spawn a wall directly in front of a snake
         if self.mode == 'advanced' and self.turn >= self.wall_turn_start and self.turn % self.wall_turns == 0 then
             local wall_x, wall_y = self.map:setTileAtRandomFreeLocation( Map.TILE_WALL )
             table.insert(self.walls, {wall_x, wall_y})

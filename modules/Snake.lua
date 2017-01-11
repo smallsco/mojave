@@ -65,6 +65,11 @@ end
 
 function Snake:api( endpoint, data )
 
+    -- FIXME? In the real battle snake game, requests must complete in 1s.
+    -- But that's not realistic if you're running 5 or more snake servers
+    -- on your development laptop, where they can't respond as fast as they
+    -- would when running in the cloud. So we don't enforce that limit here.
+
     log.debug(string.format('snake "%s" api call to "%s" endpoint', self.name, endpoint))
     log.trace('POST data: ' .. data)
     if self.url == '' then
