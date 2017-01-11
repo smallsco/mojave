@@ -127,5 +127,28 @@ function Map:setTileAtRandomFreeLocation( value )
     return x, y
 end
 
+--- Sets a tile of a specific type at a random, safe location
+function Map:setTileAtRandomSafeLocation( value, badCoords )
+    
+    local x, y, not_bad_coord, tile_is_free
+    repeat
+        not_bad_coord = true
+        tile_is_free = true
+        x = love.math.random(self.width)
+        y = love.math.random(self.height)
+        for i = 1, #badCoords do
+            if badCoords[i][1] == x and badCoords[i][2] == y then
+                not_bad_coord = false
+            end
+        end
+        if self.tiles[y][x] ~= Map.TILE_FREE then
+            tile_is_free = false
+        end
+    until not_bad_coord == true and tile_is_free == true
+    
+    self.tiles[y][x] = value
+    return x, y
+end
+
 
 return Map

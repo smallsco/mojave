@@ -366,9 +366,18 @@ function Game:update( dt )
         end
         
         -- Add a wall to the map at a random location if it's time
-        -- FIXME: never spawn a wall directly in front of a snake
         if self.mode == 'advanced' and self.turn >= self.wall_turn_start and self.turn % self.wall_turns == 0 then
-            local wall_x, wall_y = self.map:setTileAtRandomFreeLocation( Map.TILE_WALL )
+            local badCoords = {}
+            for i = 1, #self.snakes do
+                if self.snakes[i]:isAlive() then
+                    local x, y = self.snakes[i]:getPosition()
+                    table.insert(badCoords, {x+1,y})
+                    table.insert(badCoords, {x-1,y})
+                    table.insert(badCoords, {x,y+1})
+                    table.insert(badCoords, {x,y-1})
+                end
+            end
+            local wall_x, wall_y = self.map:setTileAtRandomSafeLocation( Map.TILE_WALL, badCoords )
             table.insert(self.walls, {wall_x, wall_y})
             log.debug( string.format( 'added wall at (%s, %s)', wall_x, wall_y ) )
         end
