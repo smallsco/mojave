@@ -254,10 +254,14 @@ function Snake:eatFood()
     end
     
     -- Grow
-    self.length = self.length + 1
+    self:grow()
     
     -- TODO: Increase score
     
+end
+
+function Snake:grow()
+    self.length = self.length + 1
 end
 
 function Snake:setDirection( value )

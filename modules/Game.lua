@@ -101,7 +101,7 @@ function Game:draw()
     -- Draw the snake stats
     local x = pixelWidth - (pixelWidth * 0.2) + 15
     local wrap = pixelWidth - (pixelWidth * 0.8) - 30
-    local str = ""
+    local str = "Turn: " .. self.turn .. "\n\n"
     for i = 1, #self.snakes do
         str = str .. self.snakes[i]:getName() .. "\n"
         str = str .. "\tAlive: " .. tostring(self.snakes[i]:isAlive()) .. "\n"
@@ -211,6 +211,10 @@ function Game:update( dt )
         for i = 1, #self.snakes do
             log.debug(string.format('snake "%s" health: %s', self.snakes[i]:getName(), self.snakes[i]:getHealth()))
             if self.snakes[i]:isAlive() then
+                -- Snakes grow on the first two turns of the game
+                if self.turn == 1 or self.turn == 2 then
+                    self.snakes[i]:grow()
+                end
                 self.snakes[i]:api('move', json.encode(self:getState()))
                 self.snakes[i]:calculateNextPosition()
             end
@@ -403,7 +407,8 @@ function Game:update( dt )
         if #livingSnakes == 0 then
             log.info('Game Over, all snakes are dead')
             self:stop()
-        elseif #livingSnakes == 1 and not humanPlayer then
+        -- FIXME: right now we do not end the game if robosnake is playing, so we can test it without other snakes around
+        elseif #livingSnakes == 1 and not humanPlayer and self.snakes[livingSnakes[1]]:getId() ~= 'robosnake' then
             log.info(string.format('Game over, last snake remaining is "%s"', self.snakes[livingSnakes[1]]:getName()))
             self:stop()
         end
