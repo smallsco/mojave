@@ -6,6 +6,34 @@ setmetatable( Game, {
   end,
 })
 
+local biggestFont = love.graphics.newFont(48)
+
+-- Convert an x,y coordinate pair between 0 and 1 indexing
+local function convert_coordinates(tbl, direction)
+    if next(tbl) == nil then
+        return {}
+    end
+    local newtbl = {}
+    if type(tbl[1]) == 'table' then
+        for i = 1, #tbl do
+            newtbl[i] = convert_coordinates(tbl[i], direction)
+        end
+    else
+        if direction == 'topython' then
+            newtbl = {
+                tbl[1] - 1,     -- x coordinate
+                tbl[2] - 1      -- y coordinate
+            }
+        elseif direction == 'tolua' then
+            newtbl = {
+                tbl[1] + 1,     -- x coordinate
+                tbl[2] + 1      -- y coordinate
+            }
+        end
+    end
+    return newtbl
+end
+
 
 --- Constructor / Factory Function
 -- @param table opt A table containing initialization options
@@ -430,6 +458,17 @@ function Game:update( dt )
             end
         end
         
+    else
+        suit.layout:reset(250,150)
+        suit.Label("GAME OVER", {font=biggestFont}, suit.layout:row(300,30))
+        suit.layout:row()
+        if suit.Button("Return to Menu", suit.layout:row()).hit then
+            activeGame = nil
+        end
+        suit.layout:row()
+        if suit.Button("Exit", suit.layout:row()).hit then
+            love.event.quit()
+        end
     end -- if self.running
 end -- function
 
