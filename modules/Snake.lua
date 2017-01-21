@@ -146,8 +146,10 @@ function Snake:incrAge()
 end
 
 function Snake:incrGold()
-    SFXSnakeGold:stop()
-    SFXSnakeGold:play()
+    if PLAY_AUDIO then
+        SFXSnakeGold:stop()
+        SFXSnakeGold:play()
+    end
     self.gold = self.gold + 1
 end
 
@@ -219,8 +221,10 @@ function Snake:kill(othersnake)
 end
 
 function Snake:die()
-    SFXSnakeDeath:stop()
-    SFXSnakeDeath:play()
+    if PLAY_AUDIO then
+        SFXSnakeDeath:stop()
+        SFXSnakeDeath:play()
+    end
     self.status = 'dead'
 end
 
@@ -244,8 +248,10 @@ end
 
 function Snake:eatFood()
 
-    SFXSnakeFood:stop()
-    SFXSnakeFood:play()
+    if PLAY_AUDIO then
+        SFXSnakeFood:stop()
+        SFXSnakeFood:play()
+    end
 
     -- Restore HP
     self.health = self.health + 30

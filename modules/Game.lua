@@ -179,7 +179,9 @@ function Game:start()
     for i = 1, #self.snakes do
         self.snakes[i]:api('start', json.encode(self:getState()))
     end
-    BGM:play()
+    if PLAY_AUDIO then
+        BGM:play()
+    end
     self.running = true
     log.info('game started')
 end
@@ -189,7 +191,9 @@ function Game:stop()
         self.snakes[i]:api('end', json.encode(self:getState()))
     end
     self.running = false
-    BGM:stop()
+    if PLAY_AUDIO then
+        BGM:stop()
+    end
     log.info('game stopped')
 end
 
@@ -264,7 +268,11 @@ function Game:update( dt )
                     -- Get the tile
                     local tile = self.map:getTile( x, y )
                     
-                    if tile == Map.TILE_TAIL then
+                    -- FIXME: seems to be an edge case where head-to-head collision detection is failing.
+                    -- checking for Map.TILE_HEAD here works around it, but gives an unfair advantage to
+                    -- the snake being hit.
+                    
+                    if tile == Map.TILE_HEAD or tile == Map.TILE_TAIL then
                         -- find the snake we ran into and KILL IT
                         local suicide = true
                         for j = 1, #self.snakes do
@@ -408,7 +416,8 @@ function Game:update( dt )
             log.info('Game Over, all snakes are dead')
             self:stop()
         -- FIXME: right now we do not end the game if robosnake is playing, so we can test it without other snakes around
-        elseif #livingSnakes == 1 and not humanPlayer and self.snakes[livingSnakes[1]]:getId() ~= 'robosnake' then
+        --elseif #livingSnakes == 1 and not humanPlayer and self.snakes[livingSnakes[1]]:getId() ~= 'robosnake' then
+        elseif #livingSnakes == 1 and not humanPlayer then
             log.info(string.format('Game over, last snake remaining is "%s"', self.snakes[livingSnakes[1]]:getName()))
             self:stop()
         end
@@ -416,7 +425,7 @@ function Game:update( dt )
         -- If any snake has 5 gold, that snake wins!
         for i = 1, #self.snakes do
             if self.snakes[i]:getGold() >= self.gold_to_win then
-                log.info(string.format('Game over, "%s" took home all the gold!', self.snakes[livingSnakes[1]]:getName()))
+                log.info(string.format('Game over, "%s" took home all the gold!', self.snakes[livingSnakes[i]]:getName()))
                 self:stop()
             end
         end
