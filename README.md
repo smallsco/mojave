@@ -5,6 +5,11 @@ Mojave is a third-party, open-source arena / gameboard / client for [Battlesnake
 The intent is to allow companies to get a head start on building their bounty snakes, and for competitors to try out strategies prior to the competition.
 
 
+## Building
+Install [love-release](https://github.com/MisterDA/love-release), then run `love-release -W -M` from the `mojave` directory. This will create a new folder, `releases`, containing zipped binaries for Win32, Win64, and Mac OS X.
+
+Or, you can run the game directly using [LÖVE](http://www.love2d.org). Download and install version 0.10.2, navigate to the `mojave` directory, and run `love --fused .`. The `--fused` parameter is important, without it the game's data directory path will not be set correctly.
+
 ## Usage
 
 Launching the app for the first time will create a `snakes.json` file located in the game's data directory.
@@ -97,16 +102,22 @@ The first snake listed in `snakes.json` may be controlled by the arena operator 
 ## Credits
 
 DKJson  
-Copyright (c)2010-2013 David Heiko Kolf  
+Copyright ©2010-2013 David Heiko Kolf  
 http://dkolf.de/src/dkjson-lua.fsl/
 
 Log.lua  
-Copyright (c)2014 rxi  
+Copyright ©2014 rxi  
 https://github.com/rxi/log.lua
+
+LÖVE  
+Copyright ©2006-2017 LÖVE Development Team  
+https://love2d.org/
 
 Music and Sound Effects by Eric Matyas  
 http://www.soundimage.org
 
 Simple User Interface Toolkit  
-Copyright (c)2016 Matthias Richter  
+Copyright ©2016 Matthias Richter  
 https://github.com/vrld/SUIT
+
+And lots of love to [SendWithUs](http://www.sendwithus.com) for creating the [Battlesnake](http://www.battlesnake.io) AI contest :)

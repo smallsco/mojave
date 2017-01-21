@@ -53,15 +53,23 @@ function Menu.update( dt )
         love.event.quit()
     end
     
-    suit.layout:reset(400,50)
+    suit.layout:reset(500,50)
     
-    suit.Label("Battle Snakes", {font=medFont}, suit.layout:row(200,30))
+    suit.Label("Snakes in Match", {font=medFont}, suit.layout:row(200,30))
     suit.layout:row()
     for i = 1, #snakesJson do
-        suit.Label(snakesJson[i]['name'], suit.layout:row())
+        suit.Label(snakesJson[i]['name'], suit.layout:row(200,20))
         suit.Label(snakesJson[i]['url'], suit.layout:row())
         suit.layout:row()
     end
+    
+    suit.layout:reset(100,525)
+    suit.Label("©2017 Scott Small", suit.layout:row(600,20))
+    suit.Label("Music and Sound Effects by Eric Matyas - www.soundimage.org", suit.layout:row())
+    suit.Label("Made with LÖVE - www.love2d.org", suit.layout:row())
+    
+    suit.layout:reset(750,575)
+    suit.Label(MOJAVE_VERSION, suit.layout:row(50,20))
     
 end
 
