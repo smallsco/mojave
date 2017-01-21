@@ -1,0 +1,27 @@
+[
+    {
+        "id": "3d2f2b54-6c65-402f-b1ea-75b72d2ccbfb",
+        "name": "moxuz/Python-Battlesnake-AI",
+        "url": "http://localhost:5001"
+    },
+    {
+        "id": "ae68ef2a-2fc7-47a0-8b6b-cc7ae5b80d66",
+        "name": "zevisert/battlesnake2016",
+        "url": "http://localhost:5002"
+    },
+    {
+        "id": "039b3cce-ce9e-4263-b568-9dadf9cf6ee5",
+        "name": "The Mutaneers",
+        "url": "http://localhost:5003"
+    },
+    {
+        "id": "d1ed0f87-8a13-445f-a9ed-b7064f7858e0",
+        "name": "mitchellri/snakes_on_a_biplane",
+        "url": "http://localhost:5004"
+    },
+    {
+        "id": "robosnake",
+        "name": "Redbrick Robosnake",
+        "url": "http://35.166.230.246"
+    }
+]
