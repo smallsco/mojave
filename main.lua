@@ -27,6 +27,7 @@ Menu = require 'modules.Menu'
 Snake = require 'modules.Snake'
 
 
+--- Application bootstrap function
 function love.load()
 
     love.window.setTitle('Mojave')
@@ -47,16 +48,19 @@ function love.load()
     -- set to 'debug' or 'trace' if you really like logspam (and lag)
     log.level = 'info'
     
+    -- Load list of snakes from snakes.json
     local pos, err
     snakesJson = love.filesystem.read( 'snakes.json' )
     snakesJson, pos, err = json.decode( snakesJson )
     if not snakesJson then
-        log.error(err)
+        log.error('Unable to load snakes.json: ' .. err)
         error(err)
     end
     
 end
 
+--- Update loop
+-- @param dt Delta Time
 function love.update( dt )
     if activeGame then
         activeGame:update( dt )
@@ -65,6 +69,7 @@ function love.update( dt )
     end
 end
 
+--- Render loop
 function love.draw()
     if activeGame then
         activeGame:draw()
@@ -72,7 +77,7 @@ function love.draw()
     suit.draw()
 end
 
--- For debugging - let the keyboard control snake #1
+--- Keypress Event Handler
 function love.keypressed( key )
     if activeGame then
         activeGame:keypressed( key )

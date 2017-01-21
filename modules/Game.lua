@@ -8,7 +8,10 @@ setmetatable( Game, {
 
 local biggestFont = love.graphics.newFont(48)
 
--- Convert an x,y coordinate pair between 0 and 1 indexing
+--- Convert an x,y coordinate pair between 0 and 1 indexing
+-- @param tbl The coordinate pair to convert
+-- @param direction The direction in which to perform the conversion
+-- @return The converted coordinate pair
 local function convert_coordinates(tbl, direction)
     if next(tbl) == nil then
         return {}
@@ -113,6 +116,7 @@ function Game.new( opt )
     
 end
 
+--- Game render loop
 function Game:draw()
 
     local pixelWidth, pixelHeight = love.graphics.getDimensions()
@@ -157,6 +161,8 @@ function Game:draw()
     
 end
 
+--- Gets the current state of the game, used in API calls to snakes
+-- @return A table containing the game state
 function Game:getState()
     local snakes = {}
     
@@ -189,6 +195,8 @@ function Game:getState()
     }
 end
 
+--- Keypress handler - allows the arena operator to control snake #1 with the arrow keys for debugging
+-- @param key The key that was pressed
 function Game:keypressed( key )
     if self.running then
         if key == 'up' then
@@ -203,6 +211,7 @@ function Game:keypressed( key )
     end
 end
 
+--- Starts the game's update loop
 function Game:start()
     for i = 1, #self.snakes do
         self.snakes[i]:api('start', json.encode(self:getState()))
@@ -214,6 +223,7 @@ function Game:start()
     log.info('game started')
 end
 
+--- Stops the game's update loop
 function Game:stop()
     for i = 1, #self.snakes do
         self.snakes[i]:api('end', json.encode(self:getState()))
@@ -225,6 +235,8 @@ function Game:stop()
     log.info('game stopped')
 end
 
+--- Update Loop
+-- @param dt Delta Time
 function Game:update( dt )
     if self.running then
     
@@ -443,8 +455,6 @@ function Game:update( dt )
         if #livingSnakes == 0 then
             log.info('Game Over, all snakes are dead')
             self:stop()
-        -- FIXME: right now we do not end the game if robosnake is playing, so we can test it without other snakes around
-        --elseif #livingSnakes == 1 and not humanPlayer and self.snakes[livingSnakes[1]]:getId() ~= 'robosnake' then
         elseif #livingSnakes == 1 and not humanPlayer then
             log.info(string.format('Game over, last snake remaining is "%s"', self.snakes[livingSnakes[1]]:getName()))
             self:stop()

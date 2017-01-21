@@ -7,6 +7,8 @@ local audioCheckbox = {
     text = 'Play Audio'
 }
 
+--- Menu update loop
+-- @param dt Delta Time (unused)
 function Menu.update( dt )
     
     suit.layout:reset(100,50)

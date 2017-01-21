@@ -63,12 +63,19 @@ function Snake.new( opt )
     
 end
 
+--- Executes a HTTP request to the BattleSnake server
+--- (remember, the arena is a *client*, and the snakes are *servers*
+--- contrary to what you might expect!)
+-- @param endpoint The snake server's HTTP API endpoint
+-- @param data The data to send to the endpoint
 function Snake:api( endpoint, data )
 
-    -- FIXME? In the real battle snake game, requests must complete in 1s.
-    -- But that's not realistic if you're running 5 or more snake servers
-    -- on your development laptop, where they can't respond as fast as they
-    -- would when running in the cloud. So we don't enforce that limit here.
+    --[[
+        FIXME? In the real battle snake game, requests must complete in 1s.
+        But that's not realistic if you're running 5 or more snake servers
+        on your development laptop, where they can't respond as fast as they
+        would when running in the cloud. So we don't enforce that limit here.
+    ]]
 
     log.debug(string.format('snake "%s" api call to "%s" endpoint', self.name, endpoint))
     log.trace('POST data: ' .. data)
@@ -114,6 +121,8 @@ function Snake:api( endpoint, data )
 
 end
 
+--- Given the snake's direction, figure out the next tile on the game board
+--- where that snake will be moving to.
 function Snake:calculateNextPosition()
 
     if self.direction == Snake.DIRECTION_NORTH then
@@ -133,93 +142,17 @@ function Snake:calculateNextPosition()
 
 end
 
+--- Clear the snake's history (called when the snake dies)
 function Snake:clearHistory()
     self.history = {}
 end
 
+--- Decrements the snake's health by one
 function Snake:decrementHealth()
     self.health = self.health - 1
 end
 
-function Snake:incrAge()
-    self.age = self.age + 1
-end
-
-function Snake:incrGold()
-    if PLAY_AUDIO then
-        SFXSnakeGold:stop()
-        SFXSnakeGold:play()
-    end
-    self.gold = self.gold + 1
-end
-
-function Snake:getAge()
-    return self.age
-end
-
-function Snake:getGold()
-    return self.gold
-end
-
-function Snake:getHealth()
-    return self.health
-end
-
-function Snake:getHistory()
-    return self.history
-end
-
-function Snake:getId()
-    return self.id
-end
-
-function Snake:getKills()
-    return self.kills
-end
-
-function Snake:getLength()
-    return self.length
-end
-
-function Snake:getName()
-    return self.name
-end
-
-function Snake:getPosition()
-    return self.x, self.y
-end
-
-function Snake:getNextPosition()
-    return self.next_x, self.next_y
-end
-
-function Snake:getTaunt()
-    return self.taunt
-end
-
-function Snake:getURL()
-    return self.url
-end
-
-function Snake:setTaunt( taunt )
-    self.taunt = taunt
-end
-
-function Snake:isAlive()
-    return self.status == 'alive'
-end
-
-function Snake:kill(othersnake)
-    -- If Snake A runs into Snake B's tail...
-    -- Snake A dies
-    -- Snake B is credited with a kill
-    -- Snake B's life is reset to 100
-    -- Snake B's length is increased by 50% of snake A's length (rounded down)    
-    self.kills = self.kills + 1
-    self.health = 100
-    self.length = self.length + math.floor(othersnake:getLength() / 2)
-end
-
+--- Called when this snake is killed
 function Snake:die()
     if PLAY_AUDIO then
         SFXSnakeDeath:stop()
@@ -228,24 +161,7 @@ function Snake:die()
     self.status = 'dead'
 end
 
-function Snake:moveNextPosition()
-
-    local trimTail = false
-    if #self.history >= self.length then
-        trimTail = true
-    end
-
-    self.x = self.next_x
-    self.y = self.next_y
-    table.insert(self.history, 1, {self.x, self.y})
-    if trimTail then
-        return table.remove(self.history)
-    else
-        return nil
-    end
-end
-
-
+--- Called when this snake passes over a food tile
 function Snake:eatFood()
 
     if PLAY_AUDIO then
@@ -266,10 +182,138 @@ function Snake:eatFood()
     
 end
 
+--- Increments the snake's age by one
+function Snake:incrAge()
+    self.age = self.age + 1
+end
+
+--- Increments the snake's gold by one
+function Snake:incrGold()
+    if PLAY_AUDIO then
+        SFXSnakeGold:stop()
+        SFXSnakeGold:play()
+    end
+    self.gold = self.gold + 1
+end
+
+--- Getter function for the snake's age
+-- @return The snake's age
+function Snake:getAge()
+    return self.age
+end
+
+--- Getter function for the snake's gold
+-- @return The snake's gold
+function Snake:getGold()
+    return self.gold
+end
+
+--- Getter function for the snake's health
+-- @return The snake's health
+function Snake:getHealth()
+    return self.health
+end
+
+--- Getter function for the snake's history
+-- @return The snake's history
+function Snake:getHistory()
+    return self.history
+end
+
+--- Getter function for the snake's id
+-- @return The snake's id
+function Snake:getId()
+    return self.id
+end
+
+--- Getter function for the snake's kills
+-- @return The snake's kills
+function Snake:getKills()
+    return self.kills
+end
+
+--- Getter function for the snake's length
+-- @return The snake's length
+function Snake:getLength()
+    return self.length
+end
+
+--- Getter function for the snake's name
+-- @return The snake's name
+function Snake:getName()
+    return self.name
+end
+
+--- Getter function for the snake's current position
+-- @return The x and y coordinates of the snake's head
+function Snake:getPosition()
+    return self.x, self.y
+end
+
+--- Getter function for the snake's next position
+-- @return The x and y coordinates of the snake's next planned move
+function Snake:getNextPosition()
+    return self.next_x, self.next_y
+end
+
+--- Getter function for the snake's current taunt
+-- @return The snake's current taunt
+function Snake:getTaunt()
+    return self.taunt
+end
+
+--- Getter function for the snake's API endpoint
+-- @return The snake's API endpoint URL
+function Snake:getURL()
+    return self.url
+end
+
+--- Increments this snake's length by one
 function Snake:grow()
     self.length = self.length + 1
 end
 
+--- Helper function to get the snake's living status
+-- @return true if the snake is alive, otherwise false
+function Snake:isAlive()
+    return self.status == 'alive'
+end
+
+--- Called when this snake kills another snake
+-- @param othersnake The dead snake's instance (used to get its' length)
+function Snake:kill(othersnake)
+    -- If Snake A runs into Snake B's tail...
+    -- Snake A dies
+    -- Snake B is credited with a kill
+    -- Snake B's life is reset to 100
+    -- Snake B's length is increased by 50% of snake A's length (rounded down)    
+    self.kills = self.kills + 1
+    self.health = 100
+    self.length = self.length + math.floor(othersnake:getLength() / 2)
+end
+
+--- Moves this snake on the game board from its' current position
+--- to its' next position
+-- @return The tile which its' tail is vacating (if it didn't eat this turn)
+function Snake:moveNextPosition()
+
+    local trimTail = false
+    if #self.history >= self.length then
+        trimTail = true
+    end
+
+    self.x = self.next_x
+    self.y = self.next_y
+    table.insert(self.history, 1, {self.x, self.y})
+    if trimTail then
+        return table.remove(self.history)
+    else
+        return nil
+    end
+end
+
+--- Sets this snake's direction
+-- @param value The direction to move the snake in
 function Snake:setDirection( value )
     if value == 'north' then
         self.direction = Snake.DIRECTION_NORTH
@@ -283,5 +327,10 @@ function Snake:setDirection( value )
     log.debug( string.format( 'snake "%s" direction changed to %s', self.name, value ) )
 end
 
+--- Setter function for the snake's taunt
+-- @param taunt The new taunt
+function Snake:setTaunt( taunt )
+    self.taunt = taunt
+end
 
 return Snake

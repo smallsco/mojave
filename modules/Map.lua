@@ -95,27 +95,37 @@ function Map:draw()
 
 end
 
---- Returns the height of the game board
+--- Getter function for the game board height
+-- @return The height of the game board
 function Map:getHeight()
     return self.height
 end
 
 --- Returns the value of a tile
+-- @param x The X coordinate of the game board
+-- @param y The Y coordinate of the game board
+-- @return The value of the tile at the given X and Y coordinates
 function Map:getTile( x, y )
     return self.tiles[y][x]
 end
 
---- Returns the width of the game board
+--- Getter function for the game board width
+-- @return The width of the game board
 function Map:getWidth()
     return self.width
 end
 
 --- Sets the value of a tile
+-- @param x The X coordinate of the game board
+-- @param y The Y coordinate of the game board
+-- @param value The value to set the tile to
 function Map:setTile( x, y, value )
     self.tiles[y][x] = value
 end
 
 --- Sets a tile of a specific type at a random, free location
+-- @param value The value to set the tile to
+-- @return The x and y coordinates that were selected
 function Map:setTileAtRandomFreeLocation( value )
     local x, y
     repeat
@@ -128,6 +138,9 @@ function Map:setTileAtRandomFreeLocation( value )
 end
 
 --- Sets a tile of a specific type at a random, safe location
+-- @param value The value to set the tile to
+-- @oaram badCoords A table of coordinates where this tile cannot be placed
+-- @return The x and y coordinates that were selected
 function Map:setTileAtRandomSafeLocation( value, badCoords )
     
     local x, y, not_bad_coord, tile_is_free
