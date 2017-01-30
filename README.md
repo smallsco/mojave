@@ -91,11 +91,12 @@ The first snake listed in `snakes.json` may be controlled by the arena operator 
 ## Differences from the official arena
 * No support for scoring
 * No support for tiebreakers (the game can end in a draw if the last two snakes are the same length and have a head-on-head collision)
-* No support for custom snake colors
-* No support for custom snake head images
+* No support for custom snake colors on the board
+* No support for custom snake head images on the board
 * Snake server API response time is not restricted
 * Gold can spawn anywhere on the board
 * Gold can spawn when there's already gold on the board
+* Snakes occasionally spawn on the same square, leading to hilarity
 * Probably other bugs and inconsistencies...
 
 

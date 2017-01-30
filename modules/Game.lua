@@ -62,7 +62,7 @@ function Game.new( opt )
     self.wall_turn_start = opt.wall_turn_start or 50
     self.wall_turns = opt.wall_turns or 5
     
-    self.gold_turns = opt.gold_turns or 75
+    self.gold_turns = opt.gold_turns or 100
     self.gold_to_win = opt.gold_to_win or 5
     
     self.map = Map()
@@ -100,6 +100,8 @@ function Game.new( opt )
             x = x,
             y = y
         })
+        snake:api('')  -- root endpoint, get color and head url
+        
         table.insert(snakes, snake)
         log.debug( string.format(
             'added snake "%s" at (%s, %s)',
@@ -130,12 +132,21 @@ function Game:draw()
     love.graphics.rectangle('line', -3, -3, (pixelWidth*0.8)+8, (pixelHeight*0.8)+8)
     love.graphics.setLineWidth(1)
     
+    -- FIXME? Not sure why this is necessary
+    -- but without it, alpha does not get set correctly in statsText below
+    -- resulting in very dark colors
+    love.graphics.setColor(255,255,255,255)
+    
     -- Draw the snake stats
     local x = pixelWidth - (pixelWidth * 0.2) + 15
     local wrap = pixelWidth - (pixelWidth * 0.8) - 30
-    local str = "Turn: " .. self.turn .. "\n\n"
+    local statsText = {
+        {0, 255, 0, 255},
+        "Turn: " .. self.turn .. "\n\n"
+    }
     for i = 1, #self.snakes do
-        str = str .. self.snakes[i]:getName() .. "\n"
+        table.insert( statsText, self.snakes[i]:getColor() )
+        local str = self.snakes[i]:getName() .. "\n"
         str = str .. "\tAlive: " .. tostring(self.snakes[i]:isAlive()) .. "\n"
         str = str .. "\tAge: " .. self.snakes[i]:getAge() .. "\n"
         str = str .. "\tGold: " .. self.snakes[i]:getGold() .. "\n"
@@ -143,21 +154,26 @@ function Game:draw()
         str = str .. "\tKills: " .. self.snakes[i]:getKills() .. "\n"
         str = str .. "\tLength: " .. self.snakes[i]:getLength() .. "\n"
         str = str .. "\n"
+        table.insert( statsText, str )
     end
-    love.graphics.setColor(0, 255, 0, 255)
-    love.graphics.printf(str, x, 10, wrap)
+    love.graphics.printf(statsText, x, 10, wrap)
     
     -- Draw the taunts
     local x = 10
     local y = pixelHeight - (pixelHeight * 0.2) + 15
     local wrap = pixelWidth - 30
-    local str = ""
     for i = 1, #self.snakes do
-        str = str .. self.snakes[i]:getName() .. ": "
-        str = str .. self.snakes[i]:getTaunt() .. "\n"
+        love.graphics.setColor(255, 255, 255, 255)
+        local xscale, yscale = self.snakes[i]:getHeadScaleFactor()
+        love.graphics.draw(self.snakes[i]:getHead(), x, y, 0, xscale, yscale)
+        local str = self.snakes[i]:getName() .. ": "
+        str = str .. self.snakes[i]:getTaunt()
+        love.graphics.setColor( self.snakes[i]:getColor() )
+        love.graphics.printf(str, x+25, y, wrap)
+        y = y + 25
     end
-    love.graphics.setColor(0, 255, 0, 255)
-    love.graphics.printf(str, x, y, wrap)
+    
+    
     
 end
 

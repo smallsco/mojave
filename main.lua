@@ -13,7 +13,7 @@ a battle snake arena
 ]]
 
 -- Version constant
-MOJAVE_VERSION = '0.1'
+MOJAVE_VERSION = '0.2'
 
 -- Third-party modules
 http = require 'socket.http'
@@ -98,4 +98,10 @@ function love.keypressed( key )
     if activeGame then
         activeGame:keypressed( key )
     end
+    suit.keypressed( key )
+end
+
+--- Forward text input to SUIT
+function love.textinput( t )
+    suit.textinput( t )
 end

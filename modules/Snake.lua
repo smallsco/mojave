@@ -34,11 +34,17 @@ function Snake.new( opt )
     self.next_x = 1
     self.next_y = 1
     
+    -- Default body color
+    self.color = { 255, 0, 0, 255 }
+    
     -- Starting direction
     self.direction = opt.direction or love.math.random(4)
     
     -- Starting length
     self.length = opt.length or 1
+    
+    -- Default head image
+    self.head = nil
     
     -- Starting health
     self.health = 100
@@ -77,40 +83,87 @@ function Snake:api( endpoint, data )
         would when running in the cloud. So we don't enforce that limit here.
     ]]
 
-    log.debug(string.format('snake "%s" api call to "%s" endpoint', self.name, endpoint))
-    log.trace('POST data: ' .. data)
+    if endpoint == '' then
+        log.debug(string.format('snake "%s" api call to info endpoint', self.name))
+    else
+        log.debug(string.format('snake "%s" api call to "%s" endpoint', self.name, endpoint))
+    end
+    
     if self.url == '' then
         log.debug(string.format('snake "%s" is human controlled, ignoring api call', self.name))
         return
     else
+    
         local request_url = self.url .. '/' .. endpoint
         log.trace('Request URL: ' .. request_url)
+        
+        --[[
+            The version of LuaSocket bundled with LÖVE has a bug
+            where the http port will not get added to the Host header,
+            which is a violation of the HTTP spec. Most web servers don't
+            care - however - this breaks Flask, which interprets the
+            spec very strictly and is also used by a lot of snakes.
+            
+            We can work around this by manually parsing the URL,
+            generating a Host header, and explicitly setting it on the request.
+            
+            See https://github.com/diegonehab/luasocket/pull/74 for more info.
+        ]]
+        local parsed = socket.url.parse( request_url )
+        local host = parsed['host']
+        if parsed['port'] then host = host .. ':' .. parsed['port'] end
+        
         local response_body = {}
-        local res, code, response_headers, status = http.request({
-            url = request_url,
-            method = "POST",
-            headers =
-            {
-              ["Content-Type"] = "application/json",
-              ["Content-Length"] = data:len()
-            },
-            source = ltn12.source.string(data),
-            sink = ltn12.sink.table(response_body)
-        })
-        log.trace('Response Code: ' .. code)
+        local res, code, response_headers, status
+        if endpoint == '' then
+            res, code, response_headers, status = http.request({
+                url = request_url,
+                method = "GET",
+                headers =
+                {
+                  ["Content-Type"] = "application/json",
+                  ["Host"] = host
+                },
+                sink = ltn12.sink.table(response_body)
+            })
+        else
+            log.trace('POST data: ' .. data)
+            res, code, response_headers, status = http.request({
+                url = request_url,
+                method = "POST",
+                headers =
+                {
+                  ["Content-Type"] = "application/json",
+                  ["Content-Length"] = data:len(),
+                  ["Host"] = host
+                },
+                source = ltn12.source.string(data),
+                sink = ltn12.sink.table(response_body)
+            })
+        end
         
         -- if the server responded
         if status then
+            log.trace('Response Code: ' .. code)
             log.trace('Response Status: ' .. status)
             log.trace('Response Body: ' .. table.concat(response_body))
             local response_data = json.decode(table.concat(response_body))
             if response_data then
                 if response_data['move'] ~= nil then
-                    log.trace('move to ' .. response_data['move'])
+                    log.trace(string.format('move: %s', response_data['move']))
                     self:setDirection(response_data['move'])
                 end
                 if response_data['taunt'] ~= nil then
+                    log.trace(string.format('taunt: %s', response_data['taunt']))
                     self:setTaunt(response_data['taunt'])
+                end
+                if response_data['head'] ~= nil then
+                    log.trace(string.format('head: %s', response_data['head']))
+                    self:setHead( response_data['head'] )
+                end
+                if response_data['color'] ~= nil then
+                    log.trace(string.format('color: %s', response_data['color']))
+                    self:setColor( response_data['color'], true )
                 end
             end
         else
@@ -202,10 +255,31 @@ function Snake:getAge()
     return self.age
 end
 
+--- Getter function for the snake's color
+-- @return The snake's color as an RGBA table
+function Snake:getColor()
+    return self.color
+end
+
 --- Getter function for the snake's gold
 -- @return The snake's gold
 function Snake:getGold()
     return self.gold
+end
+
+--- Getter function for the snake's head image
+-- @return The snake's head image
+function Snake:getHead()
+    return self.head
+end
+
+--- Getter function for the snake's head image scale factor
+-- @return The X scale factor
+-- @return The Y scale factor
+function Snake:getHeadScaleFactor()
+    local xScale = 20 / self.head:getWidth()
+    local yScale = 20 / self.head:getHeight()
+    return xScale, yScale
 end
 
 --- Getter function for the snake's health
@@ -312,6 +386,39 @@ function Snake:moveNextPosition()
     end
 end
 
+--- Sets the snake's body color
+-- @param value The new color to set the snake's body to
+-- @param fromWeb Boolean that indicates whether value is RGB or hex formatted
+function Snake:setColor( value, fromWeb )
+
+    if not fromWeb then
+        -- assume value is a table containing R, G, and B
+        self.color = value
+    else
+        -- convert the hex value to an RGB one
+        -- @see https://gist.github.com/jasonbradley/4357406
+        value = value:gsub( "#", "" )
+        length = string.len( value )
+        
+        if length == 3 then
+            self.color = {
+                tonumber( "0x" .. value:sub( 1, 1 ) ) * 17,
+                tonumber( "0x" .. value:sub( 2, 2 ) ) * 17,
+                tonumber( "0x" .. value:sub( 3, 3 ) ) * 17,
+                255
+            }
+        elseif length == 6 then
+            self.color = {
+                tonumber( "0x" .. value:sub( 1, 2 ) ),
+                tonumber( "0x" .. value:sub( 3, 4 ) ),
+                tonumber( "0x" .. value:sub( 5, 6 ) ),
+                255
+            }
+        end
+    end
+
+end
+
 --- Sets this snake's direction
 -- @param value The direction to move the snake in
 function Snake:setDirection( value )
@@ -325,6 +432,64 @@ function Snake:setDirection( value )
         self.direction = Snake.DIRECTION_EAST
     end
     log.debug( string.format( 'snake "%s" direction changed to %s', self.name, value ) )
+end
+
+-- Setter function for the snake's head image
+function Snake:setHead( url )
+    
+    log.debug(string.format('snake "%s" set head from url', self.name))
+    
+    if not url or url == '' then
+        log.debug(string.format('snake "%s" head url is empty', self.name))
+        return
+    else
+    
+        --[[
+            The version of LuaSocket bundled with LÖVE has a bug
+            where the http port will not get added to the Host header,
+            which is a violation of the HTTP spec. Most web servers don't
+            care - however - this breaks Flask, which interprets the
+            spec very strictly and is also used by a lot of snakes.
+            
+            We can work around this by manually parsing the URL,
+            generating a Host header, and explicitly setting it on the request.
+            
+            See https://github.com/diegonehab/luasocket/pull/74 for more info.
+        ]]
+        local parsed = socket.url.parse( url )
+        local host = parsed['host']
+        if parsed['port'] then host = host .. ':' .. parsed['port'] end
+    
+        log.trace('Request URL: ' .. url)
+        local response_body = {}
+        local res, code, response_headers, status = http.request({
+            url = url,
+            method = "GET",
+            headers =
+            {
+              ["Host"] = host
+            },
+            sink = ltn12.sink.table(response_body)
+        })
+        
+        -- if the server responded
+        if status then
+            log.trace('Response Code: ' .. code)
+            log.trace('Response Status: ' .. status)
+            local response_data = table.concat(response_body)
+            if response_data then
+                local filedata = love.filesystem.newFileData( response_data, 'head' )
+                local imagedata = love.image.newImageData( filedata )
+                self.head = love.graphics.newImage( imagedata )
+                log.trace(self.head)
+                
+            end
+        else
+            log.debug(string.format('snake "%s" no response from head url call', self.name))
+        end
+        
+    end
+    
 end
 
 --- Setter function for the snake's taunt
