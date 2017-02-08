@@ -44,7 +44,7 @@ function Snake.new( opt )
     self.length = opt.length or 1
     
     -- Default head image
-    self.head = nil
+    self.head = love.graphics.newImage( love.image.newImageData( 20, 20 ) )
     
     -- Starting health
     self.health = 100
