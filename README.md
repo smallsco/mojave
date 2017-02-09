@@ -103,9 +103,12 @@ The first snake listed in `snakes.json` may be controlled by the arena operator 
 * Snake server API response time is not restricted
 * Gold can spawn anywhere on the board
 * Gold can spawn when there's already gold on the board
-* Snakes occasionally spawn on the same square, leading to hilarity
-* Probably other bugs and inconsistencies...
+* Probably other inconsistencies...
 
+## Known Bugs
+* Snakes occasionally spawn on the same square, leading to hilarity
+* If there are no free tiles left on the game board, the app will freeze when trying to place food/walls/gold
+* Probably other bugs...
 
 ## Credits
 
