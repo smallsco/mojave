@@ -4,8 +4,13 @@ Mojave is a third-party, open-source arena / gameboard / client for [Battlesnake
 
 The intent is to allow companies to get a head start on building their bounty snakes, and for competitors to try out strategies prior to the competition.
 
+## Download
+
+The latest binaries for Win32, Win64, and Mac OS X can be downloaded from [the Releases link](https://github.com/smallsco/mojave/releases) above.
+Mojave is also compatible with Linux, however Linux users will have to manually run the game using [LÖVE](http://www.love2d.org) (see below).
 
 ## Building
+
 Install [love-release](https://github.com/MisterDA/love-release), then run `love-release -W -M` from the `mojave` directory. This will create a new folder, `releases`, containing zipped binaries for Win32, Win64, and Mac OS X.
 
 Or, you can run the game directly using [LÖVE](http://www.love2d.org). Download and install version 0.10.2, navigate to the `mojave` directory, and run `love --fused .`. The `--fused` parameter is important, without it the game's data directory path will not be set correctly.
