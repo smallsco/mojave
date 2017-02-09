@@ -18,10 +18,5 @@
         "id": "d1ed0f87-8a13-445f-a9ed-b7064f7858e0",
         "name": "mitchellri/snakes_on_a_biplane",
         "url": "http://localhost:5004"
-    },
-    {
-        "id": "robosnake",
-        "name": "Redbrick Robosnake",
-        "url": "http://35.166.230.246"
     }
 ]

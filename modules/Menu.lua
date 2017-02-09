@@ -10,6 +10,8 @@ local fullscreenCheckbox = {
     checked = false,
     text = 'Fullscreen'
 }
+local height = {text = "20"}
+local width = {text = "30"}
 
 --- Check if the game's fullscreen status is what was requested by the user
 -- @param requestedState The requested state of fullscreen mode, true or false
@@ -34,7 +36,9 @@ function Menu.update( dt )
     if suit.Button( "New Game (Classic)", suit.layout:row() ).hit then
         local gameOptions = {
             snakes = snakesJson,
-            mode = 'classic'
+            mode = 'classic',
+            height = tonumber(height.text),
+            width = tonumber(width.text)
         }
         activeGame = Game(gameOptions)
         activeGame:start()
@@ -45,13 +49,23 @@ function Menu.update( dt )
     if suit.Button( "New Game (Advanced)", suit.layout:row() ).hit then
         local gameOptions = {
             snakes = snakesJson,
-            mode = 'advanced'
+            mode = 'advanced',
+            height = tonumber(height.text),
+            width = tonumber(width.text)
         }
         activeGame = Game( gameOptions )
         activeGame:start()
     end
     
     suit.layout:row()
+    
+    suit.Label("Height", suit.layout:row(50,30))
+    suit.Input(height, suit.layout:col())
+    suit.Label("Width", suit.layout:col())
+    suit.Input(width, suit.layout:col())
+    
+    suit.layout:reset( 100, 280 )
+    suit.layout:row( 200, 30 )
     
     suit.Checkbox( audioCheckbox, suit.layout:row() )
     if audioCheckbox.checked then

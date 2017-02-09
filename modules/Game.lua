@@ -65,7 +65,10 @@ function Game.new( opt )
     self.gold_turns = opt.gold_turns or 100
     self.gold_to_win = opt.gold_to_win or 5
     
-    self.map = Map()
+    self.map = Map({
+        height = opt.height or 20,
+        width = opt.width or 30
+    })
     self.timer = 0
     self.turn = 0
     self.walls = {}
