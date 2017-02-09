@@ -20,6 +20,8 @@ On Windows XP, the data directory can be found at `C:\Documents and Settings\<US
 
 On Windows Vista and above, the data directory can be found at `C:\Users\<USER_NAME>\AppData\Roaming\mojave\`
 
+On Linux, the data directory can be found at `/home/<USER_NAME>/.local/share/mojave/`
+
 The `snakes.json` file contains a list of snakes ([Battlesnake servers](https://github.com/sendwithus/battlesnake-python)) in the following format:
 
 ```
