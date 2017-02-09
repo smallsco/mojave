@@ -1,5 +1,11 @@
 ## CHANGELOG
 
+### v0.3 (2017-02-08)
+
+* Fixed broken logging caused by a missing submodule.
+* Fixed a crash when trying to start a game containing a snake without a head image.
+* Added the ability to customize the game board size from the menu.
+
 ### v0.2 (2017-01-29)
 
 * Snake heads and colors are now read and used when displaying stats and taunts. They're not used on the game board itself yet, though.
