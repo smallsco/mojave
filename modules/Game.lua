@@ -66,8 +66,8 @@ function Game.new( opt )
     self.gold_to_win = opt.gold_to_win or 5
     
     self.map = Map({
-        height = opt.height or 20,
-        width = opt.width or 30
+        height = opt.height or 21,
+        width = opt.width or 31
     })
     self.timer = 0
     self.turn = 0
@@ -75,26 +75,17 @@ function Game.new( opt )
     self.food = {}
     self.gold = {}
     
-    -- Add a gold to the map randomly
+    -- Add a gold to the map near the center
     if self.mode == 'advanced' then
-        local gold_x, gold_y = self.map:setTileAtRandomFreeLocation( Map.TILE_GOLD )
+        local gold_x, gold_y = self.map:setTileAtFreeLocationNearCenter( Map.TILE_GOLD )
         table.insert(self.gold, {gold_x, gold_y})
         log.debug( string.format( 'added gold at (%s, %s)', self.gold_x, self.gold_y ) )
     end
     
-    -- Add walls to the map randomly
-    -- Battlesnake doesn't do this at the start of the game, so leave it commented out...
-    --[[self.num_walls = opt.num_walls or 10
-    for i = 1, self.num_walls do
-        local x, y = self.map:setTileAtRandomFreeLocation( Map.TILE_WALL )
-        table.insert(self.walls, {x,y})
-        log.debug( string.format( 'added wall at (%s, %s)', x, y ) )
-    end]]
-    
     -- Add snakes to the map
     local snakes = {}
     for i = 1, #self.snakes do
-        local x, y = self.map:setTileAtRandomFreeLocation( Map.TILE_HEAD )
+        local x, y = self.map:setTileAtRandomFreeLocation( Map['TILE_HEAD_' .. i] )
         
         local snake = Snake({
             id = self.snakes[i]['id'],
@@ -127,7 +118,7 @@ function Game:draw()
     local pixelWidth, pixelHeight = love.graphics.getDimensions()
 
     -- Draw the map
-    self.map:draw()
+    self.map:draw(self.snakes)
     
     -- Draw a border
     love.graphics.setColor(128,128,128,255)
@@ -167,7 +158,7 @@ function Game:draw()
     local wrap = pixelWidth - 30
     for i = 1, #self.snakes do
         love.graphics.setColor(255, 255, 255, 255)
-        local xscale, yscale = self.snakes[i]:getHeadScaleFactor()
+        local xscale, yscale = self.snakes[i]:getHeadScaleFactor(20, 20)
         love.graphics.draw(self.snakes[i]:getHead(), x, y, 0, xscale, yscale)
         local str = self.snakes[i]:getName() .. ": "
         str = str .. self.snakes[i]:getTaunt()
@@ -331,7 +322,7 @@ function Game:update( dt )
                     -- checking for Map.TILE_HEAD here works around it, but gives an unfair advantage to
                     -- the snake being hit.
                     
-                    if tile == Map.TILE_HEAD or tile == Map.TILE_TAIL then
+                    if tile >= Map.TILE_HEAD_1 and ( tile % Map.TILE_HEAD_1 == 0 or tile % Map.TILE_HEAD_1 == 1 ) then
                         -- find the snake we ran into and KILL IT
                         local suicide = true
                         for j = 1, #self.snakes do
@@ -412,12 +403,12 @@ function Game:update( dt )
                 local tailEnd = self.snakes[i]:moveNextPosition()
                 
                 -- move head to next position
-                self.map:setTile(next_x, next_y, Map.TILE_HEAD)
+                self.map:setTile(next_x, next_y, Map['TILE_HEAD_' .. i])
                 
                 -- set the previous position of the head to a tail square...
                 -- ... as long as the snake is bigger than 1 square
                 if self.snakes[i]:getLength() > 1 then
-                    self.map:setTile(x, y, Map.TILE_TAIL)
+                    self.map:setTile(x, y, Map['TILE_TAIL_' .. i])
                 end
                 
                 -- clear the tile containing the end of the snake
@@ -453,11 +444,14 @@ function Game:update( dt )
             log.debug( string.format( 'added wall at (%s, %s)', wall_x, wall_y ) )
         end
         
-        -- Add a gold to the map at a random location if it's time
+        -- Add a gold to the map at a location near the center if it's time
         if self.mode == 'advanced' and self.turn % self.gold_turns == 0 then
-            local gold_x, gold_y = self.map:setTileAtRandomFreeLocation( Map.TILE_GOLD )
-            table.insert(self.gold, {gold_x, gold_y})
-            log.debug( string.format( 'added gold at (%s, %s)', self.gold_x, self.gold_y ) )
+            -- do not place gold if there is already gold on the board
+            if next(self.gold) == nil then
+                local gold_x, gold_y = self.map:setTileAtFreeLocationNearCenter( Map.TILE_GOLD )
+                table.insert(self.gold, {gold_x, gold_y})
+                log.debug( string.format( 'added gold at (%s, %s)', self.gold_x, self.gold_y ) )
+            end
         end
         
         -- If one or less snakes are alive, then end the game.

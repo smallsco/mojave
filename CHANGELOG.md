@@ -1,5 +1,14 @@
 ## CHANGELOG
 
+### v0.4 (2017-02-XX)
+
+* Custom snake head images and body colors are now used on the game board.
+* Gold is now spawned in the closest free square to the center of the game board.
+* Gold will not be spawned on the game board if gold is already present on the board.
+* Restrict the maximum number of snakes in the arena to 12.
+* Disallow play if there are no snakes defined in snakes.json.
+* Force board height and width to be odd numbers (so that there is always a center square for gold spawns)
+
 ### v0.3 (2017-02-08)
 
 * Fixed broken logging caused by a missing submodule.

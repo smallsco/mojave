@@ -79,7 +79,7 @@ The first snake listed in `snakes.json` may be controlled by the arena operator 
 
 ### Gold (advanced games only)
 * Snakes start with 0 gold.
-* Gold will spawn on the game board at a random location every 75 turns.
+* Gold will spawn on the game board at a random location every 100 turns.
 * The first snake to collect 5 gold will instantly win the game, regardless of how many snakes are currently alive.
 
 ### Walls (advanced games only)
@@ -98,16 +98,12 @@ The first snake listed in `snakes.json` may be controlled by the arena operator 
 ## Differences from the official arena
 * No support for scoring
 * No support for tiebreakers (the game can end in a draw if the last two snakes are the same length and have a head-on-head collision)
-* No support for custom snake colors on the board
-* No support for custom snake head images on the board
 * Snake server API response time is not restricted
-* Gold can spawn anywhere on the board
-* Gold can spawn when there's already gold on the board
 * Probably other inconsistencies...
 
 ## Known Bugs
-* Snakes occasionally spawn on the same square, leading to hilarity
-* If there are no free tiles left on the game board, the app will freeze when trying to place food/walls/gold
+* Snake tails occasionally spawn on the same square, leading to hilarity
+* If there are no free tiles on the game board, the app will freeze when trying to place food/walls/gold
 * Probably other bugs...
 
 ## Credits

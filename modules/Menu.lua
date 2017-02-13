@@ -10,8 +10,8 @@ local fullscreenCheckbox = {
     checked = false,
     text = 'Fullscreen'
 }
-local height = {text = "20"}
-local width = {text = "30"}
+local height = {text = "21"}
+local width = {text = "31"}
 
 --- Check if the game's fullscreen status is what was requested by the user
 -- @param requestedState The requested state of fullscreen mode, true or false

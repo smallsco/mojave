@@ -13,7 +13,7 @@ a battle snake arena
 ]]
 
 -- Version constant
-MOJAVE_VERSION = '0.3'
+MOJAVE_VERSION = '0.4'
 
 -- Third-party modules
 http = require 'socket.http'
@@ -71,6 +71,12 @@ function love.load()
     snakesJson, pos, err = json.decode( snakesJson )
     if not snakesJson then
         error('Error parsing snakes.json: ' .. err)
+    end
+    if #snakesJson > 12 then
+        error('No more than 12 snakes can play in the arena!')
+    end
+    if #snakesJson < 1 then
+        error('snakes.json must contain at least one snake!')
     end
     
 end

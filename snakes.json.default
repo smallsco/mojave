@@ -18,5 +18,10 @@
         "id": "d1ed0f87-8a13-445f-a9ed-b7064f7858e0",
         "name": "mitchellri/snakes_on_a_biplane",
         "url": "http://localhost:5004"
+    },
+    {
+        "id": "de508402-17c8-4ac7-ab0b-f96cb53fbee8",
+        "name": "noahspriggs/battlesnake-python",
+        "url": "http://localhost:5005"
     }
 ]

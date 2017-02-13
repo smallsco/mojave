@@ -274,11 +274,13 @@ function Snake:getHead()
 end
 
 --- Getter function for the snake's head image scale factor
+-- @param width The desired width
+-- @param height The desired height
 -- @return The X scale factor
 -- @return The Y scale factor
-function Snake:getHeadScaleFactor()
-    local xScale = 20 / self.head:getWidth()
-    local yScale = 20 / self.head:getHeight()
+function Snake:getHeadScaleFactor( width, height )
+    local xScale = width / self.head:getWidth()
+    local yScale = height / self.head:getHeight()
     return xScale, yScale
 end
 
