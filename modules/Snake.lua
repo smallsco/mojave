@@ -72,12 +72,14 @@ end
 --- Executes a HTTP request to the BattleSnake server
 --- (remember, the arena is a *client*, and the snakes are *servers*
 --- contrary to what you might expect!)
+-- @param api_version The API version
 -- @param endpoint The snake server's HTTP API endpoint
 -- @param data The data to send to the endpoint
-function Snake:api( endpoint, data )
+function Snake:api( api_version, endpoint, data )
 
     --[[
         FIXME? In the real battle snake game, requests must complete in 1s.
+        (200ms in the 2017 API)
         But that's not realistic if you're running 5 or more snake servers
         on your development laptop, where they can't respond as fast as they
         would when running in the cloud. So we don't enforce that limit here.
@@ -157,13 +159,24 @@ function Snake:api( endpoint, data )
                     log.trace(string.format('taunt: %s', response_data['taunt']))
                     self:setTaunt(response_data['taunt'])
                 end
-                if response_data['head'] ~= nil then
-                    log.trace(string.format('head: %s', response_data['head']))
-                    self:setHead( response_data['head'] )
-                end
                 if response_data['color'] ~= nil then
                     log.trace(string.format('color: %s', response_data['color']))
                     self:setColor( response_data['color'], true )
+                end
+                if api_version == 2016 then
+                    if response_data['head'] ~= nil then
+                        log.trace(string.format('head: %s', response_data['head']))
+                        self:setHead( response_data['head'] )
+                    end
+                elseif api_version == 2017 then
+                    if response_data['head_url'] ~= nil then
+                        log.trace(string.format('head: %s', response_data['head_url']))
+                        self:setHead( response_data['head_url'] )
+                    end
+                    if response_data['name'] ~= nil then
+                        log.trace(string.format('name: %s', response_data['name']))
+                        self:setName( response_data['name'] )
+                    end
                 end
             end
         else
@@ -215,7 +228,8 @@ function Snake:die()
 end
 
 --- Called when this snake passes over a food tile
-function Snake:eatFood()
+-- @param api_version The battlesnake API version
+function Snake:eatFood(api_version)
 
     if PLAY_AUDIO then
         SFXSnakeFood:stop()
@@ -223,9 +237,13 @@ function Snake:eatFood()
     end
 
     -- Restore HP
-    self.health = self.health + 30
-    if self.health >= 100 then
+    if api_version == 2017 then
         self.health = 100
+    elseif api_version == 2016 then
+        self.health = self.health + 30
+        if self.health >= 100 then
+            self.health = 100
+        end
     end
     
     -- Grow
@@ -492,6 +510,13 @@ function Snake:setHead( url )
         
     end
     
+end
+
+--- Setter function for the snake's name
+--- This is client-controlled in the 2017 API!
+-- @param name The new name
+function Snake:setName( name )
+    self.name = name
 end
 
 --- Setter function for the snake's taunt

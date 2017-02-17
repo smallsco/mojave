@@ -1,6 +1,11 @@
 ## CHANGELOG
 
-### v0.4 (2017-02-XX)
+### v0.5 (2017-02-16)
+
+* Support for the 2017 API (https://stembolthq.github.io/battle_snake/). This is a work in progress and will lag behind the official arena.
+	* The 2017 rule changes (for food) can be toggled separately from the API changes, in order to test new rules / game mechanics using third-party snakes that do not support the latest API yet. When the competition has concluded, this will be replaced by a simple 2016/2017 toggle that will change both the API calls as well as the game rules.
+
+### v0.4 (2017-02-12)
 
 * Custom snake head images and body colors are now used on the game board.
 * Gold is now spawned in the closest free square to the center of the game board.

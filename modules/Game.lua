@@ -37,6 +37,17 @@ local function convert_coordinates(tbl, direction)
     return newtbl
 end
 
+-- Generates a UUID used for game IDs
+-- @return a random format UUID
+-- @see https://gist.github.com/jrus/3197011
+local function generateUUID()
+    local template ='xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+    return string.gsub( template, '[xy]', function (c)
+        local v = (c == 'x') and love.math.random( 0, 0xf ) or love.math.random( 8, 0xb )
+        return string.format( '%x', v )
+    end )
+end
+
 
 --- Constructor / Factory Function
 -- @param table opt A table containing initialization options
@@ -46,7 +57,7 @@ function Game.new( opt )
     local self = setmetatable( {}, Game )
     local opt = opt or {}
     
-    self.name = opt.name or 'test'
+    self.name = opt.name or generateUUID()
     self.speed = opt.speed or 0.15
     self.snakes = opt.snakes or {
         {
@@ -58,12 +69,16 @@ function Game.new( opt )
     self.mode = opt.mode or 'advanced'  -- "classic" or "advanced"
     self.food_turn_start = opt.food_turn_start or 3
     self.food_turns = opt.food_turns or 3
+    self.food_max = opt.food_max or 4
     
     self.wall_turn_start = opt.wall_turn_start or 50
     self.wall_turns = opt.wall_turns or 5
     
     self.gold_turns = opt.gold_turns or 100
     self.gold_to_win = opt.gold_to_win or 5
+    
+    self.api = opt.api or 2016
+    self.foodRules = opt.foodRules or 2016
     
     self.map = Map({
         height = opt.height or 21,
@@ -82,6 +97,15 @@ function Game.new( opt )
         log.debug( string.format( 'added gold at (%s, %s)', self.gold_x, self.gold_y ) )
     end
     
+    -- If we're playing 2017 rules, start with FOOD_MAX food on the board
+    if self.foodRules == 2017 then
+        for i = 1, self.food_max do
+            local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
+            table.insert(self.food, {food_x, food_y})
+            log.debug( string.format( 'added food at (%s, %s)', food_x, food_y ) )
+        end
+    end
+    
     -- Add snakes to the map
     local snakes = {}
     for i = 1, #self.snakes do
@@ -94,7 +118,16 @@ function Game.new( opt )
             x = x,
             y = y
         })
-        snake:api('')  -- root endpoint, get color and head url
+        
+        if self.api == 2017 then
+            snake:api(self.api, 'start', json.encode({
+                game_id = self.name,
+                height = self.map:getHeight(),
+                width = self.map:getWidth()
+            }))
+        elseif self.api == 2016 then
+            snake:api(self.api, '')  -- root endpoint, get color and head url
+        end
         
         table.insert(snakes, snake)
         log.debug( string.format(
@@ -172,37 +205,72 @@ function Game:draw()
 end
 
 --- Gets the current state of the game, used in API calls to snakes
+-- @param id The value to be used for 'you' in the 2017 API
 -- @return A table containing the game state
-function Game:getState()
+function Game:getState(id)
     local snakes = {}
+    local dead_snakes = {}
     
     for i = 1, #self.snakes do
-        table.insert(snakes, {
-            id = self.snakes[i]:getId(),
-            name = self.snakes[i]:getName(),
-            status = self.snakes[i]:isAlive() and 'alive' or 'dead',
-            message = '',
-            taunt = self.snakes[i]:getTaunt(),
-            age = self.snakes[i]:getAge(),
-            health = self.snakes[i]:getHealth(),
-            coords = convert_coordinates(self.snakes[i]:getHistory(), 'topython'),
-            kills = self.snakes[i]:getKills(),
-            food = self.snakes[i]:getLength(),  -- FIXME: length != food, due to kills
-            gold = self.snakes[i]:getGold()
-        })
+        if self.api == 2017 then
+            if self.snakes[i]:isAlive() then
+                table.insert(snakes, {
+                    id = self.snakes[i]:getId(),
+                    name = self.snakes[i]:getName(),
+                    taunt = self.snakes[i]:getTaunt(),
+                    health_points = self.snakes[i]:getHealth(),
+                    coords = convert_coordinates(self.snakes[i]:getHistory(), 'topython')
+                })
+            else
+                table.insert(dead_snakes, {
+                    id = self.snakes[i]:getId(),
+                    name = self.snakes[i]:getName(),
+                    taunt = self.snakes[i]:getTaunt(),
+                    health_points = self.snakes[i]:getHealth(),
+                    coords = convert_coordinates(self.snakes[i]:getHistory(), 'topython')
+                })
+            end
+        elseif self.api == 2016 then
+            table.insert(snakes, {
+                id = self.snakes[i]:getId(),
+                name = self.snakes[i]:getName(),
+                status = self.snakes[i]:isAlive() and 'alive' or 'dead',
+                message = '',
+                taunt = self.snakes[i]:getTaunt(),
+                age = self.snakes[i]:getAge(),
+                health = self.snakes[i]:getHealth(),
+                coords = convert_coordinates(self.snakes[i]:getHistory(), 'topython'),
+                kills = self.snakes[i]:getKills(),
+                food = self.snakes[i]:getLength(),  -- FIXME: length != food, due to kills
+                gold = self.snakes[i]:getGold()
+            })
+        end
     end
     
-    return {
-        game = self.name,
-        mode = self.mode,
-        turn = self.turn,
-        height = self.map:getHeight(),
-        width = self.map:getWidth(),
-        snakes = snakes,
-        food = convert_coordinates(self.food, 'topython'),
-        walls = convert_coordinates(self.walls, 'topython'),
-        gold = convert_coordinates(self.gold, 'topython')
-    }
+    if self.api == 2017 then
+        return {
+            you = id,
+            height = self.map:getHeight(),
+            width = self.map:getWidth(),
+            game_id = self.name,
+            turn = self.turn,
+            snakes = snakes,
+            dead_snakes = dead_snakes,
+            food = convert_coordinates(self.food, 'topython')
+        }
+    elseif self.api == 2016 then
+        return {
+            game = self.name,
+            mode = self.mode,
+            turn = self.turn,
+            height = self.map:getHeight(),
+            width = self.map:getWidth(),
+            snakes = snakes,
+            food = convert_coordinates(self.food, 'topython'),
+            walls = convert_coordinates(self.walls, 'topython'),
+            gold = convert_coordinates(self.gold, 'topython')
+        }
+    end
 end
 
 --- Keypress handler - allows the arena operator to control snake #1 with the arrow keys for debugging
@@ -223,8 +291,14 @@ end
 
 --- Starts the game's update loop
 function Game:start()
-    for i = 1, #self.snakes do
-        self.snakes[i]:api('start', json.encode(self:getState()))
+
+    log.info('API Version: ' .. self.api)
+    log.info('Food Rules: ' .. self.foodRules)
+
+    if self.api == 2016 then
+        for i = 1, #self.snakes do
+            self.snakes[i]:api(self.api, 'start', json.encode(self:getState(self.snakes[i]:getId())))
+        end
     end
     if PLAY_AUDIO then
         BGM:play()
@@ -235,8 +309,10 @@ end
 
 --- Stops the game's update loop
 function Game:stop()
-    for i = 1, #self.snakes do
-        self.snakes[i]:api('end', json.encode(self:getState()))
+    if self.api == 2016 then
+        for i = 1, #self.snakes do
+            self.snakes[i]:api(self.api, 'end', json.encode(self:getState(self.snakes[i]:getId())))
+        end
     end
     self.running = false
     if PLAY_AUDIO then
@@ -269,7 +345,7 @@ function Game:update( dt )
                 if self.turn == 1 or self.turn == 2 then
                     self.snakes[i]:grow()
                 end
-                self.snakes[i]:api('move', json.encode(self:getState()))
+                self.snakes[i]:api(self.api, 'move', json.encode(self:getState(self.snakes[i]:getId())))
                 self.snakes[i]:calculateNextPosition()
             end
         end
@@ -348,7 +424,7 @@ function Game:update( dt )
                         log.info(string.format('snake "%s" hits a wall and dies', self.snakes[i]:getName()))
                     elseif tile == Map.TILE_FOOD then
                         -- If the tile contains food, the snake eats.
-                        self.snakes[i]:eatFood()
+                        self.snakes[i]:eatFood(self.api)
                         for j = 1, #self.food do
                             if self.food[j][1] == x and self.food[j][2] == y then
                                 table.remove(self.food, j)
@@ -420,11 +496,19 @@ function Game:update( dt )
             end
         end
         
-        -- Add a food to the map at a random location if it's time
-        if self.turn >= self.food_turn_start and self.turn % self.food_turns == 0 then
-            local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
-            table.insert(self.food, {food_x, food_y})
-            log.debug( string.format( 'added food at (%s, %s)', food_x, food_y ) )
+        if self.foodRules == 2017 then
+            for i = 1, self.food_max - #self.food do
+                local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
+                table.insert(self.food, {food_x, food_y})
+                log.debug( string.format( 'added food at (%s, %s)', food_x, food_y ) )
+            end
+        elseif self.foodRules == 2016 then
+            -- Add a food to the map at a random location if it's time
+            if self.turn >= self.food_turn_start and self.turn % self.food_turns == 0 then
+                local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
+                table.insert(self.food, {food_x, food_y})
+                log.debug( string.format( 'added food at (%s, %s)', food_x, food_y ) )
+            end
         end
         
         -- Add a wall to the map at a random location if it's time

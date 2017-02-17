@@ -1,6 +1,6 @@
 # Mojave
 
-Mojave is a third-party, open-source arena / gameboard / client for [Battlesnake](https://www.battlesnake.io/), using the [2016 rules/API](http://web.archive.org/web/20160817172025/http://www.battlesnake.io/readme).
+Mojave is a third-party, open-source arena / gameboard / client for [Battlesnake](https://www.battlesnake.io/). It supports both the [2016](http://web.archive.org/web/20160817172025/http://www.battlesnake.io/readme) and [2017](https://stembolthq.github.io/battle_snake/) rules/API.
 
 The intent is to allow companies to get a head start on building their bounty snakes, and for competitors to try out strategies prior to the competition.
 
@@ -75,14 +75,16 @@ The first snake listed in `snakes.json` may be controlled by the arena operator 
 * Snakes start with 100 health. On each turn, snakes lose 1 health, unless they have eaten food that turn.
 * If a snake's health reaches 0, it dies.
 * Food will spawn on the game board at a random location every 3 turns.
-* If a snake lands on a food square, it "eats" the food, and its' health will be restored by 30 (to a maximum of 100). It's tail will grow by one square.
+* If a snake lands on a food square, it "eats" the food, and its' health will be restored. It's tail will grow by one square.
+	* In the 2016 API, each food will restore health by 30 (to a maximum of 100).
+	* In the 2017 API, each food will restore health to exactly 100.
 
-### Gold (advanced games only)
+### Gold (advanced games only, 2016 API only)
 * Snakes start with 0 gold.
 * Gold will spawn on the game board at a random location every 100 turns.
 * The first snake to collect 5 gold will instantly win the game, regardless of how many snakes are currently alive.
 
-### Walls (advanced games only)
+### Walls (advanced games only, 2016 API only)
 * A wall will spawn on the game board every 5 turns, starting at turn 50.
 * Walls will never spawn directly in front of a snake.
 * If a snake moves into a wall, it dies.
@@ -127,4 +129,4 @@ Simple User Interface Toolkit
 Copyright ©2016 Matthias Richter  
 https://github.com/vrld/SUIT
 
-And lots of love to [SendWithUs](http://www.sendwithus.com) for creating the [Battlesnake](http://www.battlesnake.io) AI contest :)
+And lots of love to [SendWithUs](http://www.sendwithus.com) and [Stembolt](http://www.stembolt.com) for creating the [Battlesnake](http://www.battlesnake.io) AI contest :)

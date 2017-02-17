@@ -13,7 +13,7 @@ a battle snake arena
 ]]
 
 -- Version constant
-MOJAVE_VERSION = '0.4'
+MOJAVE_VERSION = '0.5'
 
 -- Third-party modules
 http = require 'socket.http'
