@@ -101,6 +101,7 @@ The first snake listed in `snakes.json` may be controlled by the arena operator 
 * No support for scoring
 * No support for tiebreakers (the game can end in a draw if the last two snakes are the same length and have a head-on-head collision)
 * Snake server API response time is not restricted
+* Snakes that use a GIF image as their head are not supported
 * Probably other inconsistencies...
 
 ## Known Bugs

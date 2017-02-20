@@ -1,5 +1,10 @@
 ## CHANGELOG
 
+### v0.5.1 (2017-02-19)
+
+* Fix /move response interpretation for 2017 API
+* If only a single snake is present in snakes.json, allow that snake to play forever (just like we do with human-controlled snakes)
+
 ### v0.5 (2017-02-16)
 
 * Support for the 2017 API (https://stembolthq.github.io/battle_snake/). This is a work in progress and will lag behind the official arena.

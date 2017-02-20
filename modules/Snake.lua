@@ -153,7 +153,7 @@ function Snake:api( api_version, endpoint, data )
             if response_data then
                 if response_data['move'] ~= nil then
                     log.trace(string.format('move: %s', response_data['move']))
-                    self:setDirection(response_data['move'])
+                    self:setDirection(api_version, response_data['move'])
                 end
                 if response_data['taunt'] ~= nil then
                     log.trace(string.format('taunt: %s', response_data['taunt']))
@@ -440,16 +440,30 @@ function Snake:setColor( value, fromWeb )
 end
 
 --- Sets this snake's direction
+-- @param api_version The API version
 -- @param value The direction to move the snake in
-function Snake:setDirection( value )
-    if value == 'north' then
-        self.direction = Snake.DIRECTION_NORTH
-    elseif value == 'west' then
-        self.direction = Snake.DIRECTION_WEST
-    elseif value == 'south' then
-        self.direction = Snake.DIRECTION_SOUTH
-    elseif value == 'east' then
-        self.direction = Snake.DIRECTION_EAST
+function Snake:setDirection( api_version, value )
+    if api_version == 2016 or api_version == 'human' then
+        if value == 'north' then
+            self.direction = Snake.DIRECTION_NORTH
+        elseif value == 'west' then
+            self.direction = Snake.DIRECTION_WEST
+        elseif value == 'south' then
+            self.direction = Snake.DIRECTION_SOUTH
+        elseif value == 'east' then
+            self.direction = Snake.DIRECTION_EAST
+        end
+    elseif api_version == 2017 then
+        if value == 'up' then
+            self.direction = Snake.DIRECTION_NORTH
+        elseif value == 'left' then
+            self.direction = Snake.DIRECTION_WEST
+        elseif value == 'down' then
+            self.direction = Snake.DIRECTION_SOUTH
+        elseif value == 'right' then
+            self.direction = Snake.DIRECTION_EAST
+        end
+
     end
     log.debug( string.format( 'snake "%s" direction changed to %s', self.name, value ) )
 end

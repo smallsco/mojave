@@ -278,13 +278,13 @@ end
 function Game:keypressed( key )
     if self.running then
         if key == 'up' then
-            self.snakes[1]:setDirection( 'north' )
+            self.snakes[1]:setDirection( 'human', 'north' )
         elseif key == 'left' then
-            self.snakes[1]:setDirection( 'west' )
+            self.snakes[1]:setDirection( 'human', 'west' )
         elseif key == 'down' then
-            self.snakes[1]:setDirection( 'south' )
+            self.snakes[1]:setDirection( 'human', 'south' )
         elseif key == 'right' then
-            self.snakes[1]:setDirection( 'east' )
+            self.snakes[1]:setDirection( 'human', 'east' )
         end
     end
 end
@@ -552,9 +552,16 @@ function Game:update( dt )
         if #livingSnakes == 0 then
             log.info('Game Over, all snakes are dead')
             self:stop()
-        elseif #livingSnakes == 1 and not humanPlayer then
-            log.info(string.format('Game over, last snake remaining is "%s"', self.snakes[livingSnakes[1]]:getName()))
-            self:stop()
+        elseif #livingSnakes == 1 then
+            if humanPlayer then
+                -- do nothing, humans can play forever
+            elseif #self.snakes == 1 then
+                -- if the only living snake is also the only snake in the game,
+                -- then allow it to play forever
+            else
+                log.info(string.format('Game over, last snake remaining is "%s"', self.snakes[livingSnakes[1]]:getName()))
+                self:stop()
+            end
         end
         
         -- If any snake has 5 gold, that snake wins!
