@@ -1,5 +1,12 @@
 ## CHANGELOG
 
+### v0.6 (2017-02-28)
+
+* Implemented support for a global API call timeout, with a 200ms default
+* Enable 2017 API and food rules by default
+* Fix a crash that occurred when a snake's head was in an unsupported image format
+* Generate UUIDs for snakes that have no ID explicitly defined in snakes.json
+
 ### v0.5.1 (2017-02-19)
 
 * Fix /move response interpretation for 2017 API

@@ -11,13 +11,14 @@ local fullscreenCheckbox = {
     text = 'Fullscreen'
 }
 local api2017Checkbox = {
-    checked = false,
+    checked = true,
     text = 'Use 2017 API Calls'
 }
 local food2017Checkbox = {
-    checked = false,
+    checked = true,
     text = 'Use 2017 Food Behavior'
 }
+local timeout = {text = "0.2"}
 local height = {text = "21"}
 local width = {text = "31"}
 local maxFood = {text = "4"}
@@ -40,14 +41,15 @@ function Menu.update( dt )
     suit.Label( "Mojave", {font=bigFont}, suit.layout:row( 200, 30 ) )
     suit.Label( "a battle snake arena", suit.layout:row() )
 
-    suit.layout:row()
+    suit.layout:row( 200, 20 )
 
-    if suit.Button( "New Game (Classic)", suit.layout:row() ).hit then
+    if suit.Button( "New Game (Classic)", suit.layout:row( 200, 30 ) ).hit then
         local gameOptions = {
             snakes = snakesJson,
             mode = 'classic',
             height = tonumber(height.text),
             width = tonumber(width.text),
+            timeout = tonumber(timeout.text),
             api = 2016,
             foodRules = 2016,
             food_max = tonumber(maxFood.text)
@@ -62,15 +64,16 @@ function Menu.update( dt )
         activeGame:start()
     end
     
-    suit.layout:row()
+    suit.layout:row( 200, 20 )
     
     if not api2017Checkbox.checked then
-        if suit.Button( "New Game (Advanced)", suit.layout:row() ).hit then
+        if suit.Button( "New Game (Advanced)", suit.layout:row( 200, 30 ) ).hit then
             local gameOptions = {
                 snakes = snakesJson,
                 mode = 'advanced',
                 height = tonumber(height.text),
                 width = tonumber(width.text),
+                timeout = tonumber(timeout.text),
                 api = 2016,
                 foodRules = 2016,
                 food_max = tonumber(maxFood.text)
@@ -86,7 +89,13 @@ function Menu.update( dt )
         end
     end
     
-    suit.layout:reset( 100, 230 )
+    suit.layout:reset( 100, 195 )
+    suit.layout:row( 200, 30 )
+    
+    suit.Label("API Timeout", suit.layout:row(100,30))
+    suit.Input(timeout, suit.layout:col())
+    
+    suit.layout:reset( 100, 240 )
     suit.layout:row( 200, 30 )
     
     suit.Label("Height", suit.layout:row(50,30))

@@ -77,14 +77,6 @@ end
 -- @param data The data to send to the endpoint
 function Snake:api( api_version, endpoint, data )
 
-    --[[
-        FIXME? In the real battle snake game, requests must complete in 1s.
-        (200ms in the 2017 API)
-        But that's not realistic if you're running 5 or more snake servers
-        on your development laptop, where they can't respond as fast as they
-        would when running in the cloud. So we don't enforce that limit here.
-    ]]
-
     if endpoint == '' then
         log.debug(string.format('snake "%s" api call to info endpoint', self.name))
     else
@@ -180,7 +172,7 @@ function Snake:api( api_version, endpoint, data )
                 end
             end
         else
-            log.debug(string.format('snake "%s" no response from api call', self.name))
+            log.error(string.format('snake "%s" no response from api call in allowed time', self.name))
         end
         
     end
@@ -513,13 +505,16 @@ function Snake:setHead( url )
             local response_data = table.concat(response_body)
             if response_data then
                 local filedata = love.filesystem.newFileData( response_data, 'head' )
-                local imagedata = love.image.newImageData( filedata )
-                self.head = love.graphics.newImage( imagedata )
-                log.trace(self.head)
-                
+                local ok, err = pcall(function()
+                    local imagedata = love.image.newImageData( filedata )
+                    self.head = love.graphics.newImage( imagedata )
+                end)
+                if not ok then
+                    log.error( string.format( 'snake "%s" error loading head: %s', self.name, err ) )
+                end
             end
         else
-            log.debug(string.format('snake "%s" no response from head url call', self.name))
+            log.error(string.format('snake "%s" no response from head url call in allowed time', self.name))
         end
         
     end

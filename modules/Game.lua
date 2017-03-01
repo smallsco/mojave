@@ -57,11 +57,13 @@ function Game.new( opt )
     local self = setmetatable( {}, Game )
     local opt = opt or {}
     
+    self.timeout = opt.timeout or 0.2
+    http.TIMEOUT = self.timeout
     self.name = opt.name or generateUUID()
     self.speed = opt.speed or 0.15
     self.snakes = opt.snakes or {
         {
-            id = '',
+            id = generateUUID(),
             name = 'snake',
             url = ''
         }
@@ -112,7 +114,7 @@ function Game.new( opt )
         local x, y = self.map:setTileAtRandomFreeLocation( Map['TILE_HEAD_' .. i] )
         
         local snake = Snake({
-            id = self.snakes[i]['id'],
+            id = self.snakes[i]['id'] or generateUUID(),
             name = self.snakes[i]['name'],
             url = self.snakes[i]['url'],
             x = x,

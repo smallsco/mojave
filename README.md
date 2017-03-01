@@ -49,13 +49,17 @@ The `snakes.json` file contains a list of snakes ([Battlesnake servers](https://
 ]
 ```
 
-Each snake has a `id`, `name`, and `url` property associated with it.
-
-The `id` property can, in theory, be whatever you want. This is what the snake server will use to identify itself in the list of snakes sent by the client during a match. However, if you are testing with a snake that you found online, you will need to look through its' code for the correct id to place in this property.
+Each snake has a `name` and `url` property associated with it, and may have an optional `id` property.
 
 The `name` property is mandatory, and is printed on the game board during a match. It is also transmitted to snake servers while the match is in progress, and may be used in taunts!
 
 The `url` property contains the URL to the snake server's API endpoint.
+
+The `id` property is optional. If not explicitly specified, one will be randomly generated at the start of each match (it will remain the same for the duration of the match).
+
+On the official 2016 game server, the ID is generated when a snake is registered with the server, and remains the same for all games. Most snakes hard-code this ID into their application code and use it to identify themselves in the list of snakes sent by the server on each request. For this reason, when using a 2016-API snake with Mojave, you will need to look through the snake's source code, find its' ID, and add it to `snakes.json`.
+
+On the official 2017 game server, the ID is generated at the start of each match. On each request, the server will send a "you" property with the JSON that contains the ID of the snake receiving the request - so hardcoding IDs is not required. When using a 2017-API snake with Mojave, you will need to remove the `id` property from `snakes.json`.
 
 
 ## Human Player
@@ -100,8 +104,7 @@ The first snake listed in `snakes.json` may be controlled by the arena operator 
 ## Differences from the official arena
 * No support for scoring
 * No support for tiebreakers (the game can end in a draw if the last two snakes are the same length and have a head-on-head collision)
-* Snake server API response time is not restricted
-* Snakes that use a GIF image as their head are not supported
+* Snakes that use a GIF image as their head will not have their heads drawn on the board
 * Probably other inconsistencies...
 
 ## Known Bugs

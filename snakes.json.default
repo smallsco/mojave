@@ -23,5 +23,26 @@
         "id": "de508402-17c8-4ac7-ab0b-f96cb53fbee8",
         "name": "noahspriggs/battlesnake-python",
         "url": "http://localhost:5005"
+    },
+    {
+        "name": "cisenor1/LatitudeSnake",
+        "url": "http://localhost:5006"
+    },
+    {
+        "name": "adamdubicki/BattleSnake",
+        "url": "http://localhost:5007"
+    },
+    {
+        "name": "soxies1/BattleSnakeRound2Prototype",
+        "url": "http://localhost:5008"
+    },
+    {
+        "name": "acharraggi/battlesnake-node",
+        "url": "http://localhost:5009"
+    },
+    {
+        "id": "robosnake",
+        "name": "Robosnake C4X",
+        "url": "http://bountysnake2017.rdbrck.com"
     }
 ]
