@@ -41,6 +41,10 @@
         "url": "http://localhost:5009"
     },
     {
+        "name": "aleksiy325/snek",
+        "url": "http://localhost:5010"
+    },
+    {
         "id": "robosnake",
         "name": "Robosnake C4X",
         "url": "http://bountysnake2017.rdbrck.com"

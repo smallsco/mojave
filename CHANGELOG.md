@@ -1,5 +1,10 @@
 ## CHANGELOG
 
+### v0.6.1 (2017-02-29)
+
+* Use a default image for snakes whos head could not be loaded
+* Do not force board height and width to be odd if playing under the 2017 API
+
 ### v0.6 (2017-02-28)
 
 * Implemented support for a global API call timeout, with a 200ms default

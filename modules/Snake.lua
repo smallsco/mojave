@@ -511,10 +511,12 @@ function Snake:setHead( url )
                 end)
                 if not ok then
                     log.error( string.format( 'snake "%s" error loading head: %s', self.name, err ) )
+                    self.head = love.graphics.newImage('head.png')
                 end
             end
         else
             log.error(string.format('snake "%s" no response from head url call in allowed time', self.name))
+            self.head = love.graphics.newImage('head.png')
         end
         
     end

@@ -19,8 +19,8 @@ local food2017Checkbox = {
     text = 'Use 2017 Food Behavior'
 }
 local timeout = {text = "0.2"}
-local height = {text = "21"}
-local width = {text = "31"}
+local height = {text = "20"}
+local width = {text = "20"}
 local maxFood = {text = "4"}
 
 --- Check if the game's fullscreen status is what was requested by the user

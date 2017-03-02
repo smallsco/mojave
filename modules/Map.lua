@@ -43,24 +43,27 @@ Map.TILE_TAIL_12 = 121
 
 
 --- Constructor / Factory Function
+-- @param number api_version The API version
 -- @param table opt A table containing initialization options
 -- @return Map
-function Map.new( opt )
+function Map.new( api_version, opt )
     
     local self = setmetatable( {}, Map )
     local opt = opt or {}
     
-    self.height = opt.height or 21
-    self.width = opt.width or 31
+    self.height = opt.height or 20
+    self.width = opt.width or 30
     
     -- Height and width must be odd so that we always have a "center" square
-    if self.height % 2 == 0 then
-        log.warn('Board height is even, increasing by 1')
-        self.height = self.height + 1
-    end
-    if self.width % 2 == 0 then
-        log.warn('Board width is even, increasing by 1')
-        self.width = self.width + 1
+    if api_version == 2016 then
+        if self.height % 2 == 0 then
+            log.warn('Board height is even, increasing by 1')
+            self.height = self.height + 1
+        end
+        if self.width % 2 == 0 then
+            log.warn('Board width is even, increasing by 1')
+            self.width = self.width + 1
+        end
     end
     self.center_x = math.ceil( self.width / 2 )
     self.center_y = math.ceil( self.height / 2 )

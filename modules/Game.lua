@@ -82,9 +82,9 @@ function Game.new( opt )
     self.api = opt.api or 2016
     self.foodRules = opt.foodRules or 2016
     
-    self.map = Map({
-        height = opt.height or 21,
-        width = opt.width or 31
+    self.map = Map( self.api, {
+        height = opt.height or 20,
+        width = opt.width or 30
     })
     self.timer = 0
     self.turn = 0
