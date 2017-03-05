@@ -80,7 +80,6 @@ function Game.new( opt )
     self.gold_to_win = opt.gold_to_win or 5
     
     self.api = opt.api or 2016
-    self.foodRules = opt.foodRules or 2016
     
     self.map = Map( self.api, {
         height = opt.height or 20,
@@ -100,7 +99,7 @@ function Game.new( opt )
     end
     
     -- If we're playing 2017 rules, start with FOOD_MAX food on the board
-    if self.foodRules == 2017 then
+    if self.api == 2017 then
         for i = 1, self.food_max do
             local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
             table.insert(self.food, {food_x, food_y})
@@ -295,7 +294,6 @@ end
 function Game:start()
 
     log.info('API Version: ' .. self.api)
-    log.info('Food Rules: ' .. self.foodRules)
 
     if self.api == 2016 then
         for i = 1, #self.snakes do
@@ -498,13 +496,13 @@ function Game:update( dt )
             end
         end
         
-        if self.foodRules == 2017 then
+        if self.api == 2017 then
             for i = 1, self.food_max - #self.food do
                 local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
                 table.insert(self.food, {food_x, food_y})
                 log.debug( string.format( 'added food at (%s, %s)', food_x, food_y ) )
             end
-        elseif self.foodRules == 2016 then
+        elseif self.api == 2016 then
             -- Add a food to the map at a random location if it's time
             if self.turn >= self.food_turn_start and self.turn % self.food_turns == 0 then
                 local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )

@@ -14,10 +14,6 @@ local api2017Checkbox = {
     checked = true,
     text = 'Use 2017 API Calls'
 }
-local food2017Checkbox = {
-    checked = true,
-    text = 'Use 2017 Food Behavior'
-}
 local timeout = {text = "0.2"}
 local height = {text = "20"}
 local width = {text = "20"}
@@ -38,12 +34,28 @@ function Menu.update( dt )
     
     suit.layout:reset( 100, 50 )
 
-    suit.Label( "Mojave", {font=bigFont}, suit.layout:row( 200, 30 ) )
+    suit.Label( "Mojave", {font=bigFont}, suit.layout:row( 250, 30 ) )
     suit.Label( "a battle snake arena", suit.layout:row() )
 
-    suit.layout:row( 200, 20 )
+    suit.layout:row( 250, 20 )
 
-    if suit.Button( "New Game (Classic)", suit.layout:row( 200, 30 ) ).hit then
+    if suit.Button( "New Game - 2017 Rules", suit.layout:row( 250, 30 ) ).hit then
+        local gameOptions = {
+            snakes = snakesJson,
+            mode = 'classic',
+            height = tonumber(height.text),
+            width = tonumber(width.text),
+            timeout = tonumber(timeout.text),
+            api = 2017,
+            food_max = tonumber(maxFood.text)
+        }
+        activeGame = Game(gameOptions)
+        activeGame:start()
+    end
+    
+    suit.layout:row( 250, 20 )
+
+    if suit.Button( "New Game - 2016 Classic Rules", suit.layout:row( 250, 30 ) ).hit then
         local gameOptions = {
             snakes = snakesJson,
             mode = 'classic',
@@ -51,81 +63,62 @@ function Menu.update( dt )
             width = tonumber(width.text),
             timeout = tonumber(timeout.text),
             api = 2016,
-            foodRules = 2016,
             food_max = tonumber(maxFood.text)
         }
-        if api2017Checkbox.checked then
-            gameOptions['api'] = 2017
-        end
-        if food2017Checkbox.checked then
-            gameOptions['foodRules'] = 2017
-        end
         activeGame = Game(gameOptions)
         activeGame:start()
     end
     
-    suit.layout:row( 200, 20 )
+    suit.layout:row( 250, 20 )
     
-    if not api2017Checkbox.checked then
-        if suit.Button( "New Game (Advanced)", suit.layout:row( 200, 30 ) ).hit then
-            local gameOptions = {
-                snakes = snakesJson,
-                mode = 'advanced',
-                height = tonumber(height.text),
-                width = tonumber(width.text),
-                timeout = tonumber(timeout.text),
-                api = 2016,
-                foodRules = 2016,
-                food_max = tonumber(maxFood.text)
-            }
-            if api2017Checkbox.checked then
-                gameOptions['api'] = 2017
-            end
-            if food2017Checkbox.checked then
-                gameOptions['foodRules'] = 2017
-            end
-            activeGame = Game( gameOptions )
-            activeGame:start()
-        end
+    if suit.Button( "New Game - 2016 Advanced Rules", suit.layout:row( 250, 30 ) ).hit then
+        local gameOptions = {
+            snakes = snakesJson,
+            mode = 'advanced',
+            height = tonumber(height.text),
+            width = tonumber(width.text),
+            timeout = tonumber(timeout.text),
+            api = 2016,
+            food_max = tonumber(maxFood.text)
+        }
+        activeGame = Game( gameOptions )
+        activeGame:start()
     end
     
-    suit.layout:reset( 100, 195 )
-    suit.layout:row( 200, 30 )
+    suit.layout:row( 250, 20 )
     
-    suit.Label("API Timeout", suit.layout:row(100,30))
-    suit.Input(timeout, suit.layout:col())
+    suit.Label( "API Timeout", suit.layout:row( 125, 30 ) )
+    suit.Input( timeout, suit.layout:col() )
     
-    suit.layout:reset( 100, 240 )
-    suit.layout:row( 200, 30 )
+    suit.layout:reset( 100, 300 )
+    suit.layout:row( 250, 30 )
     
-    suit.Label("Height", suit.layout:row(50,30))
-    suit.Input(height, suit.layout:col())
-    suit.Label("Width", suit.layout:col())
-    suit.Input(width, suit.layout:col())
+    suit.Label("Height", suit.layout:row(75,30))
+    suit.Input(height, suit.layout:col(50,30))
+    suit.Label("Width", suit.layout:col(75,30))
+    suit.Input(width, suit.layout:col(50,30))
     
-    suit.layout:reset( 100, 280 )
-    suit.layout:row( 200, 30 )
+    suit.layout:reset( 100, 350 )
+    suit.layout:row( 250, 30 )
     
-    suit.Checkbox( audioCheckbox, suit.layout:row() )
+    suit.Label( "Max Food (2017 only)", suit.layout:row( 150, 30 ) )
+    suit.Input( maxFood, suit.layout:col( 100, 30 ) )
+    
+    suit.layout:reset( 100, 390 )
+    suit.layout:row( 250, 30 )
+    
+    suit.Checkbox( audioCheckbox, suit.layout:row(150, 30) )
     if audioCheckbox.checked then
         PLAY_AUDIO = true
     else
         PLAY_AUDIO = false
     end
     
-    suit.Checkbox( fullscreenCheckbox, suit.layout:row() )
+    suit.Checkbox( fullscreenCheckbox, suit.layout:col() )
     checkfullscreen( fullscreenCheckbox.checked )
     
-    suit.Checkbox( api2017Checkbox, suit.layout:row() )
-    suit.Checkbox( food2017Checkbox, suit.layout:row() )
-    
-    if food2017Checkbox.checked then
-        suit.Label("Food Limit", suit.layout:row(70,30))
-        suit.Input(maxFood, suit.layout:col(50,30))
-    end
-    
-    suit.layout:reset( 100, 450 )
-    suit.layout:row( 200, 30 )
+    suit.layout:reset( 100, 440 )
+    suit.layout:row( 250, 30 )
 
     if suit.Button( "Exit", suit.layout:row() ).hit then
         love.event.quit()

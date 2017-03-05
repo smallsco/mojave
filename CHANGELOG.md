@@ -1,5 +1,11 @@
 ## CHANGELOG
 
+### v1.0 (2017-03-05)
+
+* Public release!
+* Merged 2017 API and food rules into a single menu option.
+* Corrected documentation for food spawns in README.
+
 ### v0.6.1 (2017-02-29)
 
 * Use a default image for snakes whos head could not be loaded
@@ -46,4 +52,4 @@
 
 ### v0.1 (2017-01-21)
 
-* Initial Release.
+* Initial Internal Release.

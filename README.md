@@ -78,7 +78,9 @@ The first snake listed in `snakes.json` may be controlled by the arena operator 
 ### Food and Health
 * Snakes start with 100 health. On each turn, snakes lose 1 health, unless they have eaten food that turn.
 * If a snake's health reaches 0, it dies.
-* Food will spawn on the game board at a random location every 3 turns.
+* Food will spawn on the game board...
+	* In the 2016 API, at a random location every 3 turns.
+	* In the 2017 API, when the game is started, and whenever a snake has consumed another piece of food on the board.
 * If a snake lands on a food square, it "eats" the food, and its' health will be restored. It's tail will grow by one square.
 	* In the 2016 API, each food will restore health by 30 (to a maximum of 100).
 	* In the 2017 API, each food will restore health to exactly 100.
@@ -102,14 +104,16 @@ The first snake listed in `snakes.json` may be controlled by the arena operator 
 
 
 ## Differences from the official arena
-* No support for scoring
-* No support for tiebreakers (the game can end in a draw if the last two snakes are the same length and have a head-on-head collision)
-* Snakes that use a GIF image as their head will not have their heads drawn on the board
+* No support for scoring (2016 API only)
+* No support for tiebreakers (2016 API only - the game can end in a draw if the last two snakes are the same length and have a head-on-head collision)
+* No support for custom head/tail types (2017 API only)
+* Snakes that use a GIF image as their head will have a generic head drawn on the game board instead
 * Probably other inconsistencies...
 
 ## Known Bugs
 * Snake tails occasionally spawn on the same square, leading to hilarity
 * If there are no free tiles on the game board, the app will freeze when trying to place food/walls/gold
+* When using the 2017 API, snakes seem to crash into themselves more frequently than on the official game board, not sure why...
 * Probably other bugs...
 
 ## Credits
