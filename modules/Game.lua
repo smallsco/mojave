@@ -6,48 +6,9 @@ setmetatable( Game, {
   end,
 })
 
-local biggestFont = love.graphics.newFont(48)
-
---- Convert an x,y coordinate pair between 0 and 1 indexing
--- @param tbl The coordinate pair to convert
--- @param direction The direction in which to perform the conversion
--- @return The converted coordinate pair
-local function convert_coordinates(tbl, direction)
-    if next(tbl) == nil then
-        return {}
-    end
-    local newtbl = {}
-    if type(tbl[1]) == 'table' then
-        for i = 1, #tbl do
-            newtbl[i] = convert_coordinates(tbl[i], direction)
-        end
-    else
-        if direction == 'topython' then
-            newtbl = {
-                tbl[1] - 1,     -- x coordinate
-                tbl[2] - 1      -- y coordinate
-            }
-        elseif direction == 'tolua' then
-            newtbl = {
-                tbl[1] + 1,     -- x coordinate
-                tbl[2] + 1      -- y coordinate
-            }
-        end
-    end
-    return newtbl
-end
-
--- Generates a UUID used for game IDs
--- @return a random format UUID
--- @see https://gist.github.com/jrus/3197011
-local function generateUUID()
-    local template ='xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
-    return string.gsub( template, '[xy]', function (c)
-        local v = (c == 'x') and love.math.random( 0, 0xf ) or love.math.random( 8, 0xb )
-        return string.format( '%x', v )
-    end )
-end
-
+local BGM = love.audio.newSource( 'audio/music/Desert-Mayhem.mp3' )
+BGM:setLooping( true )
+local logoFont = love.graphics.newFont( 'fonts/monoton/Monoton-Regular.ttf', 48 )
 
 --- Constructor / Factory Function
 -- @param table opt A table containing initialization options
@@ -56,34 +17,14 @@ function Game.new( opt )
     
     local self = setmetatable( {}, Game )
     local opt = opt or {}
+
+    http.TIMEOUT = config[ 'gameplay' ][ 'responseTime' ]
     
-    self.timeout = opt.timeout or 0.2
-    http.TIMEOUT = self.timeout
-    self.name = opt.name or generateUUID()
-    self.speed = opt.speed or 0.15
-    self.snakes = opt.snakes or {
-        {
-            id = generateUUID(),
-            name = 'snake',
-            url = ''
-        }
-    }
-    self.mode = opt.mode or 'advanced'  -- "classic" or "advanced"
-    self.food_turn_start = opt.food_turn_start or 3
-    self.food_turns = opt.food_turns or 3
-    self.food_max = opt.food_max or 4
-    
-    self.wall_turn_start = opt.wall_turn_start or 50
-    self.wall_turns = opt.wall_turns or 5
-    
-    self.gold_turns = opt.gold_turns or 100
-    self.gold_to_win = opt.gold_to_win or 5
-    
-    self.api = opt.api or 2016
-    
-    self.map = Map( self.api, {
-        height = opt.height or 20,
-        width = opt.width or 30
+    self.console_history = {}
+    self.id = Util.generateUUID()
+    self.map = Map({
+        width = config[ 'gameplay' ][ 'boardWidth' ],
+        height = config[ 'gameplay' ][ 'boardHeight' ]
     })
     self.timer = 0
     self.turn = 0
@@ -91,57 +32,38 @@ function Game.new( opt )
     self.food = {}
     self.gold = {}
     
-    -- Add a gold to the map near the center
-    if self.mode == 'advanced' then
+    -- If we're playing with gold, place one now
+    if config[ 'gameplay' ][ 'enableGold' ] then
         local gold_x, gold_y = self.map:setTileAtFreeLocationNearCenter( Map.TILE_GOLD )
-        table.insert(self.gold, {gold_x, gold_y})
-        log.debug( string.format( 'added gold at (%s, %s)', self.gold_x, self.gold_y ) )
+        table.insert( self.gold, { gold_x, gold_y } )
+        self:log( string.format( 'Placed gold at [%s, %s]', gold_x, gold_y ), 'debug' )
     end
     
-    -- If we're playing 2017 rules, start with FOOD_MAX food on the board
-    if self.api == 2017 then
-        for i = 1, self.food_max do
+    -- If we're playing with a fixed amount of food, place it now
+    if config[ 'gameplay' ][ 'foodStrategy' ] == 1 then
+        for i = 1, config[ 'gameplay' ][ 'totalFood' ] do
             local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
-            table.insert(self.food, {food_x, food_y})
-            log.debug( string.format( 'added food at (%s, %s)', food_x, food_y ) )
+            table.insert( self.food, { food_x, food_y } )
+            self:log( string.format( 'Placed food at [%s, %s]', food_x, food_y ), 'debug' )
         end
     end
     
-    -- Add snakes to the map
-    local snakes = {}
-    for i = 1, #self.snakes do
-        local x, y = self.map:setTileAtRandomFreeLocation( Map['TILE_HEAD_' .. i] )
-        
-        local snake = Snake({
-            id = self.snakes[i]['id'] or generateUUID(),
-            name = self.snakes[i]['name'],
-            url = self.snakes[i]['url'],
-            x = x,
-            y = y
-        })
-        
-        if self.api == 2017 then
-            snake:api(self.api, 'start', json.encode({
-                game_id = self.name,
-                height = self.map:getHeight(),
-                width = self.map:getWidth()
-            }))
-        elseif self.api == 2016 then
-            snake:api(self.api, '')  -- root endpoint, get color and head url
+    -- add non-empty snakes to this game
+    self.snakes = {}
+    for i = 1, #snakes do
+        if snakes[i][ 'type' ] ~= 1 then
+            local x, y = self.map:setTileAtRandomFreeLocation( Map['TILE_SNEK_' .. i], 3 )
+            local newSnake = Snake( snakes[i], i, self.id )
+            table.insert( newSnake[ 'position' ], { x, y, newSnake[ 'direction' ] } )
+            table.insert( newSnake[ 'position' ], { x, y, newSnake[ 'direction' ] } )
+            table.insert( newSnake[ 'position' ], { x, y, newSnake[ 'direction' ] } )
+            table.insert( self.snakes, newSnake )
+            self:log( string.format( 'Placed snake "%s" at [%s, %s] with starting direction "%s"', newSnake['name'], x, y, newSnake['direction'] ), 'debug' )
         end
-        
-        table.insert(snakes, snake)
-        log.debug( string.format(
-            'added snake "%s" at (%s, %s)',
-            snakes[i]['name'],
-            snakes[i]['x'],
-            snakes[i]['y']
-        ))
     end
-    self.snakes = snakes
-    
+
     self.running = false
-    
+
     return self
     
 end
@@ -149,441 +71,864 @@ end
 --- Game render loop
 function Game:draw()
 
-    local pixelWidth, pixelHeight = love.graphics.getDimensions()
-
-    -- Draw the map
-    self.map:draw(self.snakes)
-    
-    -- Draw a border
-    love.graphics.setColor(128,128,128,255)
-    love.graphics.setLineWidth(5)
-    love.graphics.rectangle('line', -3, -3, (pixelWidth*0.8)+8, (pixelHeight*0.8)+8)
-    love.graphics.setLineWidth(1)
-    
-    -- FIXME? Not sure why this is necessary
-    -- but without it, alpha does not get set correctly in statsText below
-    -- resulting in very dark colors
-    love.graphics.setColor(255,255,255,255)
-    
-    -- Draw the snake stats
-    local x = pixelWidth - (pixelWidth * 0.2) + 15
-    local wrap = pixelWidth - (pixelWidth * 0.8) - 30
-    local statsText = {
-        {0, 255, 0, 255},
-        "Turn: " .. self.turn .. "\n\n"
-    }
-    for i = 1, #self.snakes do
-        table.insert( statsText, self.snakes[i]:getColor() )
-        local str = self.snakes[i]:getName() .. "\n"
-        str = str .. "\tAlive: " .. tostring(self.snakes[i]:isAlive()) .. "\n"
-        str = str .. "\tAge: " .. self.snakes[i]:getAge() .. "\n"
-        str = str .. "\tGold: " .. self.snakes[i]:getGold() .. "\n"
-        str = str .. "\tHealth: " .. self.snakes[i]:getHealth() .. "\n"
-        str = str .. "\tKills: " .. self.snakes[i]:getKills() .. "\n"
-        str = str .. "\tLength: " .. self.snakes[i]:getLength() .. "\n"
-        str = str .. "\n"
-        table.insert( statsText, str )
-    end
-    love.graphics.printf(statsText, x, 10, wrap)
-    
-    -- Draw the taunts
-    local x = 10
-    local y = pixelHeight - (pixelHeight * 0.2) + 15
-    local wrap = pixelWidth - 30
-    for i = 1, #self.snakes do
-        love.graphics.setColor(255, 255, 255, 255)
-        local xscale, yscale = self.snakes[i]:getHeadScaleFactor(20, 20)
-        love.graphics.draw(self.snakes[i]:getHead(), x, y, 0, xscale, yscale)
-        local str = self.snakes[i]:getName() .. ": "
-        str = str .. self.snakes[i]:getTaunt()
-        love.graphics.setColor( self.snakes[i]:getColor() )
-        love.graphics.printf(str, x+25, y, wrap)
-        y = y + 25
-    end
-    
-    
-    
+        -- Render the game board.
+        if config[ 'appearance' ][ 'enableBloom' ] then
+            self.map:draw( self.snakes, self.food, self.gold, self.walls )
+        else
+            self.map:draw2( 'true', self.snakes, self.food, self.gold, self.walls )
+        end
+        
+        -- Draw logo top right.
+        love.graphics.setColor( 255, 96, 222, 204 )
+        love.graphics.setFont( logoFont )
+        love.graphics.printf(
+            "Mojave",
+            screenWidth*0.8,
+            -10,
+            screenWidth - screenWidth*0.8,
+            "center"
+        )
+        
+        -- Imgui: Render right-side snake stats.
+        love.graphics.setColor( 255, 255, 255, 255 )
+        imgui.PushStyleVar( "WindowRounding", 0 )
+        imgui.SetNextWindowSize(
+            screenWidth - ( screenWidth * 0.8 ),
+            screenHeight - 60
+        )
+        imgui.SetNextWindowPos(
+            screenWidth - ( screenWidth * 0.2 ),
+            60
+        )
+        if imgui.Begin( "Snakes", nil, { "NoResize", "NoCollapse", "NoTitleBar" } ) then
+            imgui.Columns( 2, "gameStats", false )
+            imgui.Text( "Turn: " .. self.turn )
+            imgui.NextColumn()
+            imgui.SetColumnOffset( -1, 75 )
+            if imgui.Button( "Map" ) then
+                self.map:print()
+            end
+            imgui.SameLine()
+            if imgui.Button( "Step" ) then
+                self:tick()
+            end
+            imgui.SameLine()
+            if self.running then
+                if imgui.Button( "Stop" ) then
+                    self:stop()
+                end
+            else
+                if imgui.Button( "Play" ) then
+                    self:start()
+                end
+            end
+            imgui.SameLine()
+            if imgui.Button( "Menu" ) then
+                imgui.OpenPopup( "ReturnMenu" )
+            end
+            if imgui.BeginPopupModal( "ReturnMenu", nil, { "NoResize" } ) then
+                imgui.Text( "Are you sure you want to return to the menu?\n\n" )
+                imgui.Separator()
+                if imgui.Button( "OK" ) then
+                    self:stop()
+                    BGM:stop()
+                    activeGame = nil
+                end
+                imgui.SameLine()
+                if imgui.Button( "Cancel" ) then
+                    imgui.CloseCurrentPopup()
+                end
+                imgui.EndPopup()
+            end
+            imgui.Columns(1)
+            imgui.Separator()
+            imgui.Text( "\n" )
+            imgui.Columns( 2, "snakeList", false )
+            for i = 1, #self.snakes do
+                imgui.Image(
+                    self.snakes[i][ 'avatar' ],
+                    self.snakes[i][ 'avatar' ]:getHeight() / self.snakes[i][ 'avatar' ]:getWidth() * 50,
+                    self.snakes[i][ 'avatar' ]:getWidth() / self.snakes[i][ 'avatar' ]:getHeight() * 50
+                )
+                imgui.NextColumn()
+                imgui.SetColumnOffset( -1, 60 );
+                imgui.TextWrapped( self.snakes[i].name )
+                if config[ 'gameplay' ][ 'enableGold' ] then
+                    imgui.PushStyleColor(
+                        "PlotHistogram",
+                        self.snakes[i].color[1] / 255,
+                        self.snakes[i].color[2] / 255,
+                        self.snakes[i].color[3] / 255,
+                        1.0
+                    )
+                    imgui.ProgressBar(
+                        self.snakes[i].health / 100,
+                        imgui.GetColumnWidth()*0.5,
+                        15
+                    )
+                    imgui.PopStyleColor()
+                    imgui.SameLine()
+                    imgui.Text( "Age:" )
+                    imgui.SameLine()
+                    if self.snakes[i].alive then
+                        imgui.Text( self.snakes[i].age )
+                    else
+                        imgui.TextColored( 1, 0, 0, 1, self.snakes[i].age )
+                    end
+                    imgui.ProgressBar(
+                        self.snakes[i].gold / config[ 'gameplay' ][ 'goldToWin' ],
+                        imgui.GetColumnWidth()*0.5,
+                        15,
+                        self.snakes[i].gold .. '/' .. config[ 'gameplay' ][ 'goldToWin' ] 
+                    )
+                    imgui.SameLine()
+                    imgui.Text( "Kills: " .. self.snakes[i].kills )
+                else
+                    imgui.PushStyleColor(
+                        "PlotHistogram",
+                        self.snakes[i].color[1] / 255,
+                        self.snakes[i].color[2] / 255,
+                        self.snakes[i].color[3] / 255,
+                        1.0
+                    )
+                    imgui.ProgressBar(
+                        self.snakes[i].health / 100,
+                        imgui.GetColumnWidth()*0.9,
+                        15
+                    )
+                    imgui.PopStyleColor()
+                    imgui.Text( "Age:" )
+                    imgui.SameLine()
+                    if self.snakes[i].alive then
+                        imgui.Text( self.snakes[i].age )
+                    else
+                        imgui.TextColored( 1, 0, 0, 1, self.snakes[i].age )
+                    end
+                    imgui.SameLine()
+                    imgui.Text( "\tKills: " .. self.snakes[i].kills )
+                end
+                imgui.Text( "\n" )
+                imgui.NextColumn()
+            end
+            imgui.Columns(1)
+            
+        end
+        imgui.End()
+        
+        -- Imgui: Render bottom game log.
+        imgui.SetNextWindowSize(
+            screenWidth - ( screenWidth * 0.2 ),
+            screenHeight - ( screenHeight * 0.8 )
+        )
+        imgui.SetNextWindowPos(
+            0,
+            screenHeight - ( screenHeight * 0.2 )
+        )
+        if imgui.Begin( "Console", nil, { "NoResize", "NoCollapse", "NoTitleBar" } ) then
+            for _, v in ipairs( self.console_history ) do
+                local level, ts, msg = v[1], v[2], v[3]
+                local prefix = '[' .. level .. ' ' .. ts .. ']'
+                local color = { 1, 1, 1, 1 }
+                if level == 'TRACE' then
+                    color = Util.normalizeRGBArray({ 0, 0, 255, 255 })
+                elseif level == 'DEBUG' then
+                    color = Util.normalizeRGBArray({ 0, 255, 255, 255 })
+                elseif level == 'INFO' then
+                    color = Util.normalizeRGBArray({ 0, 255, 0, 255 })
+                elseif level == 'WARN' then
+                    color = Util.normalizeRGBArray({ 255, 255, 0, 255 })
+                elseif level == 'ERROR' then
+                    color = Util.normalizeRGBArray({ 255, 135, 0, 255 })
+                elseif level == 'FATAL' then
+                    color = Util.normalizeRGBArray({ 255, 0, 0, 255 })
+                end
+                imgui.TextColored( color[1], color[2], color[3], color[4], prefix )
+                imgui.SameLine(135)
+                imgui.TextWrapped( msg )
+            end
+            if self.running then
+                imgui.SetScrollHere()
+            end
+        end
+        imgui.End()
+        imgui.PopStyleVar()
 end
 
 --- Gets the current state of the game, used in API calls to snakes
--- @param id The value to be used for 'you' in the 2017 API
+-- @param slot Which snake is requesting the current state
 -- @return A table containing the game state
-function Game:getState(id)
-    local snakes = {}
+function Game:getState2017( slot )
+
+    local alive_snakes = {}
     local dead_snakes = {}
+    local your_id = ''
     
     for i = 1, #self.snakes do
-        if self.api == 2017 then
-            if self.snakes[i]:isAlive() then
-                table.insert(snakes, {
-                    id = self.snakes[i]:getId(),
-                    name = self.snakes[i]:getName(),
-                    taunt = self.snakes[i]:getTaunt(),
-                    health_points = self.snakes[i]:getHealth(),
-                    coords = convert_coordinates(self.snakes[i]:getHistory(), 'topython')
-                })
-            else
-                table.insert(dead_snakes, {
-                    id = self.snakes[i]:getId(),
-                    name = self.snakes[i]:getName(),
-                    taunt = self.snakes[i]:getTaunt(),
-                    health_points = self.snakes[i]:getHealth(),
-                    coords = convert_coordinates(self.snakes[i]:getHistory(), 'topython')
-                })
-            end
-        elseif self.api == 2016 then
-            table.insert(snakes, {
-                id = self.snakes[i]:getId(),
-                name = self.snakes[i]:getName(),
-                status = self.snakes[i]:isAlive() and 'alive' or 'dead',
-                message = '',
-                taunt = self.snakes[i]:getTaunt(),
-                age = self.snakes[i]:getAge(),
-                health = self.snakes[i]:getHealth(),
-                coords = convert_coordinates(self.snakes[i]:getHistory(), 'topython'),
-                kills = self.snakes[i]:getKills(),
-                food = self.snakes[i]:getLength(),  -- FIXME: length != food, due to kills
-                gold = self.snakes[i]:getGold()
+        if self.snakes[i][ 'slot' ] == slot then
+            your_id = self.snakes[i][ 'id' ]
+        end
+        local positionZeroBasedCoords = {}
+        for j = 1, #self.snakes[i].position do
+            table.insert( positionZeroBasedCoords, {
+                self.snakes[i][ 'position' ][j][1] - 1,
+                self.snakes[i][ 'position' ][j][2] - 1
             })
+        end
+        local snakeObj = {
+            coords = positionZeroBasedCoords,
+            health_points = self.snakes[i].health,
+            id = self.snakes[i].id,
+            name = self.snakes[i].name,
+            taunt = self.snakes[i].taunt
+        }
+        if self.snakes[i].alive then
+            table.insert( alive_snakes, snakeObj )
+        else
+            table.insert( dead_snakes, snakeObj )
         end
     end
     
-    if self.api == 2017 then
-        return {
-            you = id,
-            height = self.map:getHeight(),
-            width = self.map:getWidth(),
-            game_id = self.name,
-            turn = self.turn,
-            snakes = snakes,
-            dead_snakes = dead_snakes,
-            food = convert_coordinates(self.food, 'topython')
-        }
-    elseif self.api == 2016 then
-        return {
-            game = self.name,
-            mode = self.mode,
-            turn = self.turn,
-            height = self.map:getHeight(),
-            width = self.map:getWidth(),
-            snakes = snakes,
-            food = convert_coordinates(self.food, 'topython'),
-            walls = convert_coordinates(self.walls, 'topython'),
-            gold = convert_coordinates(self.gold, 'topython')
-        }
+    local foodZeroBasedCoords = {}
+    for i = 1, #self.food do
+        table.insert( foodZeroBasedCoords, { self.food[i][1]-1, self.food[i][2]-1 } )
+    end
+    
+    return {
+        food = foodZeroBasedCoords,
+        game_id = self.id,
+        height = config[ 'gameplay' ][ 'boardHeight' ],
+        snakes = alive_snakes,
+        dead_snakes = dead_snakes,
+        turn = self.turn,
+        width = config[ 'gameplay' ][ 'boardWidth' ],
+        you = your_id
+    }
+
+end
+
+--- Gets the current state of the game, used in API calls to snakes
+-- @return A table containing the game state
+function Game:getState2016()
+
+    local mySnakes = {}
+    
+    for i = 1, #self.snakes do
+        local positionZeroBasedCoords = {}
+        for j = 1, #self.snakes[i].position do
+            table.insert( positionZeroBasedCoords, {
+                self.snakes[i][ 'position' ][j][1] - 1,
+                self.snakes[i][ 'position' ][j][2] - 1
+            })
+        end
+        local status = 'alive'
+        if not self.snakes[i].alive then
+            status = 'dead'
+        end
+        table.insert( mySnakes, {
+            id = self.snakes[i].id,
+            name = self.snakes[i].name,
+            status = status,
+            message = '',
+            taunt = self.snakes[i].taunt,
+            age = self.snakes[i].age,
+            health = self.snakes[i].health,
+            coords = positionZeroBasedCoords,
+            kills = self.snakes[i].kills,
+            food = #positionZeroBasedCoords,  -- FIXME: length != food, due to kills
+            gold = self.snakes[i].gold
+        })
+    end
+    
+    local foodZeroBasedCoords = {}
+    for i = 1, #self.food do
+        table.insert( foodZeroBasedCoords, { self.food[i][1]-1, self.food[i][2]-1 } )
+    end
+    
+    local goldZeroBasedCoords = {}
+    for i = 1, #self.gold do
+        table.insert( goldZeroBasedCoords, { self.gold[i][1]-1, self.gold[i][2]-1 } )
+    end
+    
+    local wallsZeroBasedCoords = {}
+    for i = 1, #self.walls do
+        table.insert( wallsZeroBasedCoords, { self.walls[i][1]-1, self.walls[i][2]-1 } )
+    end
+    
+    local mode = 'classic'
+    if config[ 'gameplay' ][ 'enableWalls' ] or config[ 'gameplay' ][ 'enableGold' ] then
+        mode = 'advanced'
+    end
+    
+    local gameState = {
+        game = self.id,
+        mode = mode,
+        turn = self.turn,
+        height = config[ 'gameplay' ][ 'boardHeight' ],
+        width = config[ 'gameplay' ][ 'boardWidth' ],
+        snakes = mySnakes,
+        food = foodZeroBasedCoords
+    }
+    if mode == 'advanced' then
+        gameState[ 'walls' ] = wallsZeroBasedCoords
+        gameState[ 'gold' ] = goldZeroBasedCoords
+    end
+    
+    return gameState
+
+end
+
+--- Keypress handler - allows a human player to control the snake in slot 1
+-- @param key The key that was pressed
+function Game:keypressed( key )
+    if self.running and self.snakes[1][ 'type' ] == 2 then
+        self.snakes[1]:setDirection( key )
     end
 end
 
---- Keypress handler - allows the arena operator to control snake #1 with the arrow keys for debugging
--- @param key The key that was pressed
-function Game:keypressed( key )
-    if self.running then
-        if key == 'up' then
-            self.snakes[1]:setDirection( 'human', 'north' )
-        elseif key == 'left' then
-            self.snakes[1]:setDirection( 'human', 'west' )
-        elseif key == 'down' then
-            self.snakes[1]:setDirection( 'human', 'south' )
-        elseif key == 'right' then
-            self.snakes[1]:setDirection( 'human', 'east' )
-        end
+--- Logger
+-- @param msg The message to log
+-- @param level The log level
+function Game:log( msg, level )
+    local levels = {
+        ['trace'] = 1,
+        ['debug'] = 2,
+        ['info'] = 3,
+        ['warn'] = 4,
+        ['error'] = 5,
+        ['fatal'] = 6
+    }
+    if ( not level ) or ( not levels[ level ] ) then
+        level = 'info'
+    end
+    if levels[level] >= config[ 'system' ][ 'logLevel' ] then 
+        level = string.upper( level )
+        table.insert( self.console_history, { level, os.date( "%H:%M:%S" ), msg } )
     end
 end
 
 --- Starts the game's update loop
 function Game:start()
-
-    log.info('API Version: ' .. self.api)
-
-    if self.api == 2016 then
-        for i = 1, #self.snakes do
-            self.snakes[i]:api(self.api, 'start', json.encode(self:getState(self.snakes[i]:getId())))
-        end
-    end
-    if PLAY_AUDIO then
-        BGM:play()
-    end
+    self:log( 'Game started.' )
     self.running = true
-    log.info('game started')
 end
 
 --- Stops the game's update loop
 function Game:stop()
-    if self.api == 2016 then
+    self.running = false
+    self:log( 'Game stopped.' )
+end
+
+
+function Game:tick()
+
+    -- DEBUGGING - CHECK FOR THE IMPOSSIBLE
+    if config[ 'gameplay' ][ 'enableSanityChecks' ] then
+    
+        -- MAKE SURE THE MAP STATE IS CORRECT FOR ALL SNAKES
         for i = 1, #self.snakes do
-            self.snakes[i]:api(self.api, 'end', json.encode(self:getState(self.snakes[i]:getId())))
+            if self.snakes[i][ 'alive' ] then
+                for j = 1, #self.snakes[i][ 'position' ] do
+                    if self.map.tiles[ self.snakes[i][ 'position' ][j][2] ][ self.snakes[i][ 'position' ][j][1] ] ~= self.map[ 'TILE_SNEK_' .. self.snakes[i][ 'slot' ] ] then
+                        self:log( 'MAP STATE OUT OF SYNC - BREAKPOINT', 'error' )
+                        self:log( string.format( 'Missing snake "%s" at [%s, %s]', self.snakes[i][ 'name' ], self.snakes[i][ 'position' ][j][1], self.snakes[i][ 'position' ][j][2] ), 'error' )
+                        self.running = false
+                        return
+                    end
+                end
+            end
+        end
+        for i = 1, #self.food do
+        
+            -- a food is in the game but not on the map
+            if self.map.tiles[ self.food[i][2] ][ self.food[i][1] ] ~= self.map.TILE_FOOD then
+                self:log( 'MAP STATE OUT OF SYNC - BREAKPOINT', 'error' )
+                self:log( string.format( 'Missing food at [%s, %s]', self.food[i][1], self.food[i][2] ), 'error' )
+                self.running = false
+                return
+            end
+            
+            -- a snake and a food are occupying the same tile
+            for j = 1, #self.snakes do
+                if self.snakes[j][ 'alive' ] then
+                    for k = 1, #self.snakes[j][ 'position' ] do
+                        if
+                            self.snakes[j][ 'position' ][k][1] == self.food[i][1]
+                            and self.snakes[j][ 'position' ][k][2] == self.food[i][2]
+                        then
+                            self:log( 'GAME STATE INVALID - BREAKPOINT', 'error' )
+                            self:log( string.format( 'Food at [%s, %s] also occupied by snake "%s"', self.food[i][1], self.food[i][2], self.snakes[j]['name'] ), 'error' )
+                            self.running = false
+                            return
+                        end
+                    end
+                end
+            end
+        end
+        for i = 1, #self.gold do
+        
+            -- a gold is in the game but not on the map
+            if self.map.tiles[ self.gold[i][2] ][ self.gold[i][1] ] ~= self.map.TILE_GOLD then
+                self:log( 'MAP STATE OUT OF SYNC - BREAKPOINT', 'error' )
+                self:log( string.format( 'Missing gold at [%s, %s]', self.gold[i][1], self.gold[i][2] ), 'error' )
+                self.running = false
+                return
+            end
+            
+            -- a snake and a gold are occupying the same tile
+            for j = 1, #self.snakes do
+                if self.snakes[j][ 'alive' ] then
+                    for k = 1, #self.snakes[j][ 'position' ] do
+                        if
+                            self.snakes[j][ 'position' ][k][1] == self.gold[i][1]
+                            and self.snakes[j][ 'position' ][k][2] == self.gold[i][2]
+                        then
+                            self:log( 'GAME STATE INVALID - BREAKPOINT', 'error' )
+                            self:log( string.format( 'Gold at [%s, %s] also occupied by snake "%s"', self.gold[i][1], self.gold[i][2], self.snakes[j]['name'] ), 'error' )
+                            self.running = false
+                            return
+                        end
+                    end
+                end
+            end
+        end
+        for i = 1, #self.walls do
+        
+            -- a wall is in the game but not on the map
+            if self.map.tiles[ self.walls[i][2] ][ self.walls[i][1] ] ~= self.map.TILE_WALL then
+                self:log( 'MAP STATE OUT OF SYNC - BREAKPOINT', 'error' )
+                self:log( string.format( 'Missing wall at [%s, %s]', self.walls[i][1], self.walls[i][2] ), 'error' )
+                self.running = false
+                return
+            end
+            
+            -- a snake and a wall are occupying the same tile
+            for j = 1, #self.snakes do
+                if self.snakes[j][ 'alive' ] then
+                    for k = 1, #self.snakes[j][ 'position' ] do
+                        if
+                            self.snakes[j][ 'position' ][k][1] == self.walls[i][1]
+                            and self.snakes[j][ 'position' ][k][2] == self.walls[i][2]
+                        then
+                            self:log( 'GAME STATE INVALID - BREAKPOINT', 'error' )
+                            self:log( string.format( 'Wall at [%s, %s] also occupied by snake "%s"', self.walls[i][1], self.walls[i][2], self.snakes[j]['name'] ), 'error' )
+                            self.running = false
+                            return
+                        end
+                    end
+                end
+            end
+        end
+    
+    end
+
+    -- TICK TOCK (goes the game clock)    
+    self.timer = 0
+    self.turn = self.turn + 1
+    self:log( string.format( 'TICK TOCK', food_x, food_y ), 'trace' )
+    
+    -- Make API requests to each snake and get their next direction.
+    for i = 1, #self.snakes do
+        if self.snakes[i][ 'alive' ] then
+        
+            if self.snakes[i][ 'type' ] == 3 then
+                -- 2017 API
+                self.snakes[i]:api( 'move', json.encode( self:getState2017( self.snakes[i][ 'slot' ] ) ) )
+            elseif self.snakes[i][ 'type' ] == 4 then
+                -- 2016 API
+                local endpoint = 'move'
+                if self.turn == 1 then
+                    endpoint = 'start'
+                end
+                self.snakes[i]:api( endpoint, json.encode( self:getState2016( self.snakes[i][ 'slot' ] ) ) )
+            end
         end
     end
-    self.running = false
-    if PLAY_AUDIO then
-        BGM:stop()
+    
+    -- Using their next direction, calculate their next position.
+    for i = 1, #self.snakes do
+        if self.snakes[i][ 'alive' ] then
+            -- update age
+            self.snakes[i].age = self.snakes[i].age + 1
+            
+            self.snakes[i]:calculateNextPosition()
+        end
     end
-    log.info('game stopped')
+    
+    -- Check for a head-on-head collision.
+    -- This is a bit trickier because we can't just look at the state of the
+    -- tile (it will be free as neither snake is there yet). We have to manually
+    -- compare each snake's next_x and next_y to each other.
+    for i = 1, #self.snakes do
+        for j = i+1, #self.snakes do
+            if
+                self.snakes[i][ 'alive' ] and
+                self.snakes[j][ 'alive' ] and
+                self.snakes[i][ 'next_x' ] == self.snakes[j][ 'next_x' ] and
+                self.snakes[i][ 'next_y' ] == self.snakes[j][ 'next_y' ]
+            then
+                -- Snakes i and j are moving into the same square.
+                self:log( string.format( '"%s" and "%s" have a head-to-head collision at [%s, %s]', self.snakes[i][ 'name' ], self.snakes[j][ 'name' ], self.snakes[i][ 'next_x' ], self.snakes[i][ 'next_y' ] ) )
+                
+                -- Which snake is longer?
+                local len_i = #self.snakes[i][ 'position' ]
+                local len_j = #self.snakes[j][ 'position' ]
+                
+                if len_i > len_j then
+                    self:log( string.format( '"%s" is the smaller snake and dies.', self.snakes[j]['name'] ) )
+                    self.snakes[j]:die()
+                    self.snakes[i].kills = self.snakes[i].kills + 1
+                elseif len_j > len_i then
+                    self:log( string.format( '"%s" is the smaller snake and dies.', self.snakes[i]['name'] ) )
+                    self.snakes[i]:die()
+                    self.snakes[j].kills = self.snakes[j].kills + 1
+                else
+                    self:log( 'They are the same size and both die.' )
+                    self.snakes[i]:die()
+                    self.snakes[j]:die()
+                end
+            end
+        end
+    end
+    
+    -- For each snake, look at the tile at their next position.
+    for i = 1, #self.snakes do
+        if self.snakes[i][ 'alive' ] and not self.snakes[i][ 'delayed_death' ] then
+            -- Off the edge of the game board? Kill the snake.
+            if
+                self.snakes[i][ 'next_x' ] < 1 or
+                self.snakes[i][ 'next_y' ] < 1 or
+                self.snakes[i][ 'next_x' ] > config[ 'gameplay' ][ 'boardWidth' ] or
+                self.snakes[i][ 'next_y' ] > config[ 'gameplay' ][ 'boardHeight' ]
+            then
+                self.snakes[i]:die()
+                self:log( string.format( '"%s" moves beyond the edge of the world [%s, %s] and dies.', self.snakes[i][ 'name' ], self.snakes[i][ 'next_x' ], self.snakes[i][ 'next_y' ] ) )
+            else
+                -- Get the tile
+                local tile = self.map:getTile(
+                    self.snakes[i][ 'next_x' ],
+                    self.snakes[i][ 'next_y' ]
+                )
+                
+                -- Wall? Kill the snake.
+                if tile == Map.TILE_WALL then
+                    self:log( string.format( '%s next tile is WALL', self.snakes[i][ 'name' ] ), 'trace' )
+                    self.snakes[i]:die()
+                    self:log( string.format( '"%s" runs into a wall [%s, %s] and dies.', self.snakes[i][ 'name' ], self.snakes[i][ 'next_x' ], self.snakes[i][ 'next_y' ] ) )
+                
+                -- Food? Grow the snake.
+                elseif tile == Map.TILE_FOOD then
+                    self:log( string.format( '%s next tile is FOOD', self.snakes[i][ 'name' ] ), 'trace' )
+                    self.snakes[i]:eat()
+                    self:log( string.format( '"%s" eats the food at [%s, %s]', self.snakes[i][ 'name' ], self.snakes[i][ 'next_x' ], self.snakes[i][ 'next_y' ] ), 'debug' )
+                    for j = 1, #self.food do
+                        if
+                            self.food[j][1] == self.snakes[i][ 'next_x' ] and
+                            self.food[j][2] == self.snakes[i][ 'next_y' ]
+                        then
+                            self:log( string.format( 'Removed food at [%s, %s] from the world.', self.food[j][1], self.food[j][2] ), 'debug' )
+                            table.remove( self.food, j )
+                            break
+                        end
+                    end
+                
+                -- Gold? Snake gets richer.
+                elseif tile == Map.TILE_GOLD then
+                    self:log( string.format( '%s next tile is GOLD', self.snakes[i][ 'name' ] ), 'trace' )
+                    self.snakes[i]:incrGold()
+                    self:log( string.format( '"%s" collects the gold at [%s, %s]', self.snakes[i][ 'name' ], self.snakes[i][ 'next_x' ], self.snakes[i][ 'next_y' ] ), 'debug' )
+                    for j = 1, #self.gold do
+                        if
+                            self.gold[j][1] == self.snakes[i][ 'next_x' ] and
+                            self.gold[j][2] == self.snakes[i][ 'next_y' ]
+                        then
+                            self:log( string.format( 'Removed gold at [%s, %s] from the world.', self.gold[j][1], self.gold[j][2] ), 'debug' )
+                            table.remove( self.gold, j )
+                            break
+                        end
+                    end
+                
+                -- Another snake's body or tail?
+                elseif
+                    tile >= Map[ 'TILE_SNEK_1' ] and
+                    tile <= Map[ 'TILE_SNEK_10' ]
+                then
+                    self:log( string.format( '%s next tile is SNEK_%s', self.snakes[i][ 'name' ], tile - 10 ), 'trace' )
+                    local otherSnakeGrowing = false
+                    local otherSnakeIndex = 0
+                    local otherSnakeTailX = 0
+                    local otherSnakeTailY = 0
+                    local otherSnakeSlot = tile - 10
+                    local otherSnakeName = ''
+                    for j = 1, #self.snakes do
+                        if self.snakes[j][ 'slot' ] == otherSnakeSlot then
+                            otherSnakeIndex = j
+                            otherSnakeName = self.snakes[j][ 'name' ]
+                            otherSnakeTailX = self.snakes[j][ 'position' ][ #self.snakes[j][ 'position' ] ][1]
+                            otherSnakeTailY = self.snakes[j][ 'position' ][ #self.snakes[j][ 'position' ] ][2]
+                            if
+                                otherSnakeTailX == self.snakes[j][ 'position' ][ #self.snakes[j][ 'position' ] - 1 ][1]
+                                and otherSnakeTailY == self.snakes[j][ 'position' ][ #self.snakes[j][ 'position' ] - 1 ][2]
+                            then
+                                otherSnakeGrowing = true
+                            end
+                            break
+                        end
+                    end
+                
+                    if
+                        self.snakes[i][ 'next_x' ] == otherSnakeTailX and
+                        self.snakes[i][ 'next_y' ] == otherSnakeTailY
+                    then
+                        -- Another snake's tail?
+                        -- Kill the snake only if the second snake is not growing.
+                        if otherSnakeGrowing then
+                            self.snakes[i]:die()
+                            self:log( string.format( '"%s" runs into the tail of "%s" at [%s, %s] and dies.', self.snakes[i][ 'name' ], otherSnakeName, self.snakes[i][ 'next_x' ], self.snakes[i][ 'next_y' ] ) )
+                        else
+                            -- other snake is moving out of this tile
+                            -- so treat it like a free tile (health drops 1)
+                            self.snakes[i].health = self.snakes[i].health - 1
+                        end
+                    else
+                        -- Another snake's body? Kill the snake.
+                        self.snakes[i]:die()
+                        self:log( string.format( '"%s" runs into the body of "%s" at [%s, %s] and dies.', self.snakes[i][ 'name' ], otherSnakeName, self.snakes[i][ 'next_x' ], self.snakes[i][ 'next_y' ] ) )
+                    end
+                    
+                -- Free? Snake's health drops 1.
+                else
+                    self:log( string.format( '%s next tile is FREE', self.snakes[i][ 'name' ] ), 'trace' )
+                    self.snakes[i].health = self.snakes[i].health - 1
+                    
+                end
+            end
+            
+            -- If a snake's health is 0, that snake dies.
+            if self.snakes[i].health == 0 then
+                self.snakes[i]:die()
+                self:log( string.format( '"%s" dies of starvation.', self.snakes[i][ 'name' ] ) )
+            end
+            
+        end
+    end
+    
+    -- Remove dead snakes from the map.
+    for i = 1, #self.snakes do
+        if self.snakes[i][ 'delayed_death' ] then
+            for _, v in ipairs( self.snakes[i][ 'position' ] ) do
+                if
+                    v[1] < 1 or
+                    v[2] < 1 or
+                    v[1] > config[ 'gameplay' ][ 'boardWidth' ] or
+                    v[2] > config[ 'gameplay' ][ 'boardHeight' ]
+                then
+                    -- no op
+                else
+                    self.map:setTile( v[1], v[2], Map.TILE_FREE )
+                end
+            end
+        end
+    end
+    
+    -- Move all living snakes to their next position.
+    -- Dead snakes can have their position updated (but not the map) so that the
+    -- ghost will show where they died correctly.
+    for i = 1, #self.snakes do
+        if self.snakes[i][ 'alive' ] then
+            if self.snakes[i][ 'delayed_death' ] then
+                self:log( string.format( '"%s" remove old tail from game at [%s, %s]', self.snakes[i][ 'name' ], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2] ), 'trace' )
+                table.remove( self.snakes[i][ 'position' ] )
+            else
+            
+                -- Remove last tail tile
+                if
+                    (self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1] == self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] - 1 ][1]
+                    and self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2] == self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] - 1 ][2])
+                    or
+                    (self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1] == self.snakes[i][ 'position' ][1][1]
+                    and self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2] == self.snakes[i][ 'position' ][1][2])
+                then
+                    -- noop
+                else
+                    self:log( string.format( '"%s" remove old tail from map at [%s, %s]', self.snakes[i][ 'name' ], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2] ), 'trace' )
+                    self.map:setTile(
+                        self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1],
+                        self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2],
+                        Map.TILE_FREE
+                    )
+                end
+                self:log( string.format( '"%s" remove old tail from game at [%s, %s]', self.snakes[i][ 'name' ], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2] ), 'trace' )
+                table.remove( self.snakes[i][ 'position' ] )
+            end
+            
+            -- Update new tail position to share direction with the body piece in front of it
+            if self.turn == 1 then
+                self.snakes[i][ 'position' ][2][3] = self.snakes[i][ 'position' ][1][3]
+            end
+            self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][3] = self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] - 1 ][3]
+            
+            -- If snake ate this turn, grow it
+            if self.snakes[i][ 'eating' ] then
+                self:log( string.format( '"%s" duplicate tail in game at [%s, %s]', self.snakes[i][ 'name' ], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2] ), 'trace' )
+                table.insert( self.snakes[i][ 'position' ], {
+                    self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1],
+                    self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2],
+                    self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][3]
+                })
+                self.snakes[i][ 'eating' ] = false
+            end
+            
+        end
+    end
+    for i = 1, #self.snakes do
+        if self.snakes[i][ 'alive' ] then
+            if self.snakes[i][ 'delayed_death' ] then
+                self:log( string.format( '"%s" add new head to game at [%s, %s]', self.snakes[i][ 'name' ], self.snakes[i][ 'next_x' ], self.snakes[i][ 'next_y' ] ), 'trace' )
+                table.insert( self.snakes[i][ 'position' ], 1, {
+                    self.snakes[i][ 'next_x' ],
+                    self.snakes[i][ 'next_y' ],
+                    self.snakes[i][ 'direction' ]
+                })
+            else            
+                -- Move snake head to next position
+                self:log( string.format( '"%s" add new head to game and map at [%s, %s]', self.snakes[i][ 'name' ], self.snakes[i][ 'next_x' ], self.snakes[i][ 'next_y' ] ), 'trace' )
+                table.insert( self.snakes[i][ 'position' ], 1, {
+                    self.snakes[i][ 'next_x' ],
+                    self.snakes[i][ 'next_y' ],
+                    self.snakes[i][ 'direction' ]
+                })
+                self.map:setTile(
+                    self.snakes[i][ 'next_x' ],
+                    self.snakes[i][ 'next_y' ],
+                    Map[ 'TILE_SNEK_' .. self.snakes[i][ 'slot' ] ]
+                )
+            end
+        end
+    end
+    
+    -- Kill dead snakes for realzies.
+    for i = 1, #self.snakes do
+        if self.snakes[i][ 'delayed_death' ] then
+            self.snakes[i][ 'delayed_death' ] = false
+            self.snakes[i][ 'alive' ] = false
+        end
+    end
+    
+    -- If food strategy is fixed, and food was taken this turn, add more food.
+    if config[ 'gameplay' ][ 'foodStrategy' ] == 1 then
+        for i = 1, config[ 'gameplay' ][ 'totalFood' ] - #self.food do
+            local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
+            table.insert( self.food, { food_x, food_y } )
+            self:log( string.format( 'Placed food at [%s, %s]', food_x, food_y ), 'debug' )
+        end
+    end
+    
+    -- If food strategy is growing, add more food if we pass the requisite number of tics.
+    if config[ 'gameplay' ][ 'foodStrategy' ] == 2 then
+        if self.turn % config[ 'gameplay' ][ 'addFoodTurns' ] == 0 then
+            local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
+            table.insert( self.food, { food_x, food_y } )
+            self:log( string.format( 'Placed food at [%s, %s]', food_x, food_y ), 'debug' )
+        end
+    end
+    
+    -- If walls are enabled, add a wall if we pass the requisite number of tics.
+    if
+        config[ 'gameplay' ][ 'enableWalls' ]
+        and self.turn % config[ 'gameplay' ][ 'addWallTurns' ] == 0
+        and self.turn >= config[ 'gameplay' ][ 'wallTurnStart' ]
+    then
+        local badCoords = {}
+        for i = 1, #self.snakes do
+            if self.snakes[i][ 'alive' ] then
+                local x = self.snakes[i][ 'position' ][1][1]
+                local y = self.snakes[i][ 'position' ][1][2]
+                table.insert( badCoords, { x+1, y } )
+                table.insert( badCoords, { x-1, y } )
+                table.insert( badCoords, { x, y+1 } )
+                table.insert( badCoords, { x, y-1 } )
+            end
+        end
+        local wall_x, wall_y = self.map:setTileAtRandomSafeLocation( Map.TILE_WALL, badCoords )
+        table.insert( self.walls, { wall_x, wall_y } )
+        self:log( string.format( 'Placed wall at [%s, %s]', wall_x, wall_y ), 'debug' )
+    end
+    
+    -- If gold is enabled, and we pass the requisite number of tics, and there is no gold on the game board right now, then add a gold.
+    if
+        config[ 'gameplay' ][ 'enableGold' ]
+        and self.turn % config[ 'gameplay' ][ 'addGoldTurns' ] == 0
+    then
+        if next( self.gold ) == nil then
+            local gold_x, gold_y = self.map:setTileAtFreeLocationNearCenter( Map.TILE_GOLD )
+            table.insert( self.gold, { gold_x, gold_y } )
+            self:log( string.format( 'Placed gold at [%s, %s]', gold_x, gold_y ), 'debug' )
+        end
+    end
+    
+    -- Count how many snakes are still alive.
+    local livingSnakes = 0
+    local winner = ''
+    for i = 1, #self.snakes do
+        if self.snakes[i].alive then
+            livingSnakes = livingSnakes + 1
+            winner = self.snakes[i].name
+        end
+    end
+    if livingSnakes == 0 then
+        -- All snakes are dead, so end the game
+        self:log( 'Game Over. All snakes are dead.' )
+        self:stop()
+        return
+    end
+    if livingSnakes == 1 then
+        if self.snakes[1][ 'type' ] == 2 and self.snakes[1][ 'alive' ] then
+            -- The last snake alive is a human, let it play until it dies
+        elseif #self.snakes == 1 then
+            -- There's only one snake in the game, let it play until it dies
+        else
+            self:log( string.format( 'Game Over. The winner is "%s" for being the last snake alive!', winner ) )
+            self:stop()
+            return
+        end
+    end
+    
+    -- If gold is enabled, and any snake has reached the maximum gold, end the game.
+    for i = 1, #self.snakes do
+        if self.snakes[i].gold >= config[ 'gameplay' ][ 'goldToWin' ] then
+            self:log( string.format( 'Game Over. The winner is "%s" for collecting all the gold!', self.snakes[i].name ) )
+            self:stop()
+            return
+        end
+    end
+
 end
+
 
 --- Update Loop
 -- @param dt Delta Time
 function Game:update( dt )
-    if self.running then
-    
-        -- Is it time to update the game state yet?
-        self.timer = self.timer + dt
-        if self.timer < self.speed then
-            return
+
+    -- Background music
+    if config[ 'audio' ][ 'enableMusic' ] then
+        if BGM:isStopped() then
+            BGM:play()
         end
-        
-        -- Yes, update the game state
-        self.timer = 0
-        self.turn = self.turn + 1
-        log.trace( 'tick' )
-        
-        -- Get each snake's next position (but don't move them yet)
-        for i = 1, #self.snakes do
-            log.debug(string.format('snake "%s" health: %s', self.snakes[i]:getName(), self.snakes[i]:getHealth()))
-            if self.snakes[i]:isAlive() then
-                -- Snakes grow on the first two turns of the game
-                if self.turn == 1 or self.turn == 2 then
-                    self.snakes[i]:grow()
-                end
-                self.snakes[i]:api(self.api, 'move', json.encode(self:getState(self.snakes[i]:getId())))
-                self.snakes[i]:calculateNextPosition()
-            end
-        end
-        
-        -- Handle head-to-head collisions
-        for i = 1, #self.snakes do
-            if self.snakes[i]:isAlive() then
-                for j = i+1, #self.snakes do
-                    if self.snakes[j]:isAlive() then
-                        local i_x, i_y = self.snakes[i]:getNextPosition()
-                        local j_x, j_y = self.snakes[j]:getNextPosition()
-                        if i_x == j_x and i_y == j_y then
-                            log.info(string.format('head to head collision between "%s" and "%s"', self.snakes[i]:getName(), self.snakes[j]:getName()))
-                            local len_i = self.snakes[i]:getLength()
-                            local len_j = self.snakes[j]:getLength()
-                            if len_i > len_j then
-                                log.info(string.format('snake "%s" is shorter and dies', self.snakes[j]:getName()))
-                                self.snakes[i]:kill(self.snakes[j])
-                                self.snakes[j]:die()
-                            elseif len_i < len_j then
-                                log.info(string.format('snake "%s" is shorter and dies', self.snakes[i]:getName()))
-                                self.snakes[j]:kill(self.snakes[i])
-                                self.snakes[i]:die()
-                            else
-                                log.info(string.format('snakes "%s" and "%s" are the same length and both die', self.snakes[i]:getName(), self.snakes[j]:getName()))
-                                self.snakes[i]:die()
-                                self.snakes[j]:die()
-                            end
-                        end
-                    end
-                end
-            end
-        end
-        
-        -- Inspect the tile at each snake's next position
-        for i = 1, #self.snakes do
-        
-            if self.snakes[i]:isAlive() then
-                local x, y = self.snakes[i]:getNextPosition()
-                if x < 1 or y < 1 or x > self.map:getWidth() or y > self.map:getHeight() then
-                    -- If the next coordinate is off the game board, there's no tile
-                    -- to inspect. Kill the snake.
-                    self.snakes[i]:die()
-                    log.info(string.format('snake "%s" hits the edge of the world and dies', self.snakes[i]:getName()))
-                else
-                    -- Get the tile
-                    local tile = self.map:getTile( x, y )
-                    
-                    -- FIXME: seems to be an edge case where head-to-head collision detection is failing.
-                    -- checking for Map.TILE_HEAD here works around it, but gives an unfair advantage to
-                    -- the snake being hit.
-                    
-                    if tile >= Map.TILE_HEAD_1 and ( tile % Map.TILE_HEAD_1 == 0 or tile % Map.TILE_HEAD_1 == 1 ) then
-                        -- find the snake we ran into and KILL IT
-                        local suicide = true
-                        for j = 1, #self.snakes do
-                            if i ~= j then
-                                local history = self.snakes[j]:getHistory()
-                                for k = 1, #history do
-                                    if history[k][1] == x and history[k][2] == y then
-                                        suicide = false
-                                        self.snakes[j]:kill(self.snakes[i])
-                                    end
-                                end
-                            end
-                        end
-                        if suicide then
-                            log.info(string.format('snake "%s" hits itself and dies', self.snakes[i]:getName()))
-                        else
-                            log.info(string.format('snake "%s" hits another snake tail and dies', self.snakes[i]:getName()))
-                        end
-                        self.snakes[i]:die()
-                    elseif tile == Map.TILE_WALL then
-                        -- If it's a wall, the snake dies.
-                        self.snakes[i]:die()
-                        log.info(string.format('snake "%s" hits a wall and dies', self.snakes[i]:getName()))
-                    elseif tile == Map.TILE_FOOD then
-                        -- If the tile contains food, the snake eats.
-                        self.snakes[i]:eatFood(self.api)
-                        for j = 1, #self.food do
-                            if self.food[j][1] == x and self.food[j][2] == y then
-                                table.remove(self.food, j)
-                                log.debug( string.format( 'removed food at (%s, %s)', x, y ) )
-                                break
-                            end
-                        end
-                        log.debug(string.format('snake "%s" finds food and grows', self.snakes[i]:getName()))
-                    elseif tile == Map.TILE_GOLD then
-                        -- If the tile contains gold, the snake gets richer.
-                        self.snakes[i]:incrGold()
-                        for j = 1, #self.gold do
-                            if self.gold[j][1] == x and self.gold[j][2] == y then
-                                table.remove(self.gold, j)
-                                log.debug( string.format( 'removed gold at (%s, %s)', x, y ) )
-                                break
-                            end
-                        end
-                        log.debug(string.format('snake "%s" finds gold and gets richer', self.snakes[i]:getName()))
-                    else
-                        -- Free tile, decrement the snake's health by 1
-                        self.snakes[i]:decrementHealth()
-                        log.debug(string.format('snake "%s" moves to a free square', self.snakes[i]:getName()))
-                    end
-                end
-                
-                -- If a snake's health is 0, that snake dies.
-                if self.snakes[i]:getHealth() == 0 then
-                    self.snakes[i]:die()
-                    log.info(string.format('snake "%s" runs out of health and dies', self.snakes[i]:getName()))
-                end
-            end
-            
-        end -- inspect tile
-        
-        -- Remove snakes that died this turn from the map
-        for i = 1, #self.snakes do
-            if not self.snakes[i]:isAlive() then
-                local history = self.snakes[i]:getHistory()
-                for _, v in ipairs(history) do
-                    self.map:setTile(v[1], v[2], Map.TILE_FREE)
-                end
-                self.snakes[i]:clearHistory()
-            end
-        end
-        
-        -- Move all living snakes to the next position
-        for i = 1, #self.snakes do
-            if self.snakes[i]:isAlive() then
-                local x, y = self.snakes[i]:getPosition()
-                local next_x, next_y = self.snakes[i]:getNextPosition()
-                local tailEnd = self.snakes[i]:moveNextPosition()
-                
-                -- move head to next position
-                self.map:setTile(next_x, next_y, Map['TILE_HEAD_' .. i])
-                
-                -- set the previous position of the head to a tail square...
-                -- ... as long as the snake is bigger than 1 square
-                if self.snakes[i]:getLength() > 1 then
-                    self.map:setTile(x, y, Map['TILE_TAIL_' .. i])
-                end
-                
-                -- clear the tile containing the end of the snake
-                if tailEnd ~= nil then
-                    self.map:setTile(tailEnd[1], tailEnd[2], Map.TILE_FREE)
-                end
-                
-                self.snakes[i]:incrAge()
-            end
-        end
-        
-        if self.api == 2017 then
-            for i = 1, self.food_max - #self.food do
-                local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
-                table.insert(self.food, {food_x, food_y})
-                log.debug( string.format( 'added food at (%s, %s)', food_x, food_y ) )
-            end
-        elseif self.api == 2016 then
-            -- Add a food to the map at a random location if it's time
-            if self.turn >= self.food_turn_start and self.turn % self.food_turns == 0 then
-                local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
-                table.insert(self.food, {food_x, food_y})
-                log.debug( string.format( 'added food at (%s, %s)', food_x, food_y ) )
-            end
-        end
-        
-        -- Add a wall to the map at a random location if it's time
-        if self.mode == 'advanced' and self.turn >= self.wall_turn_start and self.turn % self.wall_turns == 0 then
-            local badCoords = {}
-            for i = 1, #self.snakes do
-                if self.snakes[i]:isAlive() then
-                    local x, y = self.snakes[i]:getPosition()
-                    table.insert(badCoords, {x+1,y})
-                    table.insert(badCoords, {x-1,y})
-                    table.insert(badCoords, {x,y+1})
-                    table.insert(badCoords, {x,y-1})
-                end
-            end
-            local wall_x, wall_y = self.map:setTileAtRandomSafeLocation( Map.TILE_WALL, badCoords )
-            table.insert(self.walls, {wall_x, wall_y})
-            log.debug( string.format( 'added wall at (%s, %s)', wall_x, wall_y ) )
-        end
-        
-        -- Add a gold to the map at a location near the center if it's time
-        if self.mode == 'advanced' and self.turn % self.gold_turns == 0 then
-            -- do not place gold if there is already gold on the board
-            if next(self.gold) == nil then
-                local gold_x, gold_y = self.map:setTileAtFreeLocationNearCenter( Map.TILE_GOLD )
-                table.insert(self.gold, {gold_x, gold_y})
-                log.debug( string.format( 'added gold at (%s, %s)', self.gold_x, self.gold_y ) )
-            end
-        end
-        
-        -- If one or less snakes are alive, then end the game.
-        local humanPlayer = false
-        local livingSnakes = {}
-        for i = 1, #self.snakes do
-            if self.snakes[i]:isAlive() then
-                table.insert(livingSnakes, i)
-            end
-            if self.snakes[i]:getURL() == '' then
-                humanPlayer = true
-            end
-        end
-        if #livingSnakes == 0 then
-            log.info('Game Over, all snakes are dead')
-            self:stop()
-        elseif #livingSnakes == 1 then
-            if humanPlayer then
-                -- do nothing, humans can play forever
-            elseif #self.snakes == 1 then
-                -- if the only living snake is also the only snake in the game,
-                -- then allow it to play forever
-            else
-                log.info(string.format('Game over, last snake remaining is "%s"', self.snakes[livingSnakes[1]]:getName()))
-                self:stop()
-            end
-        end
-        
-        -- If any snake has 5 gold, that snake wins!
-        for i = 1, #self.snakes do
-            if self.snakes[i]:getGold() >= self.gold_to_win then
-                log.info(string.format('Game over, "%s" took home all the gold!', self.snakes[livingSnakes[i]]:getName()))
-                self:stop()
-            end
-        end
-        
     else
-        suit.layout:reset(250,150)
-        suit.Label("GAME OVER", {font=biggestFont}, suit.layout:row(300,30))
-        suit.layout:row()
-        if suit.Button("Return to Menu", suit.layout:row()).hit then
-            activeGame = nil
+        if BGM:isPlaying() then
+            BGM:stop()
         end
-        suit.layout:row()
-        if suit.Button("Exit", suit.layout:row()).hit then
-            love.event.quit()
+    end
+    
+    if self.running then
+        self.timer = self.timer + dt
+        if self.timer < config[ 'gameplay' ][ 'gameSpeed' ] then
+            return
+        else
+            self:tick()
         end
-    end -- if self.running
-end -- function
+    end
+
+end
 
 return Game

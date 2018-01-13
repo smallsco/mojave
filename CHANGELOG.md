@@ -1,5 +1,34 @@
 ## CHANGELOG
 
+### v2.0 (2018-01-13)
+
+Mojave 2.0 is a nearly complete rewrite, with lots and lots of changes. The more notable ones are listed below:
+
+* Appearance
+	* Replaced SUIT with "dear imgui" for rendering GUI elements.
+	* The game board colors can now be customized.
+	* Snakes can be configured in the GUI, no more editing snakes.json by hand!
+	* Snake head and tail type images are now fully supported (for 2017 API snakes). 2016 API snakes use heads and tails that are associated with their slot.
+	* Snake avatars in GIF format are now supported (however they will not be animated)
+	* Snake health and gold are rendered using progress bars.
+	* Improved overall visual appearance of the game board with a (toggleable) bloom filter and vignette. These use a lot of GPU power, so turn them off for laptops or if the game runs too slowly.
+* Gameplay
+	* Fixed several inconsistencies related to tracking snake length and position on the game board, when compared to the official Battlesnake arena. This fixes a number of snakes that would crash at game start or run into their own body when playing under Mojave.
+	* 2016 and 2017 API snakes can now play each other in the same game - Mojave will send the appropriate API calls to each snake rather than globally.
+	* Rules changed in different versions of the API can be toggled on/off from the Options menu, allowing for fully hybrid games rather than strict "2016" or "2017" games.
+	* The game speed can be customized (though it's still bound by the response time from snakes)
+	* Matches can be paused and resumed, and the internal map state logged during the match.
+	* The board size is no longer forced to have an odd height/width under any circumstances.
+	* A human player can no longer control a computer snake, rather, a human player can have own snake to control if requested.
+	* Reduced the maximum number of snakes allowed in the arena to 10 (for GUI purposes, might bump it back up to 12 in a future release)
+	* Snakes will no longer be spawned on the edge of the game board.
+* Other
+	* New soundtrack, "Desert Mayhem" plays while a game is running.
+	* New soundtrack, "Automation" plays while on the menu screen.
+	* Moved logging to the game UI, and snake taunts to log messages.
+	* Moved the appdata directory to "mojave2" so that we can run side-by-side with 1.0 and earlier versions.
+	* Introduced debugging functionality that allows you to step through a match one turn at a time.
+
 ### v1.0 (2017-03-05)
 
 * Public release!
