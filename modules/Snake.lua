@@ -8,404 +8,349 @@ setmetatable( Snake, {
 
 
 -- Constants
-Snake.DIRECTION_NORTH = 1
-Snake.DIRECTION_EAST = 2
-Snake.DIRECTION_SOUTH = 3
-Snake.DIRECTION_WEST = 4
+Snake.DIRECTION_NORTH = 'up'
+Snake.DIRECTION_EAST = 'right'
+Snake.DIRECTION_SOUTH = 'down'
+Snake.DIRECTION_WEST = 'left'
+Snake.DIRECTIONS = {
+    Snake.DIRECTION_NORTH,
+    Snake.DIRECTION_EAST,
+    Snake.DIRECTION_SOUTH,
+    Snake.DIRECTION_WEST
+}
+
+
+local SFXSnakeFood = love.audio.newSource( 'audio/sfx/PowerUp5.mp3', 'static' )
+local SFXSnakeGold = love.audio.newSource( 'audio/sfx/Bells6.mp3', 'static' )
+local SFXSnakeDeath = love.audio.newSource( 'audio/sfx/PowerDown1.mp3', 'static' )
 
 
 --- Constructor / Factory Function
 -- @param table opt A table containing initialization options
 -- @return Snake
-function Snake.new( opt )
+function Snake.new( opt, slot, game_id )
     
     local self = setmetatable( {}, Snake )
     local opt = opt or {}
     
     -- Snake name and API endpoint
-    self.id = opt.id or ''
-    self.name = opt.name or 'snake'
+    self.type = opt.type
+    if self.type == 2 then
+        self.id = Util.generateUUID()
+        self.name = 'Human Player'
+    elseif self.type == 3 then
+        self.id = Util.generateUUID()
+        self.name = 'Loading...'
+    elseif self.type == 4 then
+        self.id = opt.id
+        self.name = opt.name
+    end
     self.url = opt.url or ''
-    self.taunt = opt.taunt or 'No one can stop me. -Justin Bieber'
+    self.taunt = opt.taunt or ''
     
-    -- Starting position
-    self.x = opt.x or 1
-    self.y = opt.y or 1
-    self.next_x = 1
-    self.next_y = 1
-    
-    -- Default body color
-    self.color = { 255, 0, 0, 255 }
-    
-    -- Starting direction
-    self.direction = opt.direction or love.math.random(4)
-    
-    -- Starting length
-    self.length = opt.length or 1
-    
-    -- Default head image
-    self.head = love.graphics.newImage( love.image.newImageData( 20, 20 ) )
-    
-    -- Starting health
+    self.real_x = 0
+    self.real_y = 0
+    self.next_x = 0
+    self.next_y = 0
+    self.direction = self.DIRECTIONS[love.math.random(4)]
+    self.position = {}
+    self.slot = slot
+    self.avatar = snakeHeads[slot]
+    self.head = snakeHeads[slot]
+    self.tail = snakeTails[slot]
     self.health = 100
-    
-    -- Starting gold
     self.gold = 0
-    
-    -- Starting score
-    self.score = 0
-    
-    -- Starting age
     self.age = 0
-    
-    -- Starting kills
     self.kills = 0
+    self.eating = false
+    self.alive = true
+    self.delayed_death = false
+    self.color = { 255, 255, 255 }
     
-    -- History of movement
-    self.history = {{self.x, self.y}}
-    self.status = 'alive'
+    if self.type == 2 then
+        -- human player, no initialization required
+    elseif self.type == 3 then
+        self:api( 'start', json.encode({
+            game_id = game_id,
+            height = config[ 'gameplay' ][ 'boardHeight' ],
+            width = config[ 'gameplay' ][ 'boardWidth' ]
+        }))
+    elseif self.type == 4 then
+        self:api( '' )  -- root endpoint, get color and head url
+    else
+        error( 'Unsupported snake type' )
+    end
     
     return self
     
 end
 
 --- Executes a HTTP request to the BattleSnake server
---- (remember, the arena is a *client*, and the snakes are *servers*
+--- (remember, the game board is a *client*, and the snakes are *servers*
 --- contrary to what you might expect!)
--- @param api_version The API version
 -- @param endpoint The snake server's HTTP API endpoint
 -- @param data The data to send to the endpoint
-function Snake:api( api_version, endpoint, data )
+function Snake:api( endpoint, data )
 
+    local request_url = self.url .. '/' .. endpoint
+    gameLog( string.format( 'Request URL: %s', request_url ), 'debug' )
+    gameLog( string.format( 'POST body: %s', data ), 'debug' )
+    
+    --[[
+        The version of LuaSocket bundled with LÖVE has a bug
+        where the http port will not get added to the Host header,
+        which is a violation of the HTTP spec. Most web servers don't
+        care - however - this breaks Flask, which interprets the
+        spec very strictly and is also used by a lot of snakes.
+        
+        We can work around this by manually parsing the URL,
+        generating a Host header, and explicitly setting it on the request.
+        
+        See https://github.com/diegonehab/luasocket/pull/74 for more info.
+    ]]
+    local parsed = socket.url.parse( request_url )
+    local host = parsed[ 'host' ]
+    if parsed[ 'port' ] then host = host .. ':' .. parsed[ 'port' ] end
+
+    -- make the request
+    local response_body = {}
+    local res, code, response_headers, status
     if endpoint == '' then
-        log.debug(string.format('snake "%s" api call to info endpoint', self.name))
+        res, code, response_headers, status = http.request({
+            url = request_url,
+            method = "GET",
+            headers =
+            {
+              [ "Content-Type" ] = "application/json",
+              [ "Host" ] = host
+            },
+            sink = ltn12.sink.table( response_body )
+        })
     else
-        log.debug(string.format('snake "%s" api call to "%s" endpoint', self.name, endpoint))
+        res, code, response_headers, status = http.request({
+            url = request_url,
+            method = "POST",
+            headers =
+            {
+              [ "Content-Type" ] = "application/json",
+              [ "Content-Length" ] = data:len(),
+              [ "Host" ] = host
+            },
+            source = ltn12.source.string( data ),
+            sink = ltn12.sink.table( response_body )
+        })
     end
     
-    if self.url == '' then
-        log.debug(string.format('snake "%s" is human controlled, ignoring api call', self.name))
-        return
-    else
-    
-        local request_url = self.url .. '/' .. endpoint
-        log.trace('Request URL: ' .. request_url)
-        
-        --[[
-            The version of LuaSocket bundled with LÖVE has a bug
-            where the http port will not get added to the Host header,
-            which is a violation of the HTTP spec. Most web servers don't
-            care - however - this breaks Flask, which interprets the
-            spec very strictly and is also used by a lot of snakes.
-            
-            We can work around this by manually parsing the URL,
-            generating a Host header, and explicitly setting it on the request.
-            
-            See https://github.com/diegonehab/luasocket/pull/74 for more info.
-        ]]
-        local parsed = socket.url.parse( request_url )
-        local host = parsed['host']
-        if parsed['port'] then host = host .. ':' .. parsed['port'] end
-        
-        local response_body = {}
-        local res, code, response_headers, status
-        if endpoint == '' then
-            res, code, response_headers, status = http.request({
-                url = request_url,
-                method = "GET",
-                headers =
-                {
-                  ["Content-Type"] = "application/json",
-                  ["Host"] = host
-                },
-                sink = ltn12.sink.table(response_body)
-            })
-        else
-            log.trace('POST data: ' .. data)
-            res, code, response_headers, status = http.request({
-                url = request_url,
-                method = "POST",
-                headers =
-                {
-                  ["Content-Type"] = "application/json",
-                  ["Content-Length"] = data:len(),
-                  ["Host"] = host
-                },
-                source = ltn12.source.string(data),
-                sink = ltn12.sink.table(response_body)
-            })
-        end
-        
-        -- if the server responded
-        if status then
-            log.trace('Response Code: ' .. code)
-            log.trace('Response Status: ' .. status)
-            log.trace('Response Body: ' .. table.concat(response_body))
-            local response_data = json.decode(table.concat(response_body))
-            if response_data then
-                if response_data['move'] ~= nil then
-                    log.trace(string.format('move: %s', response_data['move']))
-                    self:setDirection(api_version, response_data['move'])
-                end
-                if response_data['taunt'] ~= nil then
-                    log.trace(string.format('taunt: %s', response_data['taunt']))
-                    self:setTaunt(response_data['taunt'])
-                end
-                if response_data['color'] ~= nil then
-                    log.trace(string.format('color: %s', response_data['color']))
-                    self:setColor( response_data['color'], true )
-                end
-                if api_version == 2016 then
-                    if response_data['head'] ~= nil then
-                        log.trace(string.format('head: %s', response_data['head']))
-                        self:setHead( response_data['head'] )
-                    end
-                elseif api_version == 2017 then
-                    if response_data['head_url'] ~= nil then
-                        log.trace(string.format('head: %s', response_data['head_url']))
-                        self:setHead( response_data['head_url'] )
-                    end
-                    if response_data['name'] ~= nil then
-                        log.trace(string.format('name: %s', response_data['name']))
-                        self:setName( response_data['name'] )
+    -- handle the response
+    if status then
+        gameLog( string.format( 'Response Code: %s', code ), 'debug' )
+        gameLog( string.format( 'Response Status: %s', status ), 'debug' )
+        gameLog( string.format( 'Response body: %s', table.concat( response_body ) ), 'debug' )
+        local response_data = json.decode( table.concat( response_body ) )
+        if response_data then
+            if response_data[ 'name' ] ~= nil then
+                self.name = response_data[ 'name' ]
+            end
+            if response_data[ 'move' ] ~= nil then
+                self:setDirection( response_data[ 'move' ] )
+            end
+            if response_data[ 'taunt' ] ~= nil then
+                if response_data[ 'taunt' ] ~= self.taunt then
+                    self.taunt = response_data[ 'taunt' ]
+                    if config[ 'gameplay' ][ 'enableTaunts' ] then
+                        gameLog( string.format( '%s says: %s', self.name, self.taunt ) )
                     end
                 end
             end
-        else
-            log.error(string.format('snake "%s" no response from api call in allowed time', self.name))
+            if response_data[ 'color' ] ~= nil then
+                self:setColor( response_data[ 'color' ], true )
+            end
+            
+            if response_data[ 'head_type' ] ~= nil then
+                if response_data[ 'head_type' ] == 'bendr' then
+                    self.head = snakeHeads[1]
+                elseif response_data[ 'head_type' ] == 'dead' then
+                    self.head = snakeHeads[2]
+                elseif response_data[ 'head_type' ] == 'fang' then
+                    self.head = snakeHeads[3]
+                elseif response_data[ 'head_type' ] == 'pixel' then
+                    self.head = snakeHeads[4]
+                elseif response_data[ 'head_type' ] == 'regular' then
+                    self.head = snakeHeads[5]
+                elseif response_data[ 'head_type' ] == 'safe' then
+                    self.head = snakeHeads[6]
+                elseif response_data[ 'head_type' ] == 'sand-worm' then
+                    self.head = snakeHeads[7]
+                elseif response_data[ 'head_type' ] == 'shades' then
+                    self.head = snakeHeads[8]
+                elseif response_data[ 'head_type' ] == 'smile' then
+                    self.head = snakeHeads[9]
+                elseif response_data[ 'head_type' ] == 'tongue' then
+                    self.head = snakeHeads[10]
+                end
+            end
+            
+            if response_data[ 'tail_type' ] ~= nil then
+                if response_data[ 'tail_type' ] == 'small-rattle' then
+                    self.tail = snakeTails[1]
+                elseif response_data[ 'tail_type' ] == 'skinny-tail' then
+                    self.tail = snakeTails[2]
+                elseif response_data[ 'tail_type' ] == 'round-bum' then
+                    self.tail = snakeTails[3]
+                elseif response_data[ 'tail_type' ] == 'regular' then
+                    self.tail = snakeTails[4]
+                elseif response_data[ 'tail_type' ] == 'pixel' then
+                    self.tail = snakeTails[5]
+                elseif response_data[ 'tail_type' ] == 'freckled' then
+                    self.tail = snakeTails[6]
+                elseif response_data[ 'tail_type' ] == 'fat-rattle' then
+                    self.tail = snakeTails[7]
+                elseif response_data[ 'tail_type' ] == 'curled' then
+                    self.tail = snakeTails[8]
+                elseif response_data[ 'tail_type' ] == 'block-bum' then
+                    self.tail = snakeTails[9]
+                end
+            end
+            
+            if response_data[ 'head_url' ] ~= nil then
+                self:setAvatar( response_data[ 'head_url' ] )
+            elseif response_data[ 'head' ] ~= nil then
+                self:setAvatar( response_data[ 'head' ] )
+            end
         end
-        
+    else
+        -- no response from api call in allowed time
+        gameLog( string.format( '%s: No response from API call in allowed time', self.name ), 'error' )
     end
-
 end
 
 --- Given the snake's direction, figure out the next tile on the game board
 --- where that snake will be moving to.
 function Snake:calculateNextPosition()
-
     if self.direction == Snake.DIRECTION_NORTH then
-        self.next_x = self.x
-        self.next_y = self.y - 1
+        self.next_x = self.position[1][1]
+        self.next_y = self.position[1][2] - 1
     elseif self.direction == Snake.DIRECTION_EAST then
-        self.next_x = self.x + 1
-        self.next_y = self.y
+        self.next_x = self.position[1][1] + 1
+        self.next_y = self.position[1][2]
     elseif self.direction == Snake.DIRECTION_SOUTH then
-        self.next_x = self.x
-        self.next_y = self.y + 1
+        self.next_x = self.position[1][1]
+        self.next_y = self.position[1][2] + 1
     elseif self.direction == Snake.DIRECTION_WEST then
-        self.next_x = self.x - 1
-        self.next_y = self.y
+        self.next_x = self.position[1][1] - 1
+        self.next_y = self.position[1][2]
     end
-    log.debug( string.format( 'snake "%s" wants to move to (%s,%s)', self.name, self.next_x, self.next_y ) )
-
-end
-
---- Clear the snake's history (called when the snake dies)
-function Snake:clearHistory()
-    self.history = {}
-end
-
---- Decrements the snake's health by one
-function Snake:decrementHealth()
-    self.health = self.health - 1
 end
 
 --- Called when this snake is killed
 function Snake:die()
-    if PLAY_AUDIO then
-        SFXSnakeDeath:stop()
-        SFXSnakeDeath:play()
+    if self.alive then
+        if config[ 'audio' ][ 'enableSFX' ] then
+            SFXSnakeDeath:stop()
+            SFXSnakeDeath:play()
+        end
+        self.delayed_death = true
     end
-    self.status = 'dead'
 end
 
 --- Called when this snake passes over a food tile
--- @param api_version The battlesnake API version
-function Snake:eatFood(api_version)
-
-    if PLAY_AUDIO then
+function Snake:eat()
+    if config[ 'audio' ][ 'enableSFX' ] then
         SFXSnakeFood:stop()
         SFXSnakeFood:play()
     end
-
-    -- Restore HP
-    if api_version == 2017 then
-        self.health = 100
-    elseif api_version == 2016 then
-        self.health = self.health + 30
-        if self.health >= 100 then
-            self.health = 100
-        end
-    end
-    
-    -- Grow
-    self:grow()
-    
-    -- TODO: Increase score
-    
-end
-
---- Increments the snake's age by one
-function Snake:incrAge()
-    self.age = self.age + 1
+    self.health = self.health + config[ 'gameplay' ][ 'foodHealth' ]
+    if self.health > 100 then self.health = 100 end
+    self.eating = true
 end
 
 --- Increments the snake's gold by one
 function Snake:incrGold()
-    if PLAY_AUDIO then
+    if config[ 'audio' ][ 'enableSFX' ] then
         SFXSnakeGold:stop()
         SFXSnakeGold:play()
     end
     self.gold = self.gold + 1
 end
 
---- Getter function for the snake's age
--- @return The snake's age
-function Snake:getAge()
-    return self.age
-end
+-- Setter function for the snake's avatar image
+function Snake:setAvatar( url )
+    
+    gameLog( string.format( 'Request URL: %s', url ), 'debug' )
+    
+    --[[
+        The version of LuaSocket bundled with LÖVE has a bug
+        where the http port will not get added to the Host header,
+        which is a violation of the HTTP spec. Most web servers don't
+        care - however - this breaks Flask, which interprets the
+        spec very strictly and is also used by a lot of snakes.
+        
+        We can work around this by manually parsing the URL,
+        generating a Host header, and explicitly setting it on the request.
+        
+        See https://github.com/diegonehab/luasocket/pull/74 for more info.
+    ]]
+    local parsed = socket.url.parse( url )
+    local host = parsed[ 'host' ]
+    if parsed[ 'port' ] then host = host .. ':' .. parsed[ 'port' ] end
 
---- Getter function for the snake's color
--- @return The snake's color as an RGBA table
-function Snake:getColor()
-    return self.color
-end
-
---- Getter function for the snake's gold
--- @return The snake's gold
-function Snake:getGold()
-    return self.gold
-end
-
---- Getter function for the snake's head image
--- @return The snake's head image
-function Snake:getHead()
-    return self.head
-end
-
---- Getter function for the snake's head image scale factor
--- @param width The desired width
--- @param height The desired height
--- @return The X scale factor
--- @return The Y scale factor
-function Snake:getHeadScaleFactor( width, height )
-    local xScale = width / self.head:getWidth()
-    local yScale = height / self.head:getHeight()
-    return xScale, yScale
-end
-
---- Getter function for the snake's health
--- @return The snake's health
-function Snake:getHealth()
-    return self.health
-end
-
---- Getter function for the snake's history
--- @return The snake's history
-function Snake:getHistory()
-    return self.history
-end
-
---- Getter function for the snake's id
--- @return The snake's id
-function Snake:getId()
-    return self.id
-end
-
---- Getter function for the snake's kills
--- @return The snake's kills
-function Snake:getKills()
-    return self.kills
-end
-
---- Getter function for the snake's length
--- @return The snake's length
-function Snake:getLength()
-    return self.length
-end
-
---- Getter function for the snake's name
--- @return The snake's name
-function Snake:getName()
-    return self.name
-end
-
---- Getter function for the snake's current position
--- @return The x and y coordinates of the snake's head
-function Snake:getPosition()
-    return self.x, self.y
-end
-
---- Getter function for the snake's next position
--- @return The x and y coordinates of the snake's next planned move
-function Snake:getNextPosition()
-    return self.next_x, self.next_y
-end
-
---- Getter function for the snake's current taunt
--- @return The snake's current taunt
-function Snake:getTaunt()
-    return self.taunt
-end
-
---- Getter function for the snake's API endpoint
--- @return The snake's API endpoint URL
-function Snake:getURL()
-    return self.url
-end
-
---- Increments this snake's length by one
-function Snake:grow()
-    self.length = self.length + 1
-end
-
---- Helper function to get the snake's living status
--- @return true if the snake is alive, otherwise false
-function Snake:isAlive()
-    return self.status == 'alive'
-end
-
---- Called when this snake kills another snake
--- @param othersnake The dead snake's instance (used to get its' length)
-function Snake:kill(othersnake)
-    -- If Snake A runs into Snake B's tail...
-    -- Snake A dies
-    -- Snake B is credited with a kill
-    -- Snake B's life is reset to 100
-    -- Snake B's length is increased by 50% of snake A's length (rounded down)    
-    self.kills = self.kills + 1
-    self.health = 100
-    self.length = self.length + math.floor(othersnake:getLength() / 2)
-end
-
---- Moves this snake on the game board from its' current position
---- to its' next position
--- @return The tile which its' tail is vacating (if it didn't eat this turn)
-function Snake:moveNextPosition()
-
-    local trimTail = false
-    if #self.history >= self.length then
-        trimTail = true
-    end
-
-    self.x = self.next_x
-    self.y = self.next_y
-    table.insert(self.history, 1, {self.x, self.y})
-    if trimTail then
-        return table.remove(self.history)
+    -- make the request
+    local response_body = {}
+    local res, code, response_headers, status
+    res, code, response_headers, status = http.request({
+        url = url,
+        method = "GET",
+        headers =
+        {
+          [ "Host" ] = host
+        },
+        sink = ltn12.sink.table( response_body )
+    })
+    
+    -- handle the response
+    if status then
+        gameLog( string.format( 'Response Code: %s', code ), 'debug' )
+        gameLog( string.format( 'Response Status: %s', status ), 'debug' )
+        local response_data = table.concat( response_body )
+        if response_data then
+            local gif = gifload()
+            gif.err = function( self, msg ) error(msg) end
+            local ok, err = pcall(function()
+                gif:update( response_data )
+                gif:done()
+                local imagedata, x, y, delay, disposal = gif:frame(1)
+                self.avatar = love.graphics.newImage( imagedata )
+            end)
+            if not ok then
+                local filedata = love.filesystem.newFileData( response_data, 'avatar' )
+                local ok, err = pcall(function()
+                    local imagedata = love.image.newImageData( filedata )
+                    self.avatar = love.graphics.newImage( imagedata )
+                end)
+                if not ok then
+                    gameLog( string.format( 'Error loading avatar for snake "%s": %s', self.name, err ), 'error' )
+                    self.avatar = self.head
+                end
+            end
+        end
     else
-        return nil
+        -- no response from avatar url call in allowed time
+        gameLog( string.format( '%s: No response from avatar URL call in allowed time', self.name ), 'error' )
+        self.avatar = self.head
     end
+    
 end
 
 --- Sets the snake's body color
 -- @param value The new color to set the snake's body to
--- @param fromWeb Boolean that indicates whether value is RGB or hex formatted
-function Snake:setColor( value, fromWeb )
+function Snake:setColor( value )
 
-    if not fromWeb then
+    if type( value ) == 'table' then
         -- assume value is a table containing R, G, and B
         self.color = value
+    elseif Util.htmlColors[ string.lower( value ) ] then
+        -- if we have a name, map it to the hex value
+        self:setColor( Util.htmlColors[ string.lower( value ) ] )
     else
         -- convert the hex value to an RGB one
         -- @see https://gist.github.com/jasonbradley/4357406
@@ -432,108 +377,25 @@ function Snake:setColor( value, fromWeb )
 end
 
 --- Sets this snake's direction
--- @param api_version The API version
 -- @param value The direction to move the snake in
-function Snake:setDirection( api_version, value )
-    if api_version == 2016 or api_version == 'human' then
-        if value == 'north' then
-            self.direction = Snake.DIRECTION_NORTH
-        elseif value == 'west' then
-            self.direction = Snake.DIRECTION_WEST
-        elseif value == 'south' then
-            self.direction = Snake.DIRECTION_SOUTH
-        elseif value == 'east' then
-            self.direction = Snake.DIRECTION_EAST
-        end
-    elseif api_version == 2017 then
-        if value == 'up' then
-            self.direction = Snake.DIRECTION_NORTH
-        elseif value == 'left' then
-            self.direction = Snake.DIRECTION_WEST
-        elseif value == 'down' then
-            self.direction = Snake.DIRECTION_SOUTH
-        elseif value == 'right' then
-            self.direction = Snake.DIRECTION_EAST
-        end
+function Snake:setDirection( value )
 
-    end
-    log.debug( string.format( 'snake "%s" direction changed to %s', self.name, value ) )
-end
-
--- Setter function for the snake's head image
-function Snake:setHead( url )
-    
-    log.debug(string.format('snake "%s" set head from url', self.name))
-    
-    if not url or url == '' then
-        log.debug(string.format('snake "%s" head url is empty', self.name))
-        return
+    if value == 'up' or value == 'north' then
+        self.direction = Snake.DIRECTION_NORTH
+        gameLog( string.format( '"%s" direction changed to "%s"', self.name, Snake.DIRECTION_NORTH ), 'debug' )
+    elseif value == 'left' or value == 'west' then
+        self.direction = Snake.DIRECTION_WEST
+        gameLog( string.format( '"%s" direction changed to "%s"', self.name, Snake.DIRECTION_WEST ), 'debug' )
+    elseif value == 'down' or value == 'south' then
+        self.direction = Snake.DIRECTION_SOUTH
+        gameLog( string.format( '"%s" direction changed to "%s"', self.name, Snake.DIRECTION_SOUTH ), 'debug' )
+    elseif value == 'right' or value == 'east' then
+        self.direction = Snake.DIRECTION_EAST
+        gameLog( string.format( '"%s" direction changed to "%s"', self.name, Snake.DIRECTION_EAST ), 'debug' )
     else
-    
-        --[[
-            The version of LuaSocket bundled with LÖVE has a bug
-            where the http port will not get added to the Host header,
-            which is a violation of the HTTP spec. Most web servers don't
-            care - however - this breaks Flask, which interprets the
-            spec very strictly and is also used by a lot of snakes.
-            
-            We can work around this by manually parsing the URL,
-            generating a Host header, and explicitly setting it on the request.
-            
-            See https://github.com/diegonehab/luasocket/pull/74 for more info.
-        ]]
-        local parsed = socket.url.parse( url )
-        local host = parsed['host']
-        if parsed['port'] then host = host .. ':' .. parsed['port'] end
-    
-        log.trace('Request URL: ' .. url)
-        local response_body = {}
-        local res, code, response_headers, status = http.request({
-            url = url,
-            method = "GET",
-            headers =
-            {
-              ["Host"] = host
-            },
-            sink = ltn12.sink.table(response_body)
-        })
-        
-        -- if the server responded
-        if status then
-            log.trace('Response Code: ' .. code)
-            log.trace('Response Status: ' .. status)
-            local response_data = table.concat(response_body)
-            if response_data then
-                local filedata = love.filesystem.newFileData( response_data, 'head' )
-                local ok, err = pcall(function()
-                    local imagedata = love.image.newImageData( filedata )
-                    self.head = love.graphics.newImage( imagedata )
-                end)
-                if not ok then
-                    log.error( string.format( 'snake "%s" error loading head: %s', self.name, err ) )
-                    self.head = love.graphics.newImage('head.png')
-                end
-            end
-        else
-            log.error(string.format('snake "%s" no response from head url call in allowed time', self.name))
-            self.head = love.graphics.newImage('head.png')
-        end
-        
+        gameLog( string.format( '"%s" got invalid direction "%s"', self.name, value ), 'error' )
     end
     
-end
-
---- Setter function for the snake's name
---- This is client-controlled in the 2017 API!
--- @param name The new name
-function Snake:setName( name )
-    self.name = name
-end
-
---- Setter function for the snake's taunt
--- @param taunt The new taunt
-function Snake:setTaunt( taunt )
-    self.taunt = taunt
 end
 
 return Snake

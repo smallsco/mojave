@@ -1,5 +1,5 @@
 function love.conf(t)
-    t.identity = "mojave"               -- The name of the save directory (string)
+    t.identity = "mojave2"              -- The name of the save directory (string)
     t.version = "0.10.2"                -- The LÖVE version this game was made for (string)
     t.console = false                   -- Attach a console (boolean, Windows only)
     t.accelerometerjoystick = false     -- Enable the accelerometer on iOS and Android by exposing it as a Joystick (boolean)
@@ -7,8 +7,8 @@ function love.conf(t)
  
     t.window.title = "Mojave"           -- The window title (string)
     t.window.icon = nil                 -- Filepath to an image to use as the window's icon (string)
-    t.window.width = 800                -- The window width (number)
-    t.window.height = 600               -- The window height (number)
+    t.window.width = 1280               -- The window width (number)
+    t.window.height = 720               -- The window height (number)
     t.window.borderless = false         -- Remove all border visuals from the window (boolean)
     t.window.resizable = false          -- Let the window be user-resizable (boolean)
     t.window.minwidth = 1               -- Minimum window width if the window is resizable (number)
@@ -40,16 +40,17 @@ function love.conf(t)
     t.modules.thread = false            -- Enable the thread module (boolean)
     
     t.releases = {
-        title = 'Mojave',                       -- The project title (string)
-        package = 'mojave',                     -- The project command and package name (string)
-        loveVersion = '0.10.2',                 -- The project LÖVE version
-        version = nil,                          -- The project version
-        author = 'Scott Small',                 -- Your name (string)
-        email = 'smallsco@gmail.com',           -- Your email (string)
-        description = 'a battle snake arena',   -- The project description (string)
-        homepage = nil,                         -- The project homepage (string)
-        identifier = 'org.scottsmall.mojave',   -- The project Uniform Type Identifier (string)
-        excludeFileList = { '.DS_Store' },      -- File patterns to exclude. (string list)
-        releaseDirectory = nil,                 -- Where to store the project releases (string)
+        title = 'Mojave',                               -- The project title (string)
+        package = 'mojave2',                            -- The project command and package name (string)
+        loveVersion = '0.10.2',                         -- The project LÖVE version
+        version = nil,                                  -- The project version
+        author = 'Scott Small',                         -- Your name (string)
+        email = 'smallsco@gmail.com',                   -- Your email (string)
+        description = 'a battle snake arena',           -- The project description (string)
+        homepage = 'http://github.com/smallsco/mojave', -- The project homepage (string)
+        identifier = 'org.scottsmall.mojave2',          -- The project Uniform Type Identifier (string)
+        excludeFileList = { '.DS_Store' },              -- File patterns to exclude. (string list)
+        releaseDirectory = nil,                         -- Where to store the project releases (string)
     }
+    
 end
