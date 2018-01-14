@@ -6,6 +6,8 @@ BattleSnake is an artificial intelligence programming competition hosted yearly 
 
 As for the name... since rattlesnakes are known to roam the real Mojave desert, it makes sense for battlesnakes to roam the virtual one, no? :)
 
+![Gameplay Screenshot](mojave.png?raw=true)
+
 ## Download
 
 The latest binaries for Windows and Mac OS X can be downloaded from [the Releases link](https://github.com/smallsco/mojave/releases) above.
