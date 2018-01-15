@@ -232,7 +232,8 @@ function Menu.draw()
             -- System Options
             if imgui.CollapsingHeader( "System", { "DefaultOpen" } ) then
                 unused, config[ 'system' ][ 'logLevel' ] = imgui.Combo( "Log Level", config[ 'system' ][ 'logLevel' ], { "trace", "debug", "info", "warn", "error", "fatal" }, 6 )
-                unused, config[ 'gameplay' ][ 'enableSanityChecks' ] = imgui.Checkbox( "Enable Sanity Checks", config[ 'gameplay' ][ 'enableSanityChecks' ] )
+                unused, config[ 'system' ][ 'roboRecursionDepth' ] = imgui.InputInt( "Robosnake Recursion Depth", config[ 'system' ][ 'roboRecursionDepth' ] )
+                unused, config[ 'system' ][ 'enableSanityChecks' ] = imgui.Checkbox( "Enable Sanity Checks", config[ 'system' ][ 'enableSanityChecks' ] )
                 imgui.Text( "\n" )
             end
             
@@ -299,6 +300,8 @@ function Menu.draw()
                     buttonText = buttonText .. "api2017\n" .. snakes[i]['url']
                 elseif snakes[i]['type'] == 4 then
                     buttonText = buttonText .. "api2016\n" .. snakes[i]['url']
+                elseif snakes[i]['type'] == 5 then
+                    buttonText = buttonText .. 'robosnake'
                 else
                     buttonText = buttonText .. 'empty'
                 end
@@ -324,6 +327,8 @@ function Menu.draw()
                     buttonText = buttonText .. "api2017\n" .. snakes[i]['url']
                 elseif snakes[i]['type'] == 4 then
                     buttonText = buttonText .. "api2016\n" .. snakes[i]['url']
+                elseif snakes[i]['type'] == 5 then
+                    buttonText = buttonText .. 'robosnake'
                 else
                     buttonText = buttonText .. 'empty'
                 end
@@ -390,6 +395,7 @@ of how many snakes are currently alive.]])
                 imgui.BulletText([[
 If two snakes move into the same tile simultaneously, the shorter snake
 will die. If both snakes are the same size, both snakes die.]])
+                imgui.Text( "\n" )
             end
             if imgui.CollapsingHeader( "Credits", { "DefaultOpen" } ) then
                 imgui.TextWrapped([[
@@ -413,6 +419,10 @@ Gifload
 Copyright ©2016 Pedro Gimeno Fortea
 https://github.com/pgimeno/gifload
 
+inspect.lua  
+Copyright ©2013 Enrique García Cota  
+https://github.com/kikito/inspect.lua
+
 LÖVE
 Copyright ©2006-2018 LÖVE Development Team
 https://love2d.org
@@ -427,6 +437,10 @@ http://www.fontspace.com/new-typography/monoton
 
 Music and Sound Effects by Eric Matyas
 http://www.soundimage.org
+
+Robosnake  
+Copyright (c) 2017 Redbrick Technologies, Inc.  
+https://github.com/rdbrck/bountysnake2017
 
 Vignette Image
 Public Domain
@@ -443,7 +457,7 @@ end
 
 function Menu.EditSnakeDialog( snakeNum )
     imgui.Text( "Editing snake in slot " .. snakeNum .. "\n\n" )
-    unused, snakes[ snakeNum ][ 'type' ] = imgui.Combo( "Type", snakes[ snakeNum ][ 'type' ], { "empty", "human", "api2017", "api2016" }, 4 )
+    unused, snakes[ snakeNum ][ 'type' ] = imgui.Combo( "Type", snakes[ snakeNum ][ 'type' ], { "empty", "human", "api2017", "api2016", "robosnake" }, 5 )
     if snakeNum ~= 1 and snakes[ snakeNum ][ 'type' ] == 2 then
         snakes[ snakeNum ][ 'type' ] = 1
         imgui.OpenPopup( "NoHumanInThisSlot" )

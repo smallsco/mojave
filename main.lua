@@ -13,7 +13,7 @@ a battle snake arena
 ]]
 
 -- Version constant
-MOJAVE_VERSION = '2.0'
+MOJAVE_VERSION = '2.1'
 
 -- FIRST RUN LOGIC
 -- Extract the imgui shared library from the fused app and save it to appdata
@@ -62,6 +62,7 @@ pcall(function() require "imgui" end)
 -- Third-party modules
 gifload = require 'thirdparty.gifload'
 http = require 'socket.http'
+inspect = require 'thirdparty.inspect'
 json = require 'thirdparty.dkjson'
 ltn12 = require 'ltn12'
 o_ten_one = require "thirdparty.o-ten-one"
@@ -70,6 +71,7 @@ o_ten_one = require "thirdparty.o-ten-one"
 Game = require 'modules.Game'
 Map = require 'modules.Map'
 Menu = require 'modules.Menu'
+Robosnake = require 'robosnake.robosnake'
 Shaders = require 'modules.Shaders'
 Snake = require 'modules.Snake'
 Util = require 'modules.Util'
@@ -182,7 +184,8 @@ function love.load()
             },
             system = {
                 logLevel = 3,
-                enableSanityChecks = false
+                enableSanityChecks = false,
+                roboRecursionDepth = 4
             }
         }
         local ok = love.filesystem.write( 'config.json', json.encode( newConfig ) )

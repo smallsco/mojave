@@ -32,6 +32,8 @@ Setting the sname type to `api2016` will use the 2016 API for communicating with
 
 (On the official 2016 game server, the ID is generated when a snake is registered with the server, and remains the same for all games. Most snakes hard-code this ID into their application code and use it to identify themselves in the list of snakes sent by the server on each request. For this reason, when using a 2016-API snake with Mojave, you will need to look through the snake's source code, find its' ID, and specify it when adding the snake.)
 
+Finally, setting the snake type to `robosnake` will place a built-in copy of the infamous [Redbrick Robosnake](http://github.com/rdbrck/bountysnake2017) into that slot, without requiring you to set up your own server or even have an internet connection! Be warned, this snake is very tough!!
+
 
 ## Configuration
 
@@ -135,8 +137,9 @@ food is consumed.
 * No support for tiebreakers (2016 arena only - the game can end in a draw if the last two snakes are the same length and have a head-on-head collision)
 * Probably other inconsistencies...
 
-## Known Bugs
+## Known Issues
 * If there are no free tiles on the game board, the app will freeze when trying to place food/walls/gold
+* Robosnake doesn't respect the API timeout (but it's pretty fast if the recursion level is low)
 * Probably other bugs...
 
 ## Troubleshooting
@@ -172,6 +175,10 @@ Gifload
 Copyright ©2016 Pedro Gimeno Fortea  
 https://github.com/pgimeno/gifload
 
+inspect.lua  
+Copyright ©2013 Enrique García Cota  
+https://github.com/kikito/inspect.lua
+
 LÖVE  
 Copyright ©2006-2018 LÖVE Development Team  
 https://love2d.org
@@ -186,6 +193,10 @@ http://www.fontspace.com/new-typography/monoton
 
 Music and Sound Effects by Eric Matyas  
 http://www.soundimage.org
+
+Robosnake  
+Copyright (c) 2017 Redbrick Technologies, Inc.  
+https://github.com/rdbrck/bountysnake2017
 
 Vignette Image  
 Public Domain  

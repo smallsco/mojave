@@ -1,5 +1,14 @@
 ## CHANGELOG
 
+### v2.1 (2018-01-14)
+
+* You can now play the infamous Redbrick Robosnake directly within Mojave, without having to set up your own server.
+* Snake kills are now incremented when running into the body of another snake, not just the head.
+* Walls are now drawn underneath food instead of on top.
+* Decreased the opacity of dead snakes slightly.
+* Corrected the debug output of game ticks.
+* Corrected a bug that could cause the 'Enable Sanity Checks' option not to have any effect.
+
 ### v2.0 (2018-01-13)
 
 Mojave 2.0 is a nearly complete rewrite, with lots and lots of changes. The more notable ones are listed below:

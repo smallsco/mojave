@@ -222,6 +222,22 @@ function Map:draw2( drawgrid, mySnakes, food, gold, walls )
         end
     end
     
+    -- Walls
+    love.graphics.setColor(
+        Util.denormalizeRGBArray(
+            config[ 'appearance' ][ 'wallColor' ]
+        )
+    )
+    for i = 1, #walls do
+        love.graphics.rectangle(
+            "fill",
+            1 + ((walls[i][1]-1) * self.tileWidth) + ((self.tileWidth - self.cellWidth) / 2),
+            1 + ((walls[i][2]-1) * self.tileHeight) + ((self.tileHeight - self.cellHeight) / 2),
+            self.cellWidth,
+            self.cellHeight
+        )
+    end
+    
     -- Food
     love.graphics.setColor(
         Util.denormalizeRGBArray(
@@ -277,29 +293,13 @@ function Map:draw2( drawgrid, mySnakes, food, gold, walls )
         math.fmod(love.timer.getTime(), 2 * math.pi)
     )]]
     
-    -- Wall
-    love.graphics.setColor(
-        Util.denormalizeRGBArray(
-            config[ 'appearance' ][ 'wallColor' ]
-        )
-    )
-    for i = 1, #walls do
-        love.graphics.rectangle(
-            "fill",
-            1 + ((walls[i][1]-1) * self.tileWidth) + ((self.tileWidth - self.cellWidth) / 2),
-            1 + ((walls[i][2]-1) * self.tileHeight) + ((self.tileHeight - self.cellHeight) / 2),
-            self.cellWidth,
-            self.cellHeight
-        )
-    end
-    
     -- Sneks
     for i = 1, #mySnakes do
         for j = 1, #mySnakes[i][ 'position' ] do
         
             -- dead snakes are completely translucent
             -- living snakes get slightly translucent from their head to their tail
-            local alpha = 64
+            local alpha = 32
             if mySnakes[i][ 'alive' ] then
                 if config[ 'appearance' ][ 'fadeOutTails' ] then
                     alpha = ( ( ( #mySnakes[i][ 'position' ] - j ) * 150 ) / #mySnakes[i][ 'position' ] ) + 105

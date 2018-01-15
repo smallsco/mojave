@@ -44,6 +44,9 @@ function Snake.new( opt, slot, game_id )
     elseif self.type == 4 then
         self.id = opt.id
         self.name = opt.name
+    elseif self.type == 5 then
+        self.id = Util.generateUUID()
+        self.name = 'Redbrick Robosnake'
     end
     self.url = opt.url or ''
     self.taunt = opt.taunt or ''
@@ -66,6 +69,7 @@ function Snake.new( opt, slot, game_id )
     self.alive = true
     self.delayed_death = false
     self.color = { 255, 255, 255 }
+    self.thread = false
     
     if self.type == 2 then
         -- human player, no initialization required
@@ -77,6 +81,10 @@ function Snake.new( opt, slot, game_id )
         }))
     elseif self.type == 4 then
         self:api( '' )  -- root endpoint, get color and head url
+    elseif self.type == 5 then
+        self.thread = coroutine.create( Robosnake.move )
+        self.avatar = love.graphics.newImage( 'robosnake/robosnake-crop.jpg' )
+        self.color = { 150, 0, 0 }
     else
         error( 'Unsupported snake type' )
     end

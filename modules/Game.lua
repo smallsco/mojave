@@ -102,7 +102,7 @@ function Game:draw()
         )
         if imgui.Begin( "Snakes", nil, { "NoResize", "NoCollapse", "NoTitleBar" } ) then
             imgui.Columns( 2, "gameStats", false )
-            imgui.Text( "Turn: " .. self.turn )
+            imgui.Text( "Turn " .. self.turn )
             imgui.NextColumn()
             imgui.SetColumnOffset( -1, 75 )
             if imgui.Button( "Map" ) then
@@ -422,7 +422,7 @@ end
 function Game:tick()
 
     -- DEBUGGING - CHECK FOR THE IMPOSSIBLE
-    if config[ 'gameplay' ][ 'enableSanityChecks' ] then
+    if config[ 'system' ][ 'enableSanityChecks' ] then
     
         -- MAKE SURE THE MAP STATE IS CORRECT FOR ALL SNAKES
         for i = 1, #self.snakes do
@@ -524,7 +524,7 @@ function Game:tick()
     -- TICK TOCK (goes the game clock)    
     self.timer = 0
     self.turn = self.turn + 1
-    self:log( string.format( 'TICK TOCK', food_x, food_y ), 'trace' )
+    self:log( string.format( 'TICK TOCK - TURN %s', self.turn ), 'trace' )
     
     -- Make API requests to each snake and get their next direction.
     for i = 1, #self.snakes do
@@ -540,6 +540,27 @@ function Game:tick()
                     endpoint = 'start'
                 end
                 self.snakes[i]:api( endpoint, json.encode( self:getState2016( self.snakes[i][ 'slot' ] ) ) )
+            elseif self.snakes[i][ 'type' ] == 5 then
+                local success, response_data = coroutine.resume(
+                    self.snakes[i].thread,
+                    self:getState2017( self.snakes[i][ 'slot' ] )
+                )
+                if not success then
+                    self:log( string.format( 'ROBOSNAKE: %s', response_data ), 'fatal' )
+                else
+                    if response_data[ 'move' ] ~= nil then
+                        self.snakes[i]:setDirection( response_data[ 'move' ] )
+                    end
+                    if response_data[ 'taunt' ] ~= nil then
+                        if response_data[ 'taunt' ] ~= self.snakes[i].taunt then
+                            self.snakes[i].taunt = response_data[ 'taunt' ]
+                            if config[ 'gameplay' ][ 'enableTaunts' ] then
+                                gameLog( string.format( '%s says: %s', self.snakes[i].name, self.snakes[i].taunt ) )
+                            end
+                        end
+                    end
+                    
+                end
             end
         end
     end
@@ -611,13 +632,13 @@ function Game:tick()
                 
                 -- Wall? Kill the snake.
                 if tile == Map.TILE_WALL then
-                    self:log( string.format( '%s next tile is WALL', self.snakes[i][ 'name' ] ), 'trace' )
+                    self:log( string.format( '"%s" next tile is WALL', self.snakes[i][ 'name' ] ), 'trace' )
                     self.snakes[i]:die()
                     self:log( string.format( '"%s" runs into a wall [%s, %s] and dies.', self.snakes[i][ 'name' ], self.snakes[i][ 'next_x' ], self.snakes[i][ 'next_y' ] ) )
                 
                 -- Food? Grow the snake.
                 elseif tile == Map.TILE_FOOD then
-                    self:log( string.format( '%s next tile is FOOD', self.snakes[i][ 'name' ] ), 'trace' )
+                    self:log( string.format( '"%s" next tile is FOOD', self.snakes[i][ 'name' ] ), 'trace' )
                     self.snakes[i]:eat()
                     self:log( string.format( '"%s" eats the food at [%s, %s]', self.snakes[i][ 'name' ], self.snakes[i][ 'next_x' ], self.snakes[i][ 'next_y' ] ), 'debug' )
                     for j = 1, #self.food do
@@ -633,7 +654,7 @@ function Game:tick()
                 
                 -- Gold? Snake gets richer.
                 elseif tile == Map.TILE_GOLD then
-                    self:log( string.format( '%s next tile is GOLD', self.snakes[i][ 'name' ] ), 'trace' )
+                    self:log( string.format( '"%s" next tile is GOLD', self.snakes[i][ 'name' ] ), 'trace' )
                     self.snakes[i]:incrGold()
                     self:log( string.format( '"%s" collects the gold at [%s, %s]', self.snakes[i][ 'name' ], self.snakes[i][ 'next_x' ], self.snakes[i][ 'next_y' ] ), 'debug' )
                     for j = 1, #self.gold do
@@ -652,7 +673,7 @@ function Game:tick()
                     tile >= Map[ 'TILE_SNEK_1' ] and
                     tile <= Map[ 'TILE_SNEK_10' ]
                 then
-                    self:log( string.format( '%s next tile is SNEK_%s', self.snakes[i][ 'name' ], tile - 10 ), 'trace' )
+                    self:log( string.format( '"%s" next tile is SNEK_%s', self.snakes[i][ 'name' ], tile - 10 ), 'trace' )
                     local otherSnakeGrowing = false
                     local otherSnakeIndex = 0
                     local otherSnakeTailX = 0
@@ -683,6 +704,9 @@ function Game:tick()
                         -- Kill the snake only if the second snake is not growing.
                         if otherSnakeGrowing then
                             self.snakes[i]:die()
+                            if otherSnakeIndex ~= i then
+                                self.snakes[otherSnakeIndex].kills = self.snakes[otherSnakeIndex].kills + 1
+                            end
                             self:log( string.format( '"%s" runs into the tail of "%s" at [%s, %s] and dies.', self.snakes[i][ 'name' ], otherSnakeName, self.snakes[i][ 'next_x' ], self.snakes[i][ 'next_y' ] ) )
                         else
                             -- other snake is moving out of this tile
@@ -692,12 +716,15 @@ function Game:tick()
                     else
                         -- Another snake's body? Kill the snake.
                         self.snakes[i]:die()
+                        if otherSnakeIndex ~= i then
+                            self.snakes[otherSnakeIndex].kills = self.snakes[otherSnakeIndex].kills + 1
+                        end
                         self:log( string.format( '"%s" runs into the body of "%s" at [%s, %s] and dies.', self.snakes[i][ 'name' ], otherSnakeName, self.snakes[i][ 'next_x' ], self.snakes[i][ 'next_y' ] ) )
                     end
                     
                 -- Free? Snake's health drops 1.
                 else
-                    self:log( string.format( '%s next tile is FREE', self.snakes[i][ 'name' ] ), 'trace' )
+                    self:log( string.format( '"%s" next tile is FREE', self.snakes[i][ 'name' ] ), 'trace' )
                     self.snakes[i].health = self.snakes[i].health - 1
                     
                 end
@@ -823,7 +850,7 @@ function Game:tick()
         end
     end
     
-    -- If food strategy is growing, add more food if we pass the requisite number of tics.
+    -- If food strategy is growing, add more food if we pass the requisite number of ticks.
     if config[ 'gameplay' ][ 'foodStrategy' ] == 2 then
         if self.turn % config[ 'gameplay' ][ 'addFoodTurns' ] == 0 then
             local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
@@ -832,7 +859,7 @@ function Game:tick()
         end
     end
     
-    -- If walls are enabled, add a wall if we pass the requisite number of tics.
+    -- If walls are enabled, add a wall if we pass the requisite number of ticks.
     if
         config[ 'gameplay' ][ 'enableWalls' ]
         and self.turn % config[ 'gameplay' ][ 'addWallTurns' ] == 0
@@ -854,7 +881,7 @@ function Game:tick()
         self:log( string.format( 'Placed wall at [%s, %s]', wall_x, wall_y ), 'debug' )
     end
     
-    -- If gold is enabled, and we pass the requisite number of tics, and there is no gold on the game board right now, then add a gold.
+    -- If gold is enabled, and we pass the requisite number of ticks, and there is no gold on the game board right now, then add a gold.
     if
         config[ 'gameplay' ][ 'enableGold' ]
         and self.turn % config[ 'gameplay' ][ 'addGoldTurns' ] == 0
