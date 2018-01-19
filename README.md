@@ -96,17 +96,22 @@ Finally, setting the snake type to `robosnake` will place a built-in copy of the
 	* How much in-game logging to use. Increasing this will significantly reduce performance.
 * Enable Sanity Checks
 	* Adds additional checks during each tick of the game loop to verify that the game state is consistent. Enabling this will significantly reduce performance, and should only be used when troubleshooting bugs in Mojave itself.
+* Robosnake Recursion Depth
+	* How many turns the Robosnake is allowed to predict ahead. Higher numbers make for a much tougher opponent, but will slow the game down.
+* Start New Games Paused
+	* When enabled, new games will be started in a paused state, which can be useful for debugging.
 
 ## Rules
 
 * All snakes execute their moves simultaneously.
-* If a snake moves into the edge of the arena, it dies.
+* If a snake moves beyond the edge of the arena, it dies.
 * Dead snakes are removed from the arena.
 * The last snake alive is the winner of the game...
 	* ...unless playing with gold enabled, see below
 
 ### Food and Health
-* Snakes start with 100 health. On each turn, snakes lose 1 health, unless they have eaten food that turn.
+* Snakes start with 100 health.
+* On each turn, snakes lose 1 health, unless they have eaten food that turn.
 * If a snake's health reaches 0, it dies.
 * If the food placement method is set to "growing", then food will appear on
 the game board at a random location every 3 turns.

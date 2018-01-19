@@ -1,5 +1,12 @@
 ## CHANGELOG
 
+### v2.1.1 (2018-01-18)
+
+* Fixed a visual bug that caused snake tails to appear in the wrong direction on the first turn of the game.
+* Added an option to start new games paused (useful for debugging).
+* Shrunk default board size to 25x15.
+* 2017 API Snakes whos requests time out will now have their direction randomly selected.
+
 ### v2.1 (2018-01-14)
 
 * You can now play the infamous Redbrick Robosnake directly within Mojave, without having to set up your own server.

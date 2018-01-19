@@ -790,7 +790,7 @@ function Game:tick()
             
             -- Update new tail position to share direction with the body piece in front of it
             if self.turn == 1 then
-                self.snakes[i][ 'position' ][2][3] = self.snakes[i][ 'position' ][1][3]
+                self.snakes[i][ 'position' ][1][3] = self.snakes[i][ 'direction' ]
             end
             self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][3] = self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] - 1 ][3]
             

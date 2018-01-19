@@ -80,7 +80,9 @@ function Menu.draw()
                 BGM:stop()
             end
             activeGame = Game()
-            activeGame:start()
+            if not config[ 'system' ][ 'pauseNewGames' ] then
+                activeGame:start()
+            end
         end
         imgui.Text( "" )
         imgui.SameLine( buttonX )
@@ -234,6 +236,7 @@ function Menu.draw()
                 unused, config[ 'system' ][ 'logLevel' ] = imgui.Combo( "Log Level", config[ 'system' ][ 'logLevel' ], { "trace", "debug", "info", "warn", "error", "fatal" }, 6 )
                 unused, config[ 'system' ][ 'roboRecursionDepth' ] = imgui.InputInt( "Robosnake Recursion Depth", config[ 'system' ][ 'roboRecursionDepth' ] )
                 unused, config[ 'system' ][ 'enableSanityChecks' ] = imgui.Checkbox( "Enable Sanity Checks", config[ 'system' ][ 'enableSanityChecks' ] )
+                unused, config[ 'system' ][ 'pauseNewGames' ] = imgui.Checkbox( "Start New Games Paused", config[ 'system' ][ 'pauseNewGames' ] )
                 imgui.Text( "\n" )
             end
             
@@ -362,7 +365,7 @@ As for the name... since rattlesnakes are known to roam the real Mojave desert, 
             if imgui.CollapsingHeader( "Rules", { "DefaultOpen" } ) then
                 imgui.Text( "General" )
                 imgui.BulletText( "All snakes execute their moves simultaneously." )
-                imgui.BulletText( "If a snake moves into the edge of the arena, it dies." )
+                imgui.BulletText( "If a snake moves beyond the edge of the arena, it dies." )
                 imgui.BulletText( "Dead snakes are removed from the arena." )
                 imgui.BulletText( "The last snake alive is the winner of the game..." )
                 imgui.BulletText( "...unless playing with gold enabled, see below" )

@@ -13,7 +13,7 @@ a battle snake arena
 ]]
 
 -- Version constant
-MOJAVE_VERSION = '2.1'
+MOJAVE_VERSION = '2.1.1'
 
 -- FIRST RUN LOGIC
 -- Extract the imgui shared library from the fused app and save it to appdata
@@ -166,8 +166,8 @@ function love.load()
                 enableSFX = true
             },
             gameplay = {
-                boardHeight = 20,
-                boardWidth = 35,
+                boardHeight = 15,
+                boardWidth = 25,
                 responseTime = 0.2,
                 gameSpeed = 0.15,
                 foodStrategy = 1,  -- 1 = fixed, 2 = growing
@@ -185,7 +185,8 @@ function love.load()
             system = {
                 logLevel = 3,
                 enableSanityChecks = false,
-                roboRecursionDepth = 4
+                roboRecursionDepth = 4,
+                pauseNewGames = false
             }
         }
         local ok = love.filesystem.write( 'config.json', json.encode( newConfig ) )

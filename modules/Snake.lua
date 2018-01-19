@@ -229,6 +229,12 @@ function Snake:api( endpoint, data )
     else
         -- no response from api call in allowed time
         gameLog( string.format( '%s: No response from API call in allowed time', self.name ), 'error' )
+        
+        -- choose a random move for the snake if a move request timed out
+        if endpoint == 'move' and self.type ~= 4 then
+            self.direction = self.DIRECTIONS[love.math.random(4)]
+            gameLog( string.format( '"%s" direction changed to "%s"', self.name, self.direction ), 'debug' )
+        end
     end
 end
 

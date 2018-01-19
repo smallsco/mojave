@@ -63,8 +63,8 @@ function Map.new( opt )
     self.vyScale = self.pixelHeight / bgVignette:getHeight()
     
     -- How many tiles/squares to fit into pixelWidth/pixelHeight
-    self.numTilesX = opt.width or 35
-    self.numTilesY = opt.height or 20
+    self.numTilesX = opt.width or 25
+    self.numTilesY = opt.height or 15
     
     -- Compute the width and height of each tile
     self.tileWidth = self.pixelWidth / self.numTilesX
