@@ -1,6 +1,6 @@
 # Mojave
 
-Mojave is a third-party, open-source arena / gameboard for [BattleSnake](https://www.battlesnake.io/). It supports snakes that use either the [2016](http://web.archive.org/web/20160817172025/http://www.battlesnake.io/readme) or [2017](https://stembolthq.github.io/battle_snake/) API.
+Mojave is a third-party, open-source arena / gameboard for [BattleSnake](https://www.battlesnake.io/). It supports snakes that use the [2016](http://web.archive.org/web/20160817172025/http://www.battlesnake.io/readme), [2017](https://stembolthq.github.io/battle_snake/), or [2018](https://github.com/battle-snake/battle_snake/blob/master/lib/bs/pages/api.md) API.
 
 BattleSnake is an artificial intelligence programming competition hosted yearly in Victoria, BC, Canada. The tournament is a twist on the classic Snake arcade game, with teams building their own snake AIs to collect food and attack (or avoid) other snakes on the board. The lasts snake slithering wins! More information is available at http://www.battlesnake.io .
 
@@ -26,7 +26,9 @@ When launching the application you will be presented with a menu screen, showing
 
 Setting the snake type to `human` (slot #1 only) will let the arena operator (you) control a snake directly. This snake will appear white on the game board and it can be controlled using the arrow keys.
 
-Setting the snake type to `api2017` will use the 2017 API for communicating with the snake in this slot. All that is required is the URL of the snake, Mojave will load the snake's name at the start of a new game and generate an internal ID for it at that time.
+Setting the snake type to `api2018` will use the 2018 API for communicating with the snake in this slot. All that is required is the URL of the snake, Mojave will load the snake's name at the start of a new game and generate an internal ID for it at that time.
+
+Setting the snake type to `api2017` will use the 2017 API for communicating with the snake in this slot. Similar to 2018, all that is required is the snake's URL.
 
 Setting the sname type to `api2016` will use the 2016 API for communicating with the snake in this slot. In addition to the snake's URL, you will have to manually specify the name and ID of the snake.
 
@@ -79,7 +81,7 @@ Finally, setting the snake type to `robosnake` will place a built-in copy of the
 * Add food every X turns
 	* For the "growing" food placement strategy, after how many turns to place a new food square.
 * Health Restored by Food
-	* How much health will be given to a snake that collects food. The official 2017 game board uses 100 for this value and the official 2016 game board uses 30.
+	* How much health will be given to a snake that collects food. The official 2017/2018 game board uses 100 for this value and the official 2016 game board uses 30.
 * Enable Gold
 	* Causes gold to be in play.
 * Add gold every X turns
@@ -143,7 +145,8 @@ food is consumed.
 ## Gameplay Differences from the official arena
 * Only 10 snakes are supported at a time (the official arena supports up to 12).
 * No support for scoring (2016 arena only)
-* No support for tiebreakers (2016 arena only - the game can end in a draw if the last two snakes are the same length and have a head-on-head collision)
+* No support for tiebreakers (2016 arena only - the game can end in a draw if the last two snakes are the same length and have a head-on-head collision, or if they starve or hit a wall on the same turn)
+* No rewind functionality.
 * Probably other inconsistencies...
 
 ## Known Issues
@@ -211,4 +214,4 @@ Vignette Image
 Public Domain  
 http://hitokageproduction.com/files/stockTextures/vignette2.png
 
-And lots of love to [SendWithUs](http://www.sendwithus.com) and [Stembolt](http://www.stembolt.com) for creating the [Battlesnake](http://www.battlesnake.io) AI contest :)
+And lots of love to [SendWithUs](http://www.sendwithus.com) for creating the [BattleSnake](http://www.battlesnake.io) AI contest :)

@@ -13,7 +13,7 @@ a battle snake arena
 ]]
 
 -- Version constant
-MOJAVE_VERSION = '2.2'
+MOJAVE_VERSION = '2.3'
 
 -- FIRST RUN LOGIC
 -- Extract the imgui shared library from the fused app and save it to appdata
@@ -128,7 +128,7 @@ function love.load()
         local newSnakes = {
             {
                 id = '',
-                type = 2,  -- 1 = empty, 2 = human, 3 = api2017, 4 = api2016
+                type = 2,  -- 1 = empty, 2 = human, 3 = api2017, 4 = api2016, 5 = robosnake, 6 = api2018
                 name = '',
                 url = ''
             }

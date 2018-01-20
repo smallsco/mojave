@@ -36,15 +36,19 @@ function Snake.new( opt, slot, game_id )
     -- Snake name and API endpoint
     self.type = opt.type
     if self.type == 2 then
+        -- HUMAN
         self.id = Util.generateUUID()
         self.name = 'Human Player'
-    elseif self.type == 3 then
+    elseif self.type == 3 or self.type == 6 then
+        -- 2017 / 2018 API
         self.id = Util.generateUUID()
         self.name = 'Loading...'
     elseif self.type == 4 then
+        -- 2016 API
         self.id = opt.id
         self.name = opt.name
     elseif self.type == 5 then
+        -- ROBOSNAKE
         self.id = Util.generateUUID()
         self.name = 'Redbrick Robosnake'
     end
@@ -73,18 +77,23 @@ function Snake.new( opt, slot, game_id )
     
     if self.type == 2 then
         -- human player, no initialization required
-    elseif self.type == 3 then
+    elseif self.type == 3 or self.type == 6 then
+        -- 2017 / 2018 API
         self:api( 'start', json.encode({
             game_id = game_id,
             height = config[ 'gameplay' ][ 'boardHeight' ],
             width = config[ 'gameplay' ][ 'boardWidth' ]
         }))
     elseif self.type == 4 then
+        -- 2016 API
         self:api( '' )  -- root endpoint, get color and head url
     elseif self.type == 5 then
+        -- ROBOSNAKE
         self.thread = coroutine.create( Robosnake.move )
         self.avatar = love.graphics.newImage( 'robosnake/robosnake-crop.jpg' )
         self.color = { 150, 0, 0 }
+        self.head = snakeHeads[1]
+        self.tail = snakeTails[7]
     else
         error( 'Unsupported snake type' )
     end

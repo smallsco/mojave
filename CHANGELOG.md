@@ -1,8 +1,14 @@
 ## CHANGELOG
 
+### v2.3 (2018-01-20)
+
+* Support the draft 2018 API (subject to change).
+* When a snake dies, its' health is now set to 0.
+* Fixed Robosnake's head and tail type.
+
 ### v2.2 (2018-01-19)
 
-* Fix for crashes caused by missing values in config.json (i.e. when upgrading to a new version with new config options that won't be present in the existing config.json on disk)
+* Fix for crashes caused by missing values in config.json (i.e. when upgrading to a new version with new config options that won't be present in the existing config.json on disk).
 * The starting length of snakes can now be customized from the default of 3. Lots of low-level tweaks to ensure that snakes with a length of 1 or 2 behave and render correctly.
 * The amount of health lost per turn can now be customized from the default of 1.
 * Kill counts are no longer double-awarded for head-on-head collisions between three or four snakes.

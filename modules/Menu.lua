@@ -307,6 +307,8 @@ function Menu.draw()
                     buttonText = buttonText .. "api2016\n" .. snakes[i]['url']
                 elseif snakes[i]['type'] == 5 then
                     buttonText = buttonText .. 'robosnake'
+                elseif snakes[i]['type'] == 6 then
+                    buttonText = buttonText .. "api2018\n" .. snakes[i]['url']
                 else
                     buttonText = buttonText .. 'empty'
                 end
@@ -334,6 +336,8 @@ function Menu.draw()
                     buttonText = buttonText .. "api2016\n" .. snakes[i]['url']
                 elseif snakes[i]['type'] == 5 then
                     buttonText = buttonText .. 'robosnake'
+                elseif snakes[i]['type'] == 6 then
+                    buttonText = buttonText .. "api2018\n" .. snakes[i]['url']
                 else
                     buttonText = buttonText .. 'empty'
                 end
@@ -462,7 +466,7 @@ end
 
 function Menu.EditSnakeDialog( snakeNum )
     imgui.Text( "Editing snake in slot " .. snakeNum .. "\n\n" )
-    unused, snakes[ snakeNum ][ 'type' ] = imgui.Combo( "Type", snakes[ snakeNum ][ 'type' ], { "empty", "human", "api2017", "api2016", "robosnake" }, 5 )
+    unused, snakes[ snakeNum ][ 'type' ] = imgui.Combo( "Type", snakes[ snakeNum ][ 'type' ], { "empty", "human", "api2017", "api2016", "robosnake", "api2018" }, 6 )
     if snakeNum ~= 1 and snakes[ snakeNum ][ 'type' ] == 2 then
         snakes[ snakeNum ][ 'type' ] = 1
         imgui.OpenPopup( "NoHumanInThisSlot" )
@@ -475,7 +479,7 @@ function Menu.EditSnakeDialog( snakeNum )
         end
         imgui.EndPopup()
     end
-    if snakes[ snakeNum ][ 'type' ] == 3 then
+    if snakes[ snakeNum ][ 'type' ] == 3 or snakes[ snakeNum ][ 'type' ] == 6 then
         unused, snakes[ snakeNum ][ 'url' ] = imgui.InputText( "URL", snakes[ snakeNum ][ 'url' ], 256 )
     end
     if snakes[ snakeNum ][ 'type' ] == 4 then

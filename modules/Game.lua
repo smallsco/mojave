@@ -257,6 +257,68 @@ end
 --- Gets the current state of the game, used in API calls to snakes
 -- @param slot Which snake is requesting the current state
 -- @return A table containing the game state
+function Game:getState2018( slot )
+
+    local mySnakes = {}
+    local you = {}
+    
+    for i = 1, #self.snakes do
+        local positionZeroBasedCoords = {}
+        for j = 1, #self.snakes[i].position do
+            table.insert( positionZeroBasedCoords, {
+                object = 'point',
+                x = self.snakes[i][ 'position' ][j][1] - 1,
+                y = self.snakes[i][ 'position' ][j][2] - 1
+            })
+        end
+        local snakeObj = {
+            body = {
+                object = 'list',
+                data = positionZeroBasedCoords
+            },
+            health = self.snakes[i].health,
+            id = self.snakes[i].id,
+            name = self.snakes[i].name,
+            object = 'snake',
+            taunt = self.snakes[i].taunt
+        }
+        if self.snakes[i][ 'slot' ] == slot then
+            you = snakeObj
+        end
+        table.insert( mySnakes, snakeObj )
+    end
+    
+    local foodZeroBasedCoords = {}
+    for i = 1, #self.food do
+        table.insert( foodZeroBasedCoords, {
+            object = 'point',
+            x = self.food[i][1] - 1,
+            y = self.food[i][2] - 1
+        })
+    end
+    
+    return {
+        object = 'world',
+        id = self.id,
+        you = you,
+        snakes = {
+            object = 'list',
+            data = mySnakes
+        },
+        height = config[ 'gameplay' ][ 'boardHeight' ],
+        width = config[ 'gameplay' ][ 'boardWidth' ],
+        turn = self.turn,
+        food = {
+            object = 'list',
+            data = foodZeroBasedCoords
+        }
+    }
+
+end
+
+--- Gets the current state of the game, used in API calls to snakes
+-- @param slot Which snake is requesting the current state
+-- @return A table containing the game state
 function Game:getState2017( slot )
 
     local alive_snakes = {}
@@ -533,6 +595,9 @@ function Game:tick()
             if self.snakes[i][ 'type' ] == 3 then
                 -- 2017 API
                 self.snakes[i]:api( 'move', json.encode( self:getState2017( self.snakes[i][ 'slot' ] ) ) )
+            elseif self.snakes[i][ 'type' ] == 6 then
+                -- 2018 API
+                self.snakes[i]:api( 'move', json.encode( self:getState2018( self.snakes[i][ 'slot' ] ) ) )
             elseif self.snakes[i][ 'type' ] == 4 then
                 -- 2016 API
                 local endpoint = 'move'
@@ -855,6 +920,10 @@ function Game:tick()
         if self.snakes[i][ 'delayed_death' ] then
             self.snakes[i][ 'delayed_death' ] = false
             self.snakes[i][ 'alive' ] = false
+            
+            -- might be necessary for 2018 api? since it doesn't appear to
+            -- differentiate between living and dead snakes...
+            self.snakes[i][ 'health' ] = 0
         end
     end
     
