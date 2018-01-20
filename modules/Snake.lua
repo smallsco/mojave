@@ -258,7 +258,7 @@ end
 
 --- Called when this snake is killed
 function Snake:die()
-    if self.alive then
+    if self.alive == true and self.delayed_death == false then
         if config[ 'audio' ][ 'enableSFX' ] then
             SFXSnakeDeath:stop()
             SFXSnakeDeath:play()

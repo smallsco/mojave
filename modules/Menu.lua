@@ -210,6 +210,8 @@ function Menu.draw()
                 unused, config[ 'gameplay' ][ 'boardHeight' ] = imgui.InputInt( "Board Height", config[ 'gameplay' ][ 'boardHeight' ] )
                 unused, config[ 'gameplay' ][ 'responseTime' ] = imgui.InputFloat( "API Timeout (seconds)", config[ 'gameplay' ][ 'responseTime' ], 0.1, 0, 1 )
                 unused, config[ 'gameplay' ][ 'gameSpeed' ] = imgui.InputFloat( "Game Speed (low = fast)", config[ 'gameplay' ][ 'gameSpeed' ], 0.01, 0, 2 )
+                unused, config[ 'gameplay' ][ 'startingLength' ] = imgui.InputInt( "Snake Starting Length", config[ 'gameplay' ][ 'startingLength' ] )
+                unused, config[ 'gameplay' ][ 'healthPerTurn' ] = imgui.InputInt( "Health Lost Per Turn", config[ 'gameplay' ][ 'healthPerTurn' ] )
                 unused, config[ 'gameplay' ][ 'foodStrategy' ] = imgui.Combo( "Food Placement Method", config[ 'gameplay' ][ 'foodStrategy' ], { "fixed", "growing" }, 2 )
                 if config[ 'gameplay' ][ 'foodStrategy' ] == 1 then
                     unused, config[ 'gameplay' ][ 'totalFood' ] = imgui.InputInt( "Total Food on Board", config[ 'gameplay' ][ 'totalFood' ] )

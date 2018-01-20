@@ -68,6 +68,10 @@ Finally, setting the snake type to `robosnake` will place a built-in copy of the
 	* How long in seconds to wait for each snake's API to respond to the move request.
 * Game Speed
 	* How long in seconds to wait between each tick of the game loop.
+* Snake Starting Length
+	* How long snakes will grow to at the start of the game.
+* Health Lost Per Turn
+	* How much health snakes will lose on each turn (if they don't eat that turn).
 * Food Placement Strategy
 	* If "fixed", the amount of food in play is fixed to a specific number. If "growing", food will be placed at specific time intervals irregardless of how much food is already in play.
 * Total Food on Board

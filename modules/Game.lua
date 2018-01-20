@@ -54,9 +54,9 @@ function Game.new( opt )
         if snakes[i][ 'type' ] ~= 1 then
             local x, y = self.map:setTileAtRandomFreeLocation( Map['TILE_SNEK_' .. i], 3 )
             local newSnake = Snake( snakes[i], i, self.id )
-            table.insert( newSnake[ 'position' ], { x, y, newSnake[ 'direction' ] } )
-            table.insert( newSnake[ 'position' ], { x, y, newSnake[ 'direction' ] } )
-            table.insert( newSnake[ 'position' ], { x, y, newSnake[ 'direction' ] } )
+            for i = 1, config[ 'gameplay' ][ 'startingLength' ] do
+                table.insert( newSnake[ 'position' ], { x, y, newSnake[ 'direction' ] } )
+            end
             table.insert( self.snakes, newSnake )
             self:log( string.format( 'Placed snake "%s" at [%s, %s] with starting direction "%s"', newSnake['name'], x, y, newSnake['direction'] ), 'debug' )
         end
@@ -596,12 +596,16 @@ function Game:tick()
                 
                 if len_i > len_j then
                     self:log( string.format( '"%s" is the smaller snake and dies.', self.snakes[j]['name'] ) )
+                    if not self.snakes[j][ 'delayed_death' ] then
+                        self.snakes[i].kills = self.snakes[i].kills + 1
+                    end
                     self.snakes[j]:die()
-                    self.snakes[i].kills = self.snakes[i].kills + 1
                 elseif len_j > len_i then
                     self:log( string.format( '"%s" is the smaller snake and dies.', self.snakes[i]['name'] ) )
+                    if not self.snakes[i][ 'delayed_death' ] then
+                        self.snakes[j].kills = self.snakes[j].kills + 1
+                    end
                     self.snakes[i]:die()
-                    self.snakes[j].kills = self.snakes[j].kills + 1
                 else
                     self:log( 'They are the same size and both die.' )
                     self.snakes[i]:die()
@@ -687,7 +691,8 @@ function Game:tick()
                             otherSnakeTailX = self.snakes[j][ 'position' ][ #self.snakes[j][ 'position' ] ][1]
                             otherSnakeTailY = self.snakes[j][ 'position' ][ #self.snakes[j][ 'position' ] ][2]
                             if
-                                otherSnakeTailX == self.snakes[j][ 'position' ][ #self.snakes[j][ 'position' ] - 1 ][1]
+                                #self.snakes[j][ 'position' ] > 1
+                                and otherSnakeTailX == self.snakes[j][ 'position' ][ #self.snakes[j][ 'position' ] - 1 ][1]
                                 and otherSnakeTailY == self.snakes[j][ 'position' ][ #self.snakes[j][ 'position' ] - 1 ][2]
                             then
                                 otherSnakeGrowing = true
@@ -710,8 +715,8 @@ function Game:tick()
                             self:log( string.format( '"%s" runs into the tail of "%s" at [%s, %s] and dies.', self.snakes[i][ 'name' ], otherSnakeName, self.snakes[i][ 'next_x' ], self.snakes[i][ 'next_y' ] ) )
                         else
                             -- other snake is moving out of this tile
-                            -- so treat it like a free tile (health drops 1)
-                            self.snakes[i].health = self.snakes[i].health - 1
+                            -- so treat it like a free tile (health drops)
+                            self.snakes[i].health = self.snakes[i].health - config[ 'gameplay' ][ 'healthPerTurn' ]
                         end
                     else
                         -- Another snake's body? Kill the snake.
@@ -722,10 +727,10 @@ function Game:tick()
                         self:log( string.format( '"%s" runs into the body of "%s" at [%s, %s] and dies.', self.snakes[i][ 'name' ], otherSnakeName, self.snakes[i][ 'next_x' ], self.snakes[i][ 'next_y' ] ) )
                     end
                     
-                -- Free? Snake's health drops 1.
+                -- Free? Snake's health drops.
                 else
                     self:log( string.format( '"%s" next tile is FREE', self.snakes[i][ 'name' ] ), 'trace' )
-                    self.snakes[i].health = self.snakes[i].health - 1
+                    self.snakes[i].health = self.snakes[i].health - config[ 'gameplay' ][ 'healthPerTurn' ]
                     
                 end
             end
@@ -769,11 +774,12 @@ function Game:tick()
             
                 -- Remove last tail tile
                 if
-                    (self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1] == self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] - 1 ][1]
-                    and self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2] == self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] - 1 ][2])
-                    or
-                    (self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1] == self.snakes[i][ 'position' ][1][1]
-                    and self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2] == self.snakes[i][ 'position' ][1][2])
+                    #self.snakes[i][ 'position' ] > 1
+                    and
+                    (
+                        self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1] == self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] - 1 ][1]
+                        and self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2] == self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] - 1 ][2]
+                    )
                 then
                     -- noop
                 else
@@ -789,21 +795,20 @@ function Game:tick()
             end
             
             -- Update new tail position to share direction with the body piece in front of it
-            if self.turn == 1 then
-                self.snakes[i][ 'position' ][1][3] = self.snakes[i][ 'direction' ]
+            if #self.snakes[i][ 'position' ] > 0 then
+                if self.turn == 1 then
+                    for j = 1, config[ 'gameplay' ][ 'startingLength' ] - 1 do
+                        self.snakes[i][ 'position' ][j][3] = self.snakes[i][ 'direction' ]
+                    end
+                end
+                if #self.snakes[i][ 'position' ] > 1 then
+                    self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][3] = self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] - 1 ][3]
+                else
+                    self.snakes[i][ 'position' ][1][3] = self.snakes[i][ 'direction' ]
+                end
             end
-            self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][3] = self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] - 1 ][3]
             
-            -- If snake ate this turn, grow it
-            if self.snakes[i][ 'eating' ] then
-                self:log( string.format( '"%s" duplicate tail in game at [%s, %s]', self.snakes[i][ 'name' ], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2] ), 'trace' )
-                table.insert( self.snakes[i][ 'position' ], {
-                    self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1],
-                    self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2],
-                    self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][3]
-                })
-                self.snakes[i][ 'eating' ] = false
-            end
+            
             
         end
     end
@@ -830,6 +835,18 @@ function Game:tick()
                     Map[ 'TILE_SNEK_' .. self.snakes[i][ 'slot' ] ]
                 )
             end
+            
+            -- If snake ate this turn, grow it
+            if self.snakes[i][ 'eating' ] then
+                self:log( string.format( '"%s" duplicate tail in game at [%s, %s]', self.snakes[i][ 'name' ], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2] ), 'trace' )
+                table.insert( self.snakes[i][ 'position' ], {
+                    self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1],
+                    self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2],
+                    self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][3]
+                })
+                self.snakes[i][ 'eating' ] = false
+            end
+            
         end
     end
     

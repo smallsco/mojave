@@ -327,7 +327,7 @@ function Map:draw2( drawgrid, mySnakes, food, gold, walls )
                     )
                 end
             
-            elseif j == #mySnakes[i][ 'position' ] then
+            elseif j == #mySnakes[i][ 'position' ] and j ~= 1 then
             
                 if
                     mySnakes[i][ 'position' ][j][1] == mySnakes[i][ 'position' ][1][1]

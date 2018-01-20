@@ -13,7 +13,7 @@ a battle snake arena
 ]]
 
 -- Version constant
-MOJAVE_VERSION = '2.1.1'
+MOJAVE_VERSION = '2.2'
 
 -- FIRST RUN LOGIC
 -- Extract the imgui shared library from the fused app and save it to appdata
@@ -148,47 +148,49 @@ function love.load()
     end
 
     -- Create config file if one does not exist
-    if not love.filesystem.exists( 'config.json' ) then
-        local newConfig = {
-            appearance = {
-                tilePrimaryColor = { 0/255, 0/255, 255/255, 255/255 },
-                tileSecondaryColor = { 0/255, 0/255, 235/255, 255/255 },
-                foodColor = { 0/255, 255/255, 160/255, 234/255 },
-                goldColor = { 209/255, 255/255, 123/255, 234/255 },
-                wallColor = { 8/255, 16/255, 32/255, 204/255 },
-                enableBloom = true,
-                fadeOutTails = true,
-                enableVignette = true,
-                fullscreen = false
-            },
-            audio = {
-                enableMusic = true,
-                enableSFX = true
-            },
-            gameplay = {
-                boardHeight = 15,
-                boardWidth = 25,
-                responseTime = 0.2,
-                gameSpeed = 0.15,
-                foodStrategy = 1,  -- 1 = fixed, 2 = growing
-                totalFood = 4,
-                addFoodTurns = 3,
-                foodHealth = 100,
-                enableGold = false,
-                addGoldTurns = 100,
-                goldToWin = 5,
-                enableWalls = false,
-                addWallTurns = 5,
-                wallTurnStart = 50,
-                enableTaunts = true
-            },
-            system = {
-                logLevel = 3,
-                enableSanityChecks = false,
-                roboRecursionDepth = 4,
-                pauseNewGames = false
-            }
+    local newConfig = {
+        appearance = {
+            tilePrimaryColor = { 0/255, 0/255, 255/255, 255/255 },
+            tileSecondaryColor = { 0/255, 0/255, 235/255, 255/255 },
+            foodColor = { 0/255, 255/255, 160/255, 234/255 },
+            goldColor = { 209/255, 255/255, 123/255, 234/255 },
+            wallColor = { 8/255, 16/255, 32/255, 204/255 },
+            enableBloom = true,
+            fadeOutTails = true,
+            enableVignette = true,
+            fullscreen = false
+        },
+        audio = {
+            enableMusic = true,
+            enableSFX = true
+        },
+        gameplay = {
+            boardHeight = 15,
+            boardWidth = 25,
+            responseTime = 0.2,
+            gameSpeed = 0.15,
+            startingLength = 3,
+            healthPerTurn = 1,
+            foodStrategy = 1,  -- 1 = fixed, 2 = growing
+            totalFood = 4,
+            addFoodTurns = 3,
+            foodHealth = 100,
+            enableGold = false,
+            addGoldTurns = 100,
+            goldToWin = 5,
+            enableWalls = false,
+            addWallTurns = 5,
+            wallTurnStart = 50,
+            enableTaunts = true
+        },
+        system = {
+            logLevel = 3,
+            enableSanityChecks = false,
+            roboRecursionDepth = 4,
+            pauseNewGames = false
         }
+    }
+    if not love.filesystem.exists( 'config.json' ) then
         local ok = love.filesystem.write( 'config.json', json.encode( newConfig ) )
         if not ok then
             error( 'Unable to write config.json' )
@@ -219,6 +221,34 @@ function love.load()
     config, pos, err = json.decode( configJson, 1, json.null )
     if not config then
         error( 'Error parsing config.json: ' .. err )
+    end
+    
+    -- If this is an upgrade, there may be new options
+    -- that do not exist in the local copy of config.json,
+    -- so add anything missing.
+    for k, v in pairs( newConfig[ 'appearance' ] ) do
+        if config[ 'appearance' ][k] == nil then
+            print( 'Missing appearance config option ' .. k )
+            config[ 'appearance' ][k] = newConfig[ 'appearance' ][k]
+        end
+    end
+    for k, v in pairs( newConfig[ 'audio' ] ) do
+        if config[ 'audio' ][k] == nil then
+            print( 'Missing audio config option ' .. k )
+            config[ 'audio' ][k] = newConfig[ 'audio' ][k]
+        end
+    end
+    for k, v in pairs( newConfig[ 'gameplay' ] ) do
+        if config[ 'gameplay' ][k] == nil then
+            print( 'Missing gameplay config option ' .. k )
+            config[ 'gameplay' ][k] = newConfig[ 'gameplay' ][k]
+        end
+    end
+    for k, v in pairs( newConfig[ 'system' ] ) do
+        if config[ 'system' ][k] == nil then
+            print( 'Missing system config option ' .. k )
+            config[ 'system' ][k] = newConfig[ 'system' ][k]
+        end
     end
 
     -- Set fullscreen state
