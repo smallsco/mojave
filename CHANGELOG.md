@@ -1,5 +1,10 @@
 ## CHANGELOG
 
+### v2.3.1 (2018-01-23)
+
+* Start endpoint for 2018 API snakes no longer sends board height/width
+* Updated imgui so that Mojave should run correctly under Linux now (thanks @eburdon). If you previously tried to run Mojave under Linux and got an error you will need to remove the application data directory first (see "Troubleshooting" in the readme for instructions).
+
 ### v2.3 (2018-01-20)
 
 * Support the draft 2018 API (subject to change).

@@ -77,8 +77,8 @@ function Snake.new( opt, slot, game_id )
     
     if self.type == 2 then
         -- human player, no initialization required
-    elseif self.type == 3 or self.type == 6 then
-        -- 2017 / 2018 API
+    elseif self.type == 3 then
+        -- 2017 API
         self:api( 'start', json.encode({
             game_id = game_id,
             height = config[ 'gameplay' ][ 'boardHeight' ],
@@ -94,6 +94,11 @@ function Snake.new( opt, slot, game_id )
         self.color = { 150, 0, 0 }
         self.head = snakeHeads[1]
         self.tail = snakeTails[7]
+    elseif self.type == 6 then
+        -- 2018 API
+        self:api( 'start', json.encode({
+            game_id = game_id
+        }))
     else
         error( 'Unsupported snake type' )
     end
