@@ -278,6 +278,7 @@ function Game:getState2018( slot )
             },
             health = self.snakes[i].health,
             id = self.snakes[i].id,
+            length = #positionZeroBasedCoords,
             name = self.snakes[i].name,
             object = 'snake',
             taunt = self.snakes[i].taunt

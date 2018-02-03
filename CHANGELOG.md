@@ -1,5 +1,9 @@
 ## CHANGELOG
 
+### v2.3.2 (2018-02-03)
+
+* Added missing "length" parameter to snakes in 2018 API.
+
 ### v2.3.1 (2018-01-23)
 
 * Start endpoint for 2018 API snakes no longer sends board height/width
