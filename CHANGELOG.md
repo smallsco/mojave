@@ -1,5 +1,10 @@
 ## CHANGELOG
 
+### v2.3.3 (2018-02-04)
+
+* Taunts are only set when calling the start endpoint in 2018 API.
+* Fixed a bug that caused start endpoint taunts not to show when using snakes under the 2017 or 2018 API (or robosnake).
+
 ### v2.3.2 (2018-02-03)
 
 * Added missing "length" parameter to snakes in 2018 API.

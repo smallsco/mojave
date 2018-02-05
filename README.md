@@ -150,8 +150,9 @@ food is consumed.
 * Probably other inconsistencies...
 
 ## Known Issues
-* If there are no free tiles on the game board, the app will freeze when trying to place food/walls/gold
-* Robosnake doesn't respect the API timeout (but it's pretty fast if the recursion level is low)
+* Windows 10 users may need to run the game in Windows 7 compatibility mode.
+* If there are no free tiles on the game board, the app will freeze when trying to place food/walls/gold.
+* Robosnake doesn't respect the API timeout (but it's pretty fast if the recursion level is low).
 * Probably other bugs...
 
 ## Troubleshooting

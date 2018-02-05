@@ -52,13 +52,25 @@ function Game.new( opt )
     self.snakes = {}
     for i = 1, #snakes do
         if snakes[i][ 'type' ] ~= 1 then
-            local x, y = self.map:setTileAtRandomFreeLocation( Map['TILE_SNEK_' .. i], 3 )
+            local x, y = self.map:setTileAtRandomFreeLocation( Map[ 'TILE_SNEK_' .. i ], 3 )
             local newSnake = Snake( snakes[i], i, self.id )
             for i = 1, config[ 'gameplay' ][ 'startingLength' ] do
                 table.insert( newSnake[ 'position' ], { x, y, newSnake[ 'direction' ] } )
             end
             table.insert( self.snakes, newSnake )
-            self:log( string.format( 'Placed snake "%s" at [%s, %s] with starting direction "%s"', newSnake['name'], x, y, newSnake['direction'] ), 'debug' )
+            self:log( string.format( 'Placed snake "%s" at [%s, %s] with starting direction "%s"', newSnake[ 'name' ], x, y, newSnake[ 'direction' ] ), 'debug' )
+            
+            -- starting taunt
+            -- HACK, because gameLog() won't work in the Snake() constructor
+            if
+                newSnake[ 'type' ] ~= 1 and
+                newSnake[ 'type' ] ~= 2 and
+                newSnake[ 'type' ] ~= 4 and
+                newSnake[ 'taunt' ] ~= '' and
+                config[ 'gameplay' ][ 'enableTaunts' ]
+            then
+                self:log( string.format( '%s says: %s', newSnake[ 'name' ], newSnake[ 'taunt' ] ) )
+            end
         end
     end
 
