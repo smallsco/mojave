@@ -298,7 +298,9 @@ function Game:getState2018( slot )
         if self.snakes[i][ 'slot' ] == slot then
             you = snakeObj
         end
-        table.insert( mySnakes, snakeObj )
+        if self.snakes[i].alive then
+            table.insert( mySnakes, snakeObj )
+        end
     end
     
     local foodZeroBasedCoords = {}
@@ -933,10 +935,6 @@ function Game:tick()
         if self.snakes[i][ 'delayed_death' ] then
             self.snakes[i][ 'delayed_death' ] = false
             self.snakes[i][ 'alive' ] = false
-            
-            -- might be necessary for 2018 api? since it doesn't appear to
-            -- differentiate between living and dead snakes...
-            self.snakes[i][ 'health' ] = 0
         end
     end
     

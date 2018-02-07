@@ -1,5 +1,11 @@
 ## CHANGELOG
 
+### v2.3.4 (2018-02-06)
+
+* Do not send dead snakes at all in 2018 API.
+* Leave snake health stat alone on death (reverts change from v2.3).
+* 2017/2018 API snakes will now be assigned a random color and have their endpoint URL as their name, in the event that their start endpoint call fails.
+
 ### v2.3.3 (2018-02-04)
 
 * Taunts are only set when calling the start endpoint in 2018 API.

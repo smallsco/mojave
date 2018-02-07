@@ -35,6 +35,7 @@ function Snake.new( opt, slot, game_id )
     
     -- Snake name and API endpoint
     self.type = opt.type
+    self.url = opt.url or ''
     if self.type == 2 then
         -- HUMAN
         self.id = Util.generateUUID()
@@ -42,7 +43,7 @@ function Snake.new( opt, slot, game_id )
     elseif self.type == 3 or self.type == 6 then
         -- 2017 / 2018 API
         self.id = Util.generateUUID()
-        self.name = 'Loading...'
+        self.name = self.url
     elseif self.type == 4 then
         -- 2016 API
         self.id = opt.id
@@ -52,7 +53,6 @@ function Snake.new( opt, slot, game_id )
         self.id = Util.generateUUID()
         self.name = 'Redbrick Robosnake'
     end
-    self.url = opt.url or ''
     self.taunt = opt.taunt or ''
     
     self.real_x = 0
@@ -72,7 +72,7 @@ function Snake.new( opt, slot, game_id )
     self.eating = false
     self.alive = true
     self.delayed_death = false
-    self.color = { 255, 255, 255 }
+    self.color = { love.math.random(0, 255), love.math.random(0, 255), love.math.random(0, 255) }
     self.thread = false
     
     if self.type == 2 then
