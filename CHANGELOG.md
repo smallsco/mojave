@@ -1,5 +1,9 @@
 ## CHANGELOG
 
+### v2.3.5 (2018-02-09)
+
+* Snakes now die of starvation when their health drops _below_ zero, rather than _at_ zero.
+
 ### v2.3.4 (2018-02-06)
 
 * Do not send dead snakes at all in 2018 API.

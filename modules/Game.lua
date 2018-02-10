@@ -815,8 +815,8 @@ function Game:tick()
                 end
             end
             
-            -- If a snake's health is 0, that snake dies.
-            if self.snakes[i].health == 0 then
+            -- If a snake's health is less than 0, that snake dies.
+            if self.snakes[i].health < 0 then
                 self.snakes[i]:die()
                 self:log( string.format( '"%s" dies of starvation.', self.snakes[i][ 'name' ] ) )
             end
