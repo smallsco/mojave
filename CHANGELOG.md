@@ -1,5 +1,9 @@
 ## CHANGELOG
 
+### v2.3.6 (2018-02-14)
+
+* 2018 API snakes now need to have their name specified when they are added, the "name" property in API calls is no longer used (this is the same behavior as 2016 API snakes).
+
 ### v2.3.5 (2018-02-09)
 
 * Snakes now die of starvation when their health drops _below_ zero, rather than _at_ zero.

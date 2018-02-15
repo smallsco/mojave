@@ -40,8 +40,8 @@ function Snake.new( opt, slot, game_id )
         -- HUMAN
         self.id = Util.generateUUID()
         self.name = 'Human Player'
-    elseif self.type == 3 or self.type == 6 then
-        -- 2017 / 2018 API
+    elseif self.type == 3 then
+        -- 2017 API
         self.id = Util.generateUUID()
         self.name = self.url
     elseif self.type == 4 then
@@ -52,6 +52,10 @@ function Snake.new( opt, slot, game_id )
         -- ROBOSNAKE
         self.id = Util.generateUUID()
         self.name = 'Redbrick Robosnake'
+    elseif self.type == 6 then
+        -- 2018 API
+        self.id = Util.generateUUID()
+        self.name = opt.name
     end
     self.taunt = opt.taunt or ''
     
@@ -172,7 +176,9 @@ function Snake:api( endpoint, data )
         local response_data = json.decode( table.concat( response_body ) )
         if response_data then
             if response_data[ 'name' ] ~= nil then
-                self.name = response_data[ 'name' ]
+                if self.type == 3 then
+                    self.name = response_data[ 'name' ]
+                end
             end
             if response_data[ 'move' ] ~= nil then
                 self:setDirection( response_data[ 'move' ] )

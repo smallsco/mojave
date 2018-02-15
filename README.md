@@ -1,6 +1,6 @@
 # Mojave
 
-Mojave is a third-party, open-source arena / gameboard for [BattleSnake](https://www.battlesnake.io/). It supports snakes that use the [2016](http://web.archive.org/web/20160817172025/http://www.battlesnake.io/readme), [2017](https://stembolthq.github.io/battle_snake/), or [2018](https://github.com/battle-snake/battle_snake/blob/master/lib/bs/pages/api.md) API.
+Mojave is a third-party, open-source arena / gameboard for [BattleSnake](https://www.battlesnake.io/). It supports snakes that use the [2016](http://web.archive.org/web/20160817172025/http://www.battlesnake.io/readme), [2017](https://stembolthq.github.io/battle_snake/), or [2018](https://github.com/sendwithus/battlesnake-server#api-webhooks) API.
 
 BattleSnake is an artificial intelligence programming competition hosted yearly in Victoria, BC, Canada. The tournament is a twist on the classic Snake arcade game, with teams building their own snake AIs to collect food and attack (or avoid) other snakes on the board. The lasts snake slithering wins! More information is available at http://www.battlesnake.io .
 
@@ -26,9 +26,9 @@ When launching the application you will be presented with a menu screen, showing
 
 Setting the snake type to `human` (slot #1 only) will let the arena operator (you) control a snake directly. This snake will appear white on the game board and it can be controlled using the arrow keys.
 
-Setting the snake type to `api2018` will use the 2018 API for communicating with the snake in this slot. All that is required is the URL of the snake, Mojave will load the snake's name at the start of a new game and generate an internal ID for it at that time.
+Setting the snake type to `api2018` will use the 2018 API for communicating with the snake in this slot. You will need to specify the snake's name and endpoint URL.
 
-Setting the snake type to `api2017` will use the 2017 API for communicating with the snake in this slot. Similar to 2018, all that is required is the snake's URL.
+Setting the snake type to `api2017` will use the 2017 API for communicating with the snake in this slot. Only the snake's endpoint URL is required, as Mojave will load the snake's name from an endpoint call at the start of a new game.
 
 Setting the sname type to `api2016` will use the 2016 API for communicating with the snake in this slot. In addition to the snake's URL, you will have to manually specify the name and ID of the snake.
 
@@ -146,6 +146,7 @@ food is consumed.
 * Only 10 snakes are supported at a time (the official arena supports up to 12).
 * No support for scoring (2016 arena only)
 * No support for tiebreakers (2016 arena only - the game can end in a draw if the last two snakes are the same length and have a head-on-head collision, or if they starve or hit a wall on the same turn)
+* The /end endpoint call is not made to 2016 API snakes at game end.
 * No rewind functionality.
 * Probably other inconsistencies...
 

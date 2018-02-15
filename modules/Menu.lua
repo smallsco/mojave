@@ -479,11 +479,15 @@ function Menu.EditSnakeDialog( snakeNum )
         end
         imgui.EndPopup()
     end
-    if snakes[ snakeNum ][ 'type' ] == 3 or snakes[ snakeNum ][ 'type' ] == 6 then
+    if snakes[ snakeNum ][ 'type' ] == 3 then
         unused, snakes[ snakeNum ][ 'url' ] = imgui.InputText( "URL", snakes[ snakeNum ][ 'url' ], 256 )
     end
     if snakes[ snakeNum ][ 'type' ] == 4 then
         unused, snakes[ snakeNum ][ 'id' ] = imgui.InputText( "ID", snakes[ snakeNum ][ 'id' ], 37 )
+        unused, snakes[ snakeNum ][ 'name' ] = imgui.InputText( "Name", snakes[ snakeNum ][ 'name' ], 256 )
+        unused, snakes[ snakeNum ][ 'url' ] = imgui.InputText( "URL", snakes[ snakeNum ][ 'url' ], 256 )
+    end
+    if snakes[ snakeNum ][ 'type' ] == 6 then
         unused, snakes[ snakeNum ][ 'name' ] = imgui.InputText( "Name", snakes[ snakeNum ][ 'name' ], 256 )
         unused, snakes[ snakeNum ][ 'url' ] = imgui.InputText( "URL", snakes[ snakeNum ][ 'url' ], 256 )
     end
