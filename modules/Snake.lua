@@ -81,8 +81,8 @@ function Snake.new( opt, slot, game_id )
     
     if self.type == 2 then
         -- human player, no initialization required
-    elseif self.type == 3 then
-        -- 2017 API
+    elseif self.type == 3 or self.type == 6 then
+        -- 2017/2018 API
         self:api( 'start', json.encode({
             game_id = game_id,
             height = config[ 'gameplay' ][ 'boardHeight' ],
@@ -99,11 +99,6 @@ function Snake.new( opt, slot, game_id )
         self.head = snakeHeads[1]
         self.tail = snakeTails[7]
         self.taunt = Robosnake.util.bieberQuote()
-    elseif self.type == 6 then
-        -- 2018 API
-        self:api( 'start', json.encode({
-            game_id = game_id
-        }))
     else
         error( 'Unsupported snake type' )
     end
@@ -184,12 +179,10 @@ function Snake:api( endpoint, data )
                 self:setDirection( response_data[ 'move' ] )
             end
             if response_data[ 'taunt' ] ~= nil then
-                if ( self.type == 6 and endpoint == 'start' ) or ( self.type ~= 6 ) then
-                    if response_data[ 'taunt' ] ~= self.taunt then
-                        self.taunt = response_data[ 'taunt' ]
-                        if config[ 'gameplay' ][ 'enableTaunts' ] then
-                            gameLog( string.format( '%s says: %s', self.name, self.taunt ) )
-                        end
+                if response_data[ 'taunt' ] ~= self.taunt then
+                    self.taunt = response_data[ 'taunt' ]
+                    if config[ 'gameplay' ][ 'enableTaunts' ] then
+                        gameLog( string.format( '%s says: %s', self.name, self.taunt ) )
                     end
                 end
             end

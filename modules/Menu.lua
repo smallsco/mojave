@@ -230,6 +230,7 @@ function Menu.draw()
                     unused, config[ 'gameplay' ][ 'wallTurnStart' ] = imgui.InputInt( "Start Walls at turn X", config[ 'gameplay' ][ 'wallTurnStart' ] )
                 end
                 unused, config[ 'gameplay' ][ 'enableTaunts' ] = imgui.Checkbox( "Enable Taunts", config[ 'gameplay' ][ 'enableTaunts' ] )
+                unused, config[ 'gameplay' ][ 'pinTails' ] = imgui.Checkbox( "Pin Tails", config[ 'gameplay' ][ 'pinTails' ] )
                 imgui.Text( "\n" )
             end
             

@@ -96,6 +96,8 @@ Finally, setting the snake type to `robosnake` will place a built-in copy of the
 	* Walls will not be placed in the game until the turn specified here.
 * Enable Taunts
 	* Will print snake taunts to the log.
+* Pin Tails
+   * Makes snakes grow on every turn (like a Tron game).
 
 ### System
 * Log Level
@@ -154,6 +156,7 @@ food is consumed.
 * Windows 10 users may need to run the game in Windows 7 compatibility mode.
 * If there are no free tiles on the game board, the app will freeze when trying to place food/walls/gold.
 * Robosnake doesn't respect the API timeout (but it's pretty fast if the recursion level is low).
+* HTTPS URLs don't work at all for snakes or snake avatar.
 * Probably other bugs...
 
 ## Troubleshooting

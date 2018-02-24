@@ -1,5 +1,13 @@
 ## CHANGELOG
 
+### v2.4 (2018-02-24)
+
+* Added the ability to pin snake tails so that snakes grow on every turn (like a Tron game).
+* Matches now start at turn 0 instead of turn 1.
+* Game ID is now an integer in the 2018 API instead of a UUID.
+* Restored move taunt support for 2018 API snakes (the official board supports this even though the API says it doesn't).
+* Restored sending height/width on start to 2018 API snakes (the official board does this even though the API says it doesn't).
+
 ### v2.3.6 (2018-02-14)
 
 * 2018 API snakes now need to have their name specified when they are added, the "name" property in API calls is no longer used (this is the same behavior as 2016 API snakes).

@@ -13,7 +13,7 @@ a battle snake arena
 ]]
 
 -- Version constant
-MOJAVE_VERSION = '2.3.6'
+MOJAVE_VERSION = '2.4'
 
 -- FIRST RUN LOGIC
 -- Extract the imgui shared library from the fused app and save it to appdata
@@ -181,7 +181,8 @@ function love.load()
             enableWalls = false,
             addWallTurns = 5,
             wallTurnStart = 50,
-            enableTaunts = true
+            enableTaunts = true,
+            pinTails = false
         },
         system = {
             logLevel = 3,

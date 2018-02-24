@@ -21,13 +21,14 @@ function Game.new( opt )
     http.TIMEOUT = config[ 'gameplay' ][ 'responseTime' ]
     
     self.console_history = {}
-    self.id = Util.generateUUID()
+    self.id = love.math.random( 2147483647 )
+    self.uuid = Util.generateUUID()
     self.map = Map({
         width = config[ 'gameplay' ][ 'boardWidth' ],
         height = config[ 'gameplay' ][ 'boardHeight' ]
     })
     self.timer = 0
-    self.turn = 0
+    self.turn = -1
     self.walls = {}
     self.food = {}
     self.gold = {}
@@ -372,7 +373,7 @@ function Game:getState2017( slot )
     
     return {
         food = foodZeroBasedCoords,
-        game_id = self.id,
+        game_id = self.uuid,
         height = config[ 'gameplay' ][ 'boardHeight' ],
         snakes = alive_snakes,
         dead_snakes = dead_snakes,
@@ -437,7 +438,7 @@ function Game:getState2016()
     end
     
     local gameState = {
-        game = self.id,
+        game = self.uuid,
         mode = mode,
         turn = self.turn,
         height = config[ 'gameplay' ][ 'boardHeight' ],
@@ -616,7 +617,7 @@ function Game:tick()
             elseif self.snakes[i][ 'type' ] == 4 then
                 -- 2016 API
                 local endpoint = 'move'
-                if self.turn == 1 then
+                if self.turn == 0 then
                     endpoint = 'start'
                 end
                 self.snakes[i]:api( endpoint, json.encode( self:getState2016( self.snakes[i][ 'slot' ] ) ) )
@@ -771,9 +772,10 @@ function Game:tick()
                             otherSnakeTailX = self.snakes[j][ 'position' ][ #self.snakes[j][ 'position' ] ][1]
                             otherSnakeTailY = self.snakes[j][ 'position' ][ #self.snakes[j][ 'position' ] ][2]
                             if
-                                #self.snakes[j][ 'position' ] > 1
+                                ( #self.snakes[j][ 'position' ] > 1
                                 and otherSnakeTailX == self.snakes[j][ 'position' ][ #self.snakes[j][ 'position' ] - 1 ][1]
-                                and otherSnakeTailY == self.snakes[j][ 'position' ][ #self.snakes[j][ 'position' ] - 1 ][2]
+                                and otherSnakeTailY == self.snakes[j][ 'position' ][ #self.snakes[j][ 'position' ] - 1 ][2] )
+                                or config[ 'gameplay' ][ 'pinTails' ] == true
                             then
                                 otherSnakeGrowing = true
                             end
@@ -847,36 +849,38 @@ function Game:tick()
     -- ghost will show where they died correctly.
     for i = 1, #self.snakes do
         if self.snakes[i][ 'alive' ] then
-            if self.snakes[i][ 'delayed_death' ] then
-                self:log( string.format( '"%s" remove old tail from game at [%s, %s]', self.snakes[i][ 'name' ], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2] ), 'trace' )
-                table.remove( self.snakes[i][ 'position' ] )
-            else
-            
-                -- Remove last tail tile
-                if
-                    #self.snakes[i][ 'position' ] > 1
-                    and
-                    (
-                        self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1] == self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] - 1 ][1]
-                        and self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2] == self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] - 1 ][2]
-                    )
-                then
-                    -- noop
+            if not config[ 'gameplay' ][ 'pinTails' ] then
+                if self.snakes[i][ 'delayed_death' ] then
+                    self:log( string.format( '"%s" remove old tail from game at [%s, %s]', self.snakes[i][ 'name' ], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2] ), 'trace' )
+                    table.remove( self.snakes[i][ 'position' ] )
                 else
-                    self:log( string.format( '"%s" remove old tail from map at [%s, %s]', self.snakes[i][ 'name' ], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2] ), 'trace' )
-                    self.map:setTile(
-                        self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1],
-                        self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2],
-                        Map.TILE_FREE
-                    )
+                
+                    -- Remove last tail tile
+                    if
+                        #self.snakes[i][ 'position' ] > 1
+                        and
+                        (
+                            self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1] == self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] - 1 ][1]
+                            and self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2] == self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] - 1 ][2]
+                        )
+                    then
+                        -- noop
+                    else
+                        self:log( string.format( '"%s" remove old tail from map at [%s, %s]', self.snakes[i][ 'name' ], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2] ), 'trace' )
+                        self.map:setTile(
+                            self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1],
+                            self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2],
+                            Map.TILE_FREE
+                        )
+                    end
+                    self:log( string.format( '"%s" remove old tail from game at [%s, %s]', self.snakes[i][ 'name' ], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2] ), 'trace' )
+                    table.remove( self.snakes[i][ 'position' ] )
                 end
-                self:log( string.format( '"%s" remove old tail from game at [%s, %s]', self.snakes[i][ 'name' ], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2] ), 'trace' )
-                table.remove( self.snakes[i][ 'position' ] )
             end
             
             -- Update new tail position to share direction with the body piece in front of it
             if #self.snakes[i][ 'position' ] > 0 then
-                if self.turn == 1 then
+                if self.turn == 0 then
                     for j = 1, config[ 'gameplay' ][ 'startingLength' ] - 1 do
                         self.snakes[i][ 'position' ][j][3] = self.snakes[i][ 'direction' ]
                     end
@@ -887,11 +891,9 @@ function Game:tick()
                     self.snakes[i][ 'position' ][1][3] = self.snakes[i][ 'direction' ]
                 end
             end
-            
-            
-            
         end
     end
+    
     for i = 1, #self.snakes do
         if self.snakes[i][ 'alive' ] then
             if self.snakes[i][ 'delayed_death' ] then
@@ -917,14 +919,16 @@ function Game:tick()
             end
             
             -- If snake ate this turn, grow it
-            if self.snakes[i][ 'eating' ] then
-                self:log( string.format( '"%s" duplicate tail in game at [%s, %s]', self.snakes[i][ 'name' ], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2] ), 'trace' )
-                table.insert( self.snakes[i][ 'position' ], {
-                    self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1],
-                    self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2],
-                    self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][3]
-                })
-                self.snakes[i][ 'eating' ] = false
+            if not config[ 'gameplay' ][ 'pinTails' ] then
+                if self.snakes[i][ 'eating' ] then
+                    self:log( string.format( '"%s" duplicate tail in game at [%s, %s]', self.snakes[i][ 'name' ], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1], self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2] ), 'trace' )
+                    table.insert( self.snakes[i][ 'position' ], {
+                        self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][1],
+                        self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][2],
+                        self.snakes[i][ 'position' ][ #self.snakes[i][ 'position' ] ][3]
+                    })
+                    self.snakes[i][ 'eating' ] = false
+                end
             end
             
         end
