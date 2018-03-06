@@ -146,6 +146,25 @@ Util.htmlColors = {
     ['black'] = '000000'
 }
 
+--- Clones a table recursively.
+-- @param table t The source table
+-- @return table The copy of the table
+-- @see https://gist.github.com/MihailJP/3931841
+function Util.deepcopy(t)
+    if type(t) ~= "table" then return t end
+    local meta = getmetatable(t)
+    local target = {}
+    for k, v in pairs(t) do
+        if type(v) == "table" then
+            target[k] = Util.deepcopy(v)
+        else
+            target[k] = v
+        end
+    end
+    setmetatable(target, meta)
+    return target
+end
+
 -- Generates a UUID used for game IDs
 -- @return a random format UUID
 -- @see https://gist.github.com/jrus/3197011

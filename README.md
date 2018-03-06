@@ -34,7 +34,7 @@ Setting the sname type to `api2016` will use the 2016 API for communicating with
 
 (On the official 2016 game server, the ID is generated when a snake is registered with the server, and remains the same for all games. Most snakes hard-code this ID into their application code and use it to identify themselves in the list of snakes sent by the server on each request. For this reason, when using a 2016-API snake with Mojave, you will need to look through the snake's source code, find its' ID, and specify it when adding the snake.)
 
-Finally, setting the snake type to `robosnake` will place a built-in copy of the infamous [Redbrick Robosnake](http://github.com/rdbrck/bountysnake2017) into that slot, without requiring you to set up your own server or even have an internet connection! Be warned, this snake is very tough!!
+Finally, setting the snake type to `robosnake2017` or `robosnake2018` will place a built-in copy of [Redbrick](http://www.rdbrck.com)'s [2017](http://github.com/rdbrck/bountysnake2017) or [2018](http://github.com/rdbrck/bountysnake2018) bounty snakes into that slot, without requiring you to set up your own server or even have an internet connection. But be warned - these snakes are very difficult!
 
 
 ## Configuration
@@ -145,17 +145,16 @@ food is consumed.
 
 
 ## Gameplay Differences from the official arena
-* Only 10 snakes are supported at a time (the official arena supports up to 12).
+* Only 10 snakes are supported at a time (the 2016 official arena supports up to 12 and the 2017/2018 arena is unlimited).
 * No support for scoring (2016 arena only)
 * No support for tiebreakers (2016 arena only - the game can end in a draw if the last two snakes are the same length and have a head-on-head collision, or if they starve or hit a wall on the same turn)
-* The /end endpoint call is not made to 2016 API snakes at game end.
 * No rewind functionality.
 * Probably other inconsistencies...
 
 ## Known Issues
 * Windows 10 users may need to run the game in Windows 7 compatibility mode.
 * If there are no free tiles on the game board, the app will freeze when trying to place food/walls/gold.
-* Robosnake doesn't respect the API timeout (but it's pretty fast if the recursion level is low).
+* Robosnakes don't respect the API timeout (but they're pretty fast if the recursion level is low).
 * HTTPS URLs don't work at all for snakes or snake avatar.
 * Probably other bugs...
 
@@ -214,6 +213,10 @@ http://www.soundimage.org
 Robosnake  
 Copyright (c) 2017 Redbrick Technologies, Inc.  
 https://github.com/rdbrck/bountysnake2017
+
+Son of Robosnake  
+Copyright (c) 2017-2018 Redbrick Technologies, Inc.  
+https://github.com/rdbrck/bountysnake2018
 
 Vignette Image  
 Public Domain  

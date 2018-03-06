@@ -56,11 +56,13 @@ function Snake.new( opt, slot, game_id )
         -- 2018 API
         self.id = Util.generateUUID()
         self.name = opt.name
+    elseif self.type == 7 then
+        -- SON OF ROBOSNAKE
+        self.id = Util.generateUUID()
+        self.name = 'Son of Robosnake'
     end
     self.taunt = opt.taunt or ''
     
-    self.real_x = 0
-    self.real_y = 0
     self.next_x = 0
     self.next_y = 0
     self.direction = self.DIRECTIONS[love.math.random(4)]
@@ -76,6 +78,7 @@ function Snake.new( opt, slot, game_id )
     self.eating = false
     self.alive = true
     self.delayed_death = false
+    self.death_cause = ''
     self.color = { love.math.random(0, 255), love.math.random(0, 255), love.math.random(0, 255) }
     self.thread = false
     
@@ -99,6 +102,14 @@ function Snake.new( opt, slot, game_id )
         self.head = snakeHeads[1]
         self.tail = snakeTails[7]
         self.taunt = Robosnake.util.bieberQuote()
+    elseif self.type == 7 then
+        -- SON OF ROBOSNAKE
+        self.thread = coroutine.create( SonOfRobosnake.move )
+        self.avatar = love.graphics.newImage( 'son-of-robosnake/robosnake-crop.jpg' )
+        self.color = { 93, 210, 132 }
+        self.head = snakeHeads[1]
+        self.tail = snakeTails[7]
+        self.taunt = SonOfRobosnake.util.taunt()
     else
         error( 'Unsupported snake type' )
     end
@@ -273,13 +284,14 @@ function Snake:calculateNextPosition()
 end
 
 --- Called when this snake is killed
-function Snake:die()
+function Snake:die( cause )
     if self.alive == true and self.delayed_death == false then
         if config[ 'audio' ][ 'enableSFX' ] then
             SFXSnakeDeath:stop()
             SFXSnakeDeath:play()
         end
         self.delayed_death = true
+        self.death_cause = cause
     end
 end
 

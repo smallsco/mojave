@@ -1,5 +1,16 @@
 ## CHANGELOG
 
+### v2.5 (2018-03-05)
+
+* It is now possible to play _Son of Robosnake_, [Redbrick](http://www.rdbrck.com)'s 2018 Bounty Snake directly from Mojave without requiring you to set up your own server.
+* The /end endpoint call has been implemented for both the 2016 and 2018 APIs (it was not used in 2017)
+* Snakes now die of starvation when their health _reaches_ zero, rather than when it _drops below_ zero (revert change from v2.3.5)
+* Fixed a bug where playing Robosnake could cause the game state to corrupt.
+* Fixed an additional crash caused by missing values in config.json when upgrading.
+* Fixed a bug that allowed you to step past the end of the game.
+* Reorganized the options menu a bit.
+* Removed some unused code.
+
 ### v2.4 (2018-02-24)
 
 * Added the ability to pin snake tails so that snakes grow on every turn (like a Tron game).

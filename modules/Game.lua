@@ -32,6 +32,7 @@ function Game.new( opt )
     self.walls = {}
     self.food = {}
     self.gold = {}
+    self.finalized = false
     
     -- If we're playing with gold, place one now
     if config[ 'gameplay' ][ 'enableGold' ] then
@@ -267,6 +268,52 @@ function Game:draw()
         imgui.PopStyleVar()
 end
 
+--- Functions to run when the game has ended, i.e. the /end endpoint call.
+function Game:finalize( winner_id )
+    self.finalized = true
+    
+    -- Get list of winners
+    -- not sure why this is a table? how can there be more than one?
+    local winners = {}
+    if winner_id then
+        table.insert( winners, winner_id )
+    end
+    
+    local dead_snakes = {
+        object = 'list',
+        data = {}
+    }
+    for i = 1, #self.snakes do
+        if not self.snakes[i][ 'alive' ] then
+            table.insert( dead_snakes[ 'data' ], {
+                id = self.snakes[i][ 'id' ],
+                length = #self.snakes[i][ 'position' ],
+                death = {
+                    turn = self.snakes[i][ 'age' ],
+                    -- also not sure why this is a table
+                    causes = { self.snakes[i][ 'death_cause' ] }
+                }
+            })
+        end
+    end
+    
+    for i = 1, #self.snakes do
+        if self.snakes[i][ 'type' ] == 6 then
+            -- 2018 API
+            -- /end is specialized
+            self.snakes[i]:api( 'end', json.encode({
+                game_id = self.id,
+                winners = winners,
+                dead_snakes = dead_snakes,
+            }))
+        elseif self.snakes[i][ 'type' ] == 4 then
+            -- 2016 API
+            -- /end is the exact same request as /move
+            self.snakes[i]:api( 'end', json.encode( self:getState2016( self.snakes[i][ 'slot' ] ) ) )
+        end
+    end
+end
+
 --- Gets the current state of the game, used in API calls to snakes
 -- @param slot Which snake is requesting the current state
 -- @return A table containing the game state
@@ -486,18 +533,29 @@ end
 
 --- Starts the game's update loop
 function Game:start()
-    self:log( 'Game started.' )
+    if not self.finalized then
+        self:log( 'Game started.' )
+    end
     self.running = true
 end
 
 --- Stops the game's update loop
 function Game:stop()
     self.running = false
-    self:log( 'Game stopped.' )
+    if not self.finalized then
+        self:log( 'Game stopped.' )
+    end
 end
 
 
 function Game:tick()
+
+    -- Don't tick if the game has ended
+    if self.finalized then
+        self:log( 'Game is over. Please return to the menu to start a new game.' )
+        self:stop()
+        return
+    end
 
     -- DEBUGGING - CHECK FOR THE IMPOSSIBLE
     if config[ 'system' ][ 'enableSanityChecks' ] then
@@ -624,10 +682,31 @@ function Game:tick()
             elseif self.snakes[i][ 'type' ] == 5 then
                 local success, response_data = coroutine.resume(
                     self.snakes[i].thread,
-                    self:getState2017( self.snakes[i][ 'slot' ] )
+                    Util.deepcopy( self:getState2017( self.snakes[i][ 'slot' ] ) )
                 )
                 if not success then
                     self:log( string.format( 'ROBOSNAKE: %s', response_data ), 'fatal' )
+                else
+                    if response_data[ 'move' ] ~= nil then
+                        self.snakes[i]:setDirection( response_data[ 'move' ] )
+                    end
+                    if response_data[ 'taunt' ] ~= nil then
+                        if response_data[ 'taunt' ] ~= self.snakes[i].taunt then
+                            self.snakes[i].taunt = response_data[ 'taunt' ]
+                            if config[ 'gameplay' ][ 'enableTaunts' ] then
+                                gameLog( string.format( '%s says: %s', self.snakes[i].name, self.snakes[i].taunt ) )
+                            end
+                        end
+                    end
+                    
+                end
+            elseif self.snakes[i][ 'type' ] == 7 then
+                local success, response_data = coroutine.resume(
+                    self.snakes[i].thread,
+                    Util.deepcopy( self:getState2018( self.snakes[i][ 'slot' ] ) )
+                )
+                if not success then
+                    self:log( string.format( 'SON-OF-ROBOSNAKE: %s', response_data ), 'fatal' )
                 else
                     if response_data[ 'move' ] ~= nil then
                         self.snakes[i]:setDirection( response_data[ 'move' ] )
@@ -680,17 +759,17 @@ function Game:tick()
                     if not self.snakes[j][ 'delayed_death' ] then
                         self.snakes[i].kills = self.snakes[i].kills + 1
                     end
-                    self.snakes[j]:die()
+                    self.snakes[j]:die( 'head collision' )
                 elseif len_j > len_i then
                     self:log( string.format( '"%s" is the smaller snake and dies.', self.snakes[i]['name'] ) )
                     if not self.snakes[i][ 'delayed_death' ] then
                         self.snakes[j].kills = self.snakes[j].kills + 1
                     end
-                    self.snakes[i]:die()
+                    self.snakes[i]:die( 'head collision' )
                 else
                     self:log( 'They are the same size and both die.' )
-                    self.snakes[i]:die()
-                    self.snakes[j]:die()
+                    self.snakes[i]:die( 'head collision' )
+                    self.snakes[j]:die( 'head collision' )
                 end
             end
         end
@@ -706,7 +785,7 @@ function Game:tick()
                 self.snakes[i][ 'next_x' ] > config[ 'gameplay' ][ 'boardWidth' ] or
                 self.snakes[i][ 'next_y' ] > config[ 'gameplay' ][ 'boardHeight' ]
             then
-                self.snakes[i]:die()
+                self.snakes[i]:die( 'wall collision' )
                 self:log( string.format( '"%s" moves beyond the edge of the world [%s, %s] and dies.', self.snakes[i][ 'name' ], self.snakes[i][ 'next_x' ], self.snakes[i][ 'next_y' ] ) )
             else
                 -- Get the tile
@@ -718,7 +797,7 @@ function Game:tick()
                 -- Wall? Kill the snake.
                 if tile == Map.TILE_WALL then
                     self:log( string.format( '"%s" next tile is WALL', self.snakes[i][ 'name' ] ), 'trace' )
-                    self.snakes[i]:die()
+                    self.snakes[i]:die( 'wall collision' )
                     self:log( string.format( '"%s" runs into a wall [%s, %s] and dies.', self.snakes[i][ 'name' ], self.snakes[i][ 'next_x' ], self.snakes[i][ 'next_y' ] ) )
                 
                 -- Food? Grow the snake.
@@ -790,7 +869,7 @@ function Game:tick()
                         -- Another snake's tail?
                         -- Kill the snake only if the second snake is not growing.
                         if otherSnakeGrowing then
-                            self.snakes[i]:die()
+                            self.snakes[i]:die( 'body collision' )
                             if otherSnakeIndex ~= i then
                                 self.snakes[otherSnakeIndex].kills = self.snakes[otherSnakeIndex].kills + 1
                             end
@@ -802,9 +881,11 @@ function Game:tick()
                         end
                     else
                         -- Another snake's body? Kill the snake.
-                        self.snakes[i]:die()
                         if otherSnakeIndex ~= i then
+                            self.snakes[i]:die( 'body collision' )
                             self.snakes[otherSnakeIndex].kills = self.snakes[otherSnakeIndex].kills + 1
+                        else
+                            self.snakes[i]:die( 'self collision' )
                         end
                         self:log( string.format( '"%s" runs into the body of "%s" at [%s, %s] and dies.', self.snakes[i][ 'name' ], otherSnakeName, self.snakes[i][ 'next_x' ], self.snakes[i][ 'next_y' ] ) )
                     end
@@ -817,9 +898,9 @@ function Game:tick()
                 end
             end
             
-            -- If a snake's health is less than 0, that snake dies.
-            if self.snakes[i].health < 0 then
-                self.snakes[i]:die()
+            -- If a snake's health is 0, that snake dies.
+            if self.snakes[i].health == 0 then
+                self.snakes[i]:die( 'starvation' )
                 self:log( string.format( '"%s" dies of starvation.', self.snakes[i][ 'name' ] ) )
             end
             
@@ -997,15 +1078,18 @@ function Game:tick()
     -- Count how many snakes are still alive.
     local livingSnakes = 0
     local winner = ''
+    local winner_id
     for i = 1, #self.snakes do
         if self.snakes[i].alive then
             livingSnakes = livingSnakes + 1
             winner = self.snakes[i].name
+            winner_id = self.snakes[i].id
         end
     end
     if livingSnakes == 0 then
         -- All snakes are dead, so end the game
         self:log( 'Game Over. All snakes are dead.' )
+        self:finalize( winner_id )
         self:stop()
         return
     end
@@ -1016,6 +1100,7 @@ function Game:tick()
             -- There's only one snake in the game, let it play until it dies
         else
             self:log( string.format( 'Game Over. The winner is "%s" for being the last snake alive!', winner ) )
+            self:finalize( winner_id )
             self:stop()
             return
         end
@@ -1025,6 +1110,7 @@ function Game:tick()
     for i = 1, #self.snakes do
         if self.snakes[i].gold >= config[ 'gameplay' ][ 'goldToWin' ] then
             self:log( string.format( 'Game Over. The winner is "%s" for collecting all the gold!', self.snakes[i].name ) )
+            self:finalize( winner_id )
             self:stop()
             return
         end

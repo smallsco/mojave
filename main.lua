@@ -13,7 +13,7 @@ a battle snake arena
 ]]
 
 -- Version constant
-MOJAVE_VERSION = '2.4'
+MOJAVE_VERSION = '2.5'
 
 -- FIRST RUN LOGIC
 -- Extract the imgui shared library from the fused app and save it to appdata
@@ -74,6 +74,7 @@ Menu = require 'modules.Menu'
 Robosnake = require 'robosnake.robosnake'
 Shaders = require 'modules.Shaders'
 Snake = require 'modules.Snake'
+SonOfRobosnake = require 'son-of-robosnake.robosnake'
 Util = require 'modules.Util'
 
 local SPLASH_DONE = false
@@ -128,7 +129,7 @@ function love.load()
         local newSnakes = {
             {
                 id = '',
-                type = 2,  -- 1 = empty, 2 = human, 3 = api2017, 4 = api2016, 5 = robosnake, 6 = api2018
+                type = 2,  -- 1 = empty, 2 = human, 3 = api2017, 4 = api2016, 5 = robosnake2017, 6 = api2018, 7 = robosnake2018
                 name = '',
                 url = ''
             }
@@ -184,6 +185,11 @@ function love.load()
             enableTaunts = true,
             pinTails = false
         },
+        robosnake2018 = {
+            recursionDepth = 6,
+            hungerThreshold = 40,
+            lowFoodThreshold = 8
+        },
         system = {
             logLevel = 3,
             enableSanityChecks = false,
@@ -227,6 +233,12 @@ function love.load()
     -- If this is an upgrade, there may be new options
     -- that do not exist in the local copy of config.json,
     -- so add anything missing.
+    for k,v in pairs( newConfig ) do
+        if config[k] == nil then
+            print( 'Missing config option ' .. k )
+            config[k] = v
+        end
+    end
     for k, v in pairs( newConfig[ 'appearance' ] ) do
         if config[ 'appearance' ][k] == nil then
             print( 'Missing appearance config option ' .. k )
@@ -243,6 +255,12 @@ function love.load()
         if config[ 'gameplay' ][k] == nil then
             print( 'Missing gameplay config option ' .. k )
             config[ 'gameplay' ][k] = newConfig[ 'gameplay' ][k]
+        end
+    end
+    for k, v in pairs( newConfig[ 'robosnake2018' ] ) do
+        if config[ 'robosnake2018' ][k] == nil then
+            print( 'Missing robosnake2018 config option ' .. k )
+            config[ 'robosnake2018' ][k] = newConfig[ 'robosnake2018' ][k]
         end
     end
     for k, v in pairs( newConfig[ 'system' ] ) do
