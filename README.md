@@ -99,13 +99,23 @@ Finally, setting the snake type to `robosnake2017` or `robosnake2018` will place
 * Pin Tails
    * Makes snakes grow on every turn (like a Tron game).
 
+### Robosnake (2017 Redbrick Bounty Snake)
+* Recursion Depth
+	* How many turns Robosnake is allowed to predict ahead. Higher numbers make for a much tougher opponent, but will slow the game down.
+
+### Son of Robosnake (2018 Redbrick Bounty Snake)
+* Recursion Depth
+	* How many turns Son of Robosnake is allowed to predict ahead. Higher numbers make for a much tougher opponent, but will slow the game down.
+* Hunger Threshold
+   * When Son of Robosnake's health dips to this value (or below) it will start looking for food.
+* Low Food Threshold
+   * If the food on the game board is at this number or lower, Son of Robosnake will use a less aggressive heuristic and prioritize food.
+
 ### System
 * Log Level
 	* How much in-game logging to use. Increasing this will significantly reduce performance.
 * Enable Sanity Checks
 	* Adds additional checks during each tick of the game loop to verify that the game state is consistent. Enabling this will significantly reduce performance, and should only be used when troubleshooting bugs in Mojave itself.
-* Robosnake Recursion Depth
-	* How many turns the Robosnake is allowed to predict ahead. Higher numbers make for a much tougher opponent, but will slow the game down.
 * Start New Games Paused
 	* When enabled, new games will be started in a paused state, which can be useful for debugging.
 
@@ -156,6 +166,7 @@ food is consumed.
 * If there are no free tiles on the game board, the app will freeze when trying to place food/walls/gold.
 * Robosnakes don't respect the API timeout (but they're pretty fast if the recursion level is low).
 * HTTPS URLs don't work at all for snakes or snake avatar.
+* The full CSS syntax is not supported for snake colors.
 * Probably other bugs...
 
 ## Troubleshooting
@@ -211,11 +222,11 @@ Music and Sound Effects by Eric Matyas
 http://www.soundimage.org
 
 Robosnake  
-Copyright (c) 2017 Redbrick Technologies, Inc.  
+Copyright ©2017 Redbrick Technologies, Inc.  
 https://github.com/rdbrck/bountysnake2017
 
 Son of Robosnake  
-Copyright (c) 2017-2018 Redbrick Technologies, Inc.  
+Copyright ©2017-2018 Redbrick Technologies, Inc.  
 https://github.com/rdbrck/bountysnake2018
 
 Vignette Image  

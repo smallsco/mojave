@@ -379,7 +379,7 @@ function Menu.draw()
         elseif rightPane == 'credits' then
             if imgui.CollapsingHeader( "About", { "DefaultOpen" } ) then
                 imgui.TextWrapped([[
-Mojave is a third-party, open-source arena / gameboard for BattleSnake. It supports snakes that use either the 2016 or 2017 API.
+Mojave is a third-party, open-source arena / gameboard for BattleSnake. It supports snakes that use the 2016, 2017, or 2018 API.
 
 BattleSnake is an artificial intelligence programming competition hosted yearly in Victoria, BC, Canada. The tournament is a twist on the classic Snake arcade game, with teams building their own snake AIs to collect food and attack (or avoid) other snakes on the board. The lasts snake slithering wins! More information is available at http://www.battlesnake.io .
 
@@ -466,11 +466,11 @@ Music and Sound Effects by Eric Matyas
 http://www.soundimage.org
 
 Robosnake  
-Copyright (c) 2017 Redbrick Technologies, Inc.  
+Copyright ©2017 Redbrick Technologies, Inc.  
 https://github.com/rdbrck/bountysnake2017
 
 Son of Robosnake  
-Copyright (c) 2017-2018 Redbrick Technologies, Inc.  
+Copyright ©2017-2018 Redbrick Technologies, Inc.  
 https://github.com/rdbrck/bountysnake2018
 
 Vignette Image

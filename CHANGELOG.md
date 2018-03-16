@@ -1,5 +1,10 @@
 ## CHANGELOG
 
+### v2.5.1 (2018-03-15)
+
+* Changed default board height/width/food for better compatibility with Robosnakes
+* Minor documentation tweaks.
+
 ### v2.5 (2018-03-05)
 
 * It is now possible to play _Son of Robosnake_, [Redbrick](http://www.rdbrck.com)'s 2018 Bounty Snake directly from Mojave without requiring you to set up your own server.
