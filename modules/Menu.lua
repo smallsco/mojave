@@ -242,7 +242,7 @@ function Menu.draw()
             
             -- Robosnake 2018 Options
             if imgui.CollapsingHeader( "Son of Robosnake (2018)", { "DefaultOpen" } ) then
-                unused, config[ 'robosnake2018' ][ 'recursionDepth' ] = imgui.InputInt( "Recursion Depth", config[ 'robosnake2018' ][ 'recursionDepth' ] )
+                unused, config[ 'robosnake2018' ][ 'recursionDepth' ] = imgui.InputInt( "Recursion Depth ", config[ 'robosnake2018' ][ 'recursionDepth' ] )
                 unused, config[ 'robosnake2018' ][ 'hungerThreshold' ] = imgui.InputInt( "Hunger Threshold", config[ 'robosnake2018' ][ 'hungerThreshold' ] )
                 unused, config[ 'robosnake2018' ][ 'lowFoodThreshold' ] = imgui.InputInt( "Low Food Threshold", config[ 'robosnake2018' ][ 'lowFoodThreshold' ] )
                 imgui.Text( "\n" )

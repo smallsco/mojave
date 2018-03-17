@@ -1,5 +1,9 @@
 ## CHANGELOG
 
+### v2.5.2 (2018-03-16)
+
+* Fixed a bug that prevented changing Son of Robosnake's recursion depth setting from the default.
+
 ### v2.5.1 (2018-03-15)
 
 * Changed default board height/width/food for better compatibility with Robosnakes
