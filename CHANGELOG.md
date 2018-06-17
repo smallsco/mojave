@@ -1,5 +1,10 @@
 ## CHANGELOG
 
+### v2.5.3 (2018-06-16)
+
+* Clicking "Play" on the game board when a match has completed will now re-start the match using the same settings without requiring you to make a trip back to the menu.
+* Added a note to the readme re: incompatibility with LÖVE 11.x
+
 ### v2.5.2 (2018-03-16)
 
 * Fixed a bug that prevented changing Son of Robosnake's recursion depth setting from the default.

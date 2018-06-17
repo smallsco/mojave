@@ -550,10 +550,14 @@ end
 
 function Game:tick()
 
-    -- Don't tick if the game has ended
+    -- If the game has ended and we try to tick (because soneone clicked Play)
+    -- then stop the current game and start a new one with the same settings
     if self.finalized then
-        self:log( 'Game is over. Please return to the menu to start a new game.' )
         self:stop()
+        activeGame = Game()
+        if not config[ 'system' ][ 'pauseNewGames' ] then
+            activeGame:start()
+        end
         return
     end
 

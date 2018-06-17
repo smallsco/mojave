@@ -18,7 +18,7 @@ Linux is officially untested and unsupported, however Linux users may be able to
 
 Install [love-release](https://github.com/MisterDA/love-release), then run `love-release -W32 -M` from the `mojave` directory. This will create a new folder, `releases`, containing zipped binaries for Windows and Mac OS X.
 
-Or, you can run the game directly using [LÖVE](http://www.love2d.org). Download and install version 0.10.2, navigate to the `mojave` directory, and run `love --fused .`. The `--fused` parameter is important, without it the game's data directory path will not be set correctly.
+Or, you can run the game directly using [LÖVE](http://www.love2d.org). Download and install **version 0.10.2 (Mojave is not compatible with version 11 or greater at this time)**, navigate to the `mojave` directory, and run `love --fused .`. The `--fused` parameter is important, without it the game's data directory path will not be set correctly.
 
 ## Adding/Removing Snakes
 
