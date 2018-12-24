@@ -52,7 +52,7 @@ function Menu.draw()
     
     -- Footer text
     love.graphics.setFont( defaultFont )
-    love.graphics.printf( "©2017-2018 Scott Small", 0, screenHeight*0.95, screenWidth, "center" )
+    love.graphics.printf( "©2017-2019 Scott Small", 0, screenHeight*0.95, screenWidth, "center" )
     love.graphics.print( MOJAVE_VERSION, screenWidth*0.975, screenHeight*0.975 )
     
     -- Render UI
@@ -206,10 +206,29 @@ function Menu.draw()
             
             -- Gameplay Options
             if imgui.CollapsingHeader( "Gameplay", { "DefaultOpen" } ) then
-                unused, config[ 'gameplay' ][ 'boardWidth' ] = imgui.InputInt( "Board Width", config[ 'gameplay' ][ 'boardWidth' ] )
-                unused, config[ 'gameplay' ][ 'boardHeight' ] = imgui.InputInt( "Board Height", config[ 'gameplay' ][ 'boardHeight' ] )
+                unused, config[ 'gameplay' ][ 'boardSize' ] = imgui.RadioButton( "Small (7x7)", config[ 'gameplay' ][ 'boardSize' ], 1 )
+                imgui.SameLine()
+                unused, config[ 'gameplay' ][ 'boardSize' ] = imgui.RadioButton( "Medium (11x11)", config[ 'gameplay' ][ 'boardSize' ], 2 )
+                imgui.SameLine()
+                unused, config[ 'gameplay' ][ 'boardSize' ] = imgui.RadioButton( "Large (19x19)", config[ 'gameplay' ][ 'boardSize' ], 3 )
+                imgui.SameLine()
+                unused, config[ 'gameplay' ][ 'boardSize' ] = imgui.RadioButton( "Custom Board Size", config[ 'gameplay' ][ 'boardSize' ], 4 )
+                if config[ 'gameplay' ][ 'boardSize' ] == 1 then
+                    config[ 'gameplay' ][ 'boardWidth' ] = 7
+                    config[ 'gameplay' ][ 'boardHeight' ] = 7
+                elseif config[ 'gameplay' ][ 'boardSize' ] == 2 then
+                    config[ 'gameplay' ][ 'boardWidth' ] = 11
+                    config[ 'gameplay' ][ 'boardHeight' ] = 11
+                elseif config[ 'gameplay' ][ 'boardSize' ] == 3 then
+                    config[ 'gameplay' ][ 'boardWidth' ] = 19
+                    config[ 'gameplay' ][ 'boardHeight' ] = 19
+                else
+                    unused, config[ 'gameplay' ][ 'boardWidth' ] = imgui.InputInt( "Board Width", config[ 'gameplay' ][ 'boardWidth' ] )
+                    unused, config[ 'gameplay' ][ 'boardHeight' ] = imgui.InputInt( "Board Height", config[ 'gameplay' ][ 'boardHeight' ] )
+                end
                 unused, config[ 'gameplay' ][ 'responseTime' ] = imgui.InputFloat( "API Timeout (seconds)", config[ 'gameplay' ][ 'responseTime' ], 0.1, 0, 1 )
                 unused, config[ 'gameplay' ][ 'gameSpeed' ] = imgui.InputFloat( "Game Speed (low = fast)", config[ 'gameplay' ][ 'gameSpeed' ], 0.01, 0, 2 )
+                unused, config[ 'gameplay' ][ 'startingPosition' ] = imgui.Combo( "Snake Starting Position", config[ 'gameplay' ][ 'startingPosition' ], { "fixed", "random" }, 2 )
                 unused, config[ 'gameplay' ][ 'startingLength' ] = imgui.InputInt( "Snake Starting Length", config[ 'gameplay' ][ 'startingLength' ] )
                 unused, config[ 'gameplay' ][ 'healthPerTurn' ] = imgui.InputInt( "Health Lost Per Turn", config[ 'gameplay' ][ 'healthPerTurn' ] )
                 unused, config[ 'gameplay' ][ 'foodStrategy' ] = imgui.Combo( "Food Placement Method", config[ 'gameplay' ][ 'foodStrategy' ], { "fixed", "growing" }, 2 )
@@ -325,6 +344,8 @@ function Menu.draw()
                     buttonText = buttonText .. "api2018\n" .. snakes[i]['url']
                 elseif snakes[i]['type'] == 7 then
                     buttonText = buttonText .. 'robosnake2018'
+                elseif snakes[i]['type'] == 8 then
+                    buttonText = buttonText .. "api2019\n" .. snakes[i]['url']
                 else
                     buttonText = buttonText .. 'empty'
                 end
@@ -356,6 +377,8 @@ function Menu.draw()
                     buttonText = buttonText .. "api2018\n" .. snakes[i]['url']
                 elseif snakes[i]['type'] == 7 then
                     buttonText = buttonText .. 'robosnake2018'
+                elseif snakes[i]['type'] == 8 then
+                    buttonText = buttonText .. "api2019\n" .. snakes[i]['url']
                 else
                     buttonText = buttonText .. 'empty'
                 end
@@ -379,9 +402,9 @@ function Menu.draw()
         elseif rightPane == 'credits' then
             if imgui.CollapsingHeader( "About", { "DefaultOpen" } ) then
                 imgui.TextWrapped([[
-Mojave is a third-party, open-source arena / gameboard for BattleSnake. It supports snakes that use the 2016, 2017, or 2018 API.
+Mojave is a third-party, open-source arena / gameboard for Battlesnake. It supports snakes that use the 2016, 2017, 2018, or 2019 API versions.
 
-BattleSnake is an artificial intelligence programming competition hosted yearly in Victoria, BC, Canada. The tournament is a twist on the classic Snake arcade game, with teams building their own snake AIs to collect food and attack (or avoid) other snakes on the board. The lasts snake slithering wins! More information is available at http://www.battlesnake.io .
+Battlesnake is an artificial intelligence programming competition hosted yearly in Victoria, BC, Canada. The tournament is a twist on the classic Snake arcade game, with teams building their own snake AIs to collect food and attack (or avoid) other snakes on the board. The lasts snake slithering wins! More information is available at http://www.battlesnake.io .
 
 As for the name... since rattlesnakes are known to roam the real Mojave desert, it makes sense for battlesnakes to roam the virtual one, no? :)
                 ]])
@@ -426,8 +449,9 @@ will die. If both snakes are the same size, both snakes die.]])
             end
             if imgui.CollapsingHeader( "Credits", { "DefaultOpen" } ) then
                 imgui.TextWrapped([[
-BattleSnake
-Copyright ©2015-2018 Techdrop Labs, Inc. (d/b/a SendWithUs)
+Battlesnake
+Copyright ©2015-2018 Techdrop Labs, Inc. (d/b/a Sendwithus)
+Copyright ©2018-2019 Battlesnake Inc.
 http://www.battlesnake.io
 
 Bloom Shader
@@ -488,7 +512,7 @@ end
 
 function Menu.EditSnakeDialog( snakeNum )
     imgui.Text( "Editing snake in slot " .. snakeNum .. "\n\n" )
-    unused, snakes[ snakeNum ][ 'type' ] = imgui.Combo( "Type", snakes[ snakeNum ][ 'type' ], { "empty", "human", "api2017", "api2016", "robosnake2017", "api2018", "robosnake2018" }, 7 )
+    unused, snakes[ snakeNum ][ 'type' ] = imgui.Combo( "Type", snakes[ snakeNum ][ 'type' ], { "empty", "human", "api2017", "api2016", "robosnake2017", "api2018", "robosnake2018", "api2019" }, 8 )
     if snakeNum ~= 1 and snakes[ snakeNum ][ 'type' ] == 2 then
         snakes[ snakeNum ][ 'type' ] = 1
         imgui.OpenPopup( "NoHumanInThisSlot" )
@@ -509,7 +533,7 @@ function Menu.EditSnakeDialog( snakeNum )
         unused, snakes[ snakeNum ][ 'name' ] = imgui.InputText( "Name", snakes[ snakeNum ][ 'name' ], 256 )
         unused, snakes[ snakeNum ][ 'url' ] = imgui.InputText( "URL", snakes[ snakeNum ][ 'url' ], 256 )
     end
-    if snakes[ snakeNum ][ 'type' ] == 6 then
+    if snakes[ snakeNum ][ 'type' ] == 6 or snakes[ snakeNum ][ 'type' ] == 8 then
         unused, snakes[ snakeNum ][ 'name' ] = imgui.InputText( "Name", snakes[ snakeNum ][ 'name' ], 256 )
         unused, snakes[ snakeNum ][ 'url' ] = imgui.InputText( "URL", snakes[ snakeNum ][ 'url' ], 256 )
     end

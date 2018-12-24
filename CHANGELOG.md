@@ -1,5 +1,12 @@
 ## CHANGELOG
 
+### v2.6 (2018-12-24)
+
+* Support the draft 2019 API (subject to change).
+* Support the ability to fix snake starting positions according to 2019 tournament rules.
+* Added presets for tournament board sizes.
+* Fixed the winning snake ID in /end endpoint for 2018 API snakes that win by collecting all gold.
+
 ### v2.5.3 (2018-06-16)
 
 * Clicking "Play" on the game board when a match has completed will now re-start the match using the same settings without requiring you to make a trip back to the menu.

@@ -1,8 +1,8 @@
 # Mojave
 
-Mojave is a third-party, open-source arena / gameboard for [BattleSnake](https://www.battlesnake.io/). It supports snakes that use the [2016](http://web.archive.org/web/20160817172025/http://www.battlesnake.io/readme), [2017](https://stembolthq.github.io/battle_snake/), or [2018](https://github.com/sendwithus/battlesnake-server#api-webhooks) API.
+Mojave is a third-party, open-source arena / gameboard for [Battlesnake](https://www.battlesnake.io/). It supports snakes that use the [2016](http://web.archive.org/web/20160817172025/http://www.battlesnake.io/readme), [2017](https://stembolthq.github.io/battle_snake/), [2018](https://github.com/sendwithus/battlesnake-server#api-webhooks) or [2019](http://docs.battlesnake.io/snake-api.html) API versions.
 
-BattleSnake is an artificial intelligence programming competition hosted yearly in Victoria, BC, Canada. The tournament is a twist on the classic Snake arcade game, with teams building their own snake AIs to collect food and attack (or avoid) other snakes on the board. The lasts snake slithering wins! More information is available at http://www.battlesnake.io .
+Battlesnake is an artificial intelligence programming competition hosted yearly in Victoria, BC, Canada. The tournament is a twist on the classic Snake arcade game, with teams building their own snake AIs to collect food and attack (or avoid) other snakes on the board. The lasts snake slithering wins! More information is available at http://www.battlesnake.io .
 
 As for the name... since rattlesnakes are known to roam the real Mojave desert, it makes sense for battlesnakes to roam the virtual one, no? :)
 
@@ -25,6 +25,8 @@ Or, you can run the game directly using [LÖVE](http://www.love2d.org). Download
 When launching the application you will be presented with a menu screen, showing ten slots in which a snake can be loaded. Clicking on one of the slots will bring up a dialog box that allows you to load a snake.
 
 Setting the snake type to `human` (slot #1 only) will let the arena operator (you) control a snake directly. This snake will appear white on the game board and it can be controlled using the arrow keys.
+
+Setting the snake type to `api2019` will use the 2019 API for communicating with the snake in this slot. You will need to specify the snake's name and endpoint URL.
 
 Setting the snake type to `api2018` will use the 2018 API for communicating with the snake in this slot. You will need to specify the snake's name and endpoint URL.
 
@@ -64,12 +66,16 @@ Finally, setting the snake type to `robosnake2017` or `robosnake2018` will place
 	* When enabled, plays sound effects when snakes collect food/gold or die.
 
 ### Gameplay
+* Board Size
+	* Select from a small (7x7), medium (11x11), large (19x19), or custom-sized game board.
 * Board Width / Board Height
-	* This alters the size of the game board.
+	* If using a custom-sized game board, allows you to customize the dimensions.
 * Response Time
 	* How long in seconds to wait for each snake's API to respond to the move request.
 * Game Speed
 	* How long in seconds to wait between each tick of the game loop.
+* Snake Starting Position
+	* If "random", all snakes are placed on the board randomly. If "fixed", the first 8 snakes will be placed around the edge of the board in the slots defined in the 2019 tournament rules.
 * Snake Starting Length
 	* How long snakes will grow to at the start of the game.
 * Health Lost Per Turn
@@ -155,7 +161,8 @@ food is consumed.
 
 
 ## Gameplay Differences from the official arena
-* Only 10 snakes are supported at a time (the 2016 official arena supports up to 12 and the 2017/2018 arena is unlimited).
+* Only 10 snakes are supported at a time (the 2016 official arena supports up to 12 and the 2017/2018/2019 arenas support an unlimited number).
+* Ping endpoint support is not fully implemented (2019 arena only)
 * No support for scoring (2016 arena only)
 * No support for tiebreakers (2016 arena only - the game can end in a draw if the last two snakes are the same length and have a head-on-head collision, or if they starve or hit a wall on the same turn)
 * No rewind functionality.
@@ -182,8 +189,9 @@ On Linux, the data directory can be found at `/home/<USER_NAME>/.local/share/moj
 
 ## Credits
 
-BattleSnake  
+Battlesnake  
 Copyright ©2015-2018 Techdrop Labs, Inc. (d/b/a SendWithUs)  
+Copyright ©2018-2019 Battlesnake Inc.  
 http://www.battlesnake.io
 
 Bloom Shader  
@@ -233,4 +241,4 @@ Vignette Image
 Public Domain  
 http://hitokageproduction.com/files/stockTextures/vignette2.png
 
-And lots of love to [SendWithUs](http://www.sendwithus.com) for creating the [BattleSnake](http://www.battlesnake.io) AI contest :)
+And lots of love to [Sendwithus](http://www.sendwithus.com) for creating the [Battlesnake](http://www.battlesnake.io) AI contest :)

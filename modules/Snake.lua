@@ -52,8 +52,8 @@ function Snake.new( opt, slot, game_id )
         -- ROBOSNAKE
         self.id = Util.generateUUID()
         self.name = 'Redbrick Robosnake'
-    elseif self.type == 6 then
-        -- 2018 API
+    elseif self.type == 6 or self.type == 8 then
+        -- 2018/2019 API
         self.id = Util.generateUUID()
         self.name = opt.name
     elseif self.type == 7 then
@@ -110,6 +110,9 @@ function Snake.new( opt, slot, game_id )
         self.head = snakeHeads[1]
         self.tail = snakeTails[7]
         self.taunt = SonOfRobosnake.util.taunt()
+    elseif self.type == 8 then
+	    -- 2019 API
+        self:api( 'ping', '' )
     else
         error( 'Unsupported snake type' )
     end
@@ -190,10 +193,12 @@ function Snake:api( endpoint, data )
                 self:setDirection( response_data[ 'move' ] )
             end
             if response_data[ 'taunt' ] ~= nil then
-                if response_data[ 'taunt' ] ~= self.taunt then
-                    self.taunt = response_data[ 'taunt' ]
-                    if config[ 'gameplay' ][ 'enableTaunts' ] then
-                        gameLog( string.format( '%s says: %s', self.name, self.taunt ) )
+                if self.type ~= 8 then
+                    if response_data[ 'taunt' ] ~= self.taunt then
+                        self.taunt = response_data[ 'taunt' ]
+                        if config[ 'gameplay' ][ 'enableTaunts' ] then
+                            gameLog( string.format( '%s says: %s', self.name, self.taunt ) )
+                        end
                     end
                 end
             end

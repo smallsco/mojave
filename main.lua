@@ -13,7 +13,7 @@ a battle snake arena
 ]]
 
 -- Version constant
-MOJAVE_VERSION = '2.5.3'
+MOJAVE_VERSION = '2.6'
 
 -- FIRST RUN LOGIC
 -- Extract the imgui shared library from the fused app and save it to appdata
@@ -129,7 +129,7 @@ function love.load()
         local newSnakes = {
             {
                 id = '',
-                type = 2,  -- 1 = empty, 2 = human, 3 = api2017, 4 = api2016, 5 = robosnake2017, 6 = api2018, 7 = robosnake2018
+                type = 2,  -- 1 = empty, 2 = human, 3 = api2017, 4 = api2016, 5 = robosnake2017, 6 = api2018, 7 = robosnake2018, 8 = api2019
                 name = '',
                 url = ''
             }
@@ -166,10 +166,12 @@ function love.load()
             enableSFX = true
         },
         gameplay = {
+            boardSize = 4,
             boardHeight = 10,
             boardWidth = 17,
             responseTime = 0.2,
             gameSpeed = 0.15,
+            startingPosition = 2,  -- 1 = fixed, 2 = random
             startingLength = 3,
             healthPerTurn = 1,
             foodStrategy = 1,  -- 1 = fixed, 2 = growing
@@ -310,6 +312,9 @@ function love.draw()
     else
         Menu.draw()
     end
+    
+    -- uncomment to enable imgui demo window
+    -- imgui.ShowTestWindow(true)
     
     imgui.Render()
     

@@ -34,27 +34,46 @@ function Game.new( opt )
     self.gold = {}
     self.finalized = false
     
-    -- If we're playing with gold, place one now
-    if config[ 'gameplay' ][ 'enableGold' ] then
-        local gold_x, gold_y = self.map:setTileAtFreeLocationNearCenter( Map.TILE_GOLD )
-        table.insert( self.gold, { gold_x, gold_y } )
-        self:log( string.format( 'Placed gold at [%s, %s]', gold_x, gold_y ), 'debug' )
-    end
-    
-    -- If we're playing with a fixed amount of food, place it now
-    if config[ 'gameplay' ][ 'foodStrategy' ] == 1 then
-        for i = 1, config[ 'gameplay' ][ 'totalFood' ] do
-            local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
-            table.insert( self.food, { food_x, food_y } )
-            self:log( string.format( 'Placed food at [%s, %s]', food_x, food_y ), 'debug' )
-        end
-    end
-    
     -- add non-empty snakes to this game
     self.snakes = {}
     for i = 1, #snakes do
         if snakes[i][ 'type' ] ~= 1 then
-            local x, y = self.map:setTileAtRandomFreeLocation( Map[ 'TILE_SNEK_' .. i ], 3 )
+            local x, y
+            if config[ 'gameplay' ][ 'startingPosition' ] == 1 and
+               config[ 'gameplay' ][ 'boardWidth' ] >= 7 and
+               config[ 'gameplay' ][ 'boardHeight' ] >= 7
+            then
+                if i == 1 then
+                    x, y = 2, 2
+                    self.map:setTile( x, y, Map[ 'TILE_SNEK_' .. i ] )
+                elseif i == 2 then
+                    x, y = config[ 'gameplay' ][ 'boardWidth' ] - 1, config[ 'gameplay' ][ 'boardHeight' ] - 1
+                    self.map:setTile( x, y, Map[ 'TILE_SNEK_' .. i ] )
+                elseif i == 3 then
+                    x, y = 2, config[ 'gameplay' ][ 'boardHeight' ] - 1
+                    self.map:setTile( x, y, Map[ 'TILE_SNEK_' .. i ] )
+                elseif i == 4 then
+                    x, y = config[ 'gameplay' ][ 'boardWidth' ] - 1, 2
+                    self.map:setTile( x, y, Map[ 'TILE_SNEK_' .. i ] )
+                elseif i == 5 then
+                    x, y = math.ceil( config[ 'gameplay' ][ 'boardWidth' ] / 2 ), 2
+                    self.map:setTile( x, y, Map[ 'TILE_SNEK_' .. i ] )
+                elseif i == 6 then
+                    x, y = config[ 'gameplay' ][ 'boardWidth' ] - 1, math.ceil( config[ 'gameplay' ][ 'boardHeight' ] / 2 )
+                    self.map:setTile( x, y, Map[ 'TILE_SNEK_' .. i ] )
+                elseif i == 7 then
+                    x, y = math.ceil( config[ 'gameplay' ][ 'boardWidth' ] / 2 ), config[ 'gameplay' ][ 'boardHeight' ] - 1
+                    self.map:setTile( x, y, Map[ 'TILE_SNEK_' .. i ] )
+                elseif i == 8 then
+                    x, y = 2, math.ceil( config[ 'gameplay' ][ 'boardHeight' ] / 2 )
+                    self.map:setTile( x, y, Map[ 'TILE_SNEK_' .. i ] )
+                else
+                    -- slots 9 & 10 get a random position
+                    x, y = self.map:setTileAtRandomFreeLocation( Map[ 'TILE_SNEK_' .. i ], 3 )
+                end
+            else
+                x, y = self.map:setTileAtRandomFreeLocation( Map[ 'TILE_SNEK_' .. i ], 3 )
+            end
             local newSnake = Snake( snakes[i], i, self.id )
             for i = 1, config[ 'gameplay' ][ 'startingLength' ] do
                 table.insert( newSnake[ 'position' ], { x, y, newSnake[ 'direction' ] } )
@@ -68,11 +87,28 @@ function Game.new( opt )
                 newSnake[ 'type' ] ~= 1 and
                 newSnake[ 'type' ] ~= 2 and
                 newSnake[ 'type' ] ~= 4 and
+                newSnake[ 'type' ] ~= 8 and
                 newSnake[ 'taunt' ] ~= '' and
                 config[ 'gameplay' ][ 'enableTaunts' ]
             then
                 self:log( string.format( '%s says: %s', newSnake[ 'name' ], newSnake[ 'taunt' ] ) )
             end
+        end
+    end
+
+    -- If we're playing with gold, place one now
+    if config[ 'gameplay' ][ 'enableGold' ] then
+        local gold_x, gold_y = self.map:setTileAtFreeLocationNearCenter( Map.TILE_GOLD )
+        table.insert( self.gold, { gold_x, gold_y } )
+        self:log( string.format( 'Placed gold at [%s, %s]', gold_x, gold_y ), 'debug' )
+    end
+    
+    -- If we're playing with a fixed amount of food, place it now
+    if config[ 'gameplay' ][ 'foodStrategy' ] == 1 then
+        for i = 1, config[ 'gameplay' ][ 'totalFood' ] do
+            local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
+            table.insert( self.food, { food_x, food_y } )
+            self:log( string.format( 'Placed food at [%s, %s]', food_x, food_y ), 'debug' )
         end
     end
 
@@ -310,8 +346,66 @@ function Game:finalize( winner_id )
             -- 2016 API
             -- /end is the exact same request as /move
             self.snakes[i]:api( 'end', json.encode( self:getState2016( self.snakes[i][ 'slot' ] ) ) )
+        elseif self.snakes[i][ 'type' ] == 8 then
+            -- 2019 API
+            -- /end is the exact same request as /move
+            self.snakes[i]:api( 'end', json.encode( self:getState2019( self.snakes[i][ 'slot' ] ) ) )
         end
     end
+end
+
+--- Gets the current state of the game, used in API calls to snakes
+-- @param slot Which snake is requesting the current state
+-- @return A table containing the game state
+function Game:getState2019( slot )
+
+    local mySnakes = {}
+    local you = {}
+    
+    for i = 1, #self.snakes do
+        local positionZeroBasedCoords = {}
+        for j = 1, #self.snakes[i].position do
+            table.insert( positionZeroBasedCoords, {
+                x = self.snakes[i][ 'position' ][j][1] - 1,
+                y = self.snakes[i][ 'position' ][j][2] - 1
+            })
+        end
+        local snakeObj = {
+	        id = self.snakes[i].id,
+	        name = self.snakes[i].name,
+	        health = self.snakes[i].health,
+            body = positionZeroBasedCoords
+        }
+        if self.snakes[i][ 'slot' ] == slot then
+            you = snakeObj
+        end
+        if self.snakes[i].alive then
+            table.insert( mySnakes, snakeObj )
+        end
+    end
+    
+    local foodZeroBasedCoords = {}
+    for i = 1, #self.food do
+        table.insert( foodZeroBasedCoords, {
+            x = self.food[i][1] - 1,
+            y = self.food[i][2] - 1
+        })
+    end
+    
+    return {
+	    game = {
+            id = self.uuid,
+	    },
+        turn = self.turn,
+        board = {
+            height = config[ 'gameplay' ][ 'boardHeight' ],
+            width = config[ 'gameplay' ][ 'boardWidth' ],
+            food = foodZeroBasedCoords,
+            snakes = mySnakes
+        },
+        you = you
+    }
+
 end
 
 --- Gets the current state of the game, used in API calls to snakes
@@ -683,6 +777,13 @@ function Game:tick()
                     endpoint = 'start'
                 end
                 self.snakes[i]:api( endpoint, json.encode( self:getState2016( self.snakes[i][ 'slot' ] ) ) )
+            elseif self.snakes[i][ 'type' ] == 8 then
+                -- 2019 API
+                local endpoint = 'move'
+                if self.turn == 0 then
+                    endpoint = 'start'
+                end
+                self.snakes[i]:api( endpoint, json.encode( self:getState2019( self.snakes[i][ 'slot' ] ) ) )
             elseif self.snakes[i][ 'type' ] == 5 then
                 local success, response_data = coroutine.resume(
                     self.snakes[i].thread,
@@ -1114,7 +1215,7 @@ function Game:tick()
     for i = 1, #self.snakes do
         if self.snakes[i].gold >= config[ 'gameplay' ][ 'goldToWin' ] then
             self:log( string.format( 'Game Over. The winner is "%s" for collecting all the gold!', self.snakes[i].name ) )
-            self:finalize( winner_id )
+            self:finalize( self.snakes[i].id )
             self:stop()
             return
         end
