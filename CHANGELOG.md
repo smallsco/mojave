@@ -1,5 +1,11 @@
 ## CHANGELOG
 
+### v2.7 (2019-02-06)
+
+* Added a "dynamic growing" food placement strategy which is used by the official 2019 game board.
+* Ensure that snakes are always placed on even-numbered tiles to ensure that they are capable of killing each other with a head-on collision.
+* Tweaked the default configuration values for people who are running the app for the first time.
+
 ### v2.6 (2018-12-24)
 
 * Support the draft 2019 API (subject to change).

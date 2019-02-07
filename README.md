@@ -81,13 +81,17 @@ Finally, setting the snake type to `robosnake2017` or `robosnake2018` will place
 * Health Lost Per Turn
 	* How much health snakes will lose on each turn (if they don't eat that turn).
 * Food Placement Strategy
-	* If "fixed", the amount of food in play is fixed to a specific number. If "growing", food will be placed at specific time intervals irregardless of how much food is already in play.
+	* If "fixed", the amount of food in play is fixed to a specific number.
+	* If "growing_uniform", food will be placed at **specific** time intervals irregardless of how much food is already in play.
+	* If "growing_dynamic", food will be placed at **variable** time intervals irregardless of how much food is already in play.
 * Total Food on Board
 	* For the "fixed" food placement strategy, the amount of food to keep in play at all times.
 * Add food every X turns
-	* For the "growing" food placement strategy, after how many turns to place a new food square.
+	* For the "growing_uniform" food placement strategy, after how many turns **exactly** to place a new food square.
+* Add food at most X turns
+	* For the "growing_dynamic" food placement strategy, after how many turns **at most** to place a new food square. 
 * Health Restored by Food
-	* How much health will be given to a snake that collects food. The official 2017/2018 game board uses 100 for this value and the official 2016 game board uses 30.
+	* How much health will be given to a snake that collects food. The official 2017/2018/2019 game boards use 100 for this value and the official 2016 game board uses 30.
 * Enable Gold
 	* Causes gold to be in play.
 * Add gold every X turns
@@ -137,11 +141,7 @@ Finally, setting the snake type to `robosnake2017` or `robosnake2018` will place
 * Snakes start with 100 health.
 * On each turn, snakes lose 1 health, unless they have eaten food that turn.
 * If a snake's health reaches 0, it dies.
-* If the food placement method is set to "growing", then food will appear on
-the game board at a random location every 3 turns.
-If the food placement method is set to "fixed", then food will appear on
-the game board at the start of the game, and whenever another piece of
-food is consumed.
+* If the food placement method is set to "fixed", then food will appear on the game board at the start of the game, and whenever another piece of food is consumed. If the food placement method is set to "growing_uniform", then food will appear on the game board at a random location every 3 turns. If the food placement method is set to "growing_dynamic", then food will appear on the game board at a random location _at most_ every 15 turns.
 * If a snake lands on a food square, it "eats" the food, and its' health will be restored to 100. It's tail will grow by one square.
 
 ### Gold (supported by 2016 API snakes only)
@@ -155,7 +155,7 @@ food is consumed.
 * If a snake moves into a wall, it dies.
 
 ### Battles
-* If a snake moves into another snake's tail, it dies.
+* If a snake moves into another snake's body, it dies.
 * If two snakes move into the same tile simultaneously, the shorter snake will die.
 	* If both snakes are the same size, both snakes die.
 

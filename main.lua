@@ -13,7 +13,7 @@ a battle snake arena
 ]]
 
 -- Version constant
-MOJAVE_VERSION = '2.6'
+MOJAVE_VERSION = '2.7'
 
 -- FIRST RUN LOGIC
 -- Extract the imgui shared library from the fused app and save it to appdata
@@ -169,14 +169,14 @@ function love.load()
             boardSize = 4,
             boardHeight = 10,
             boardWidth = 17,
-            responseTime = 0.2,
-            gameSpeed = 0.15,
-            startingPosition = 2,  -- 1 = fixed, 2 = random
+            responseTime = 0.5,
+            gameSpeed = 0.05,
+            startingPosition = 1,  -- 1 = fixed, 2 = random
             startingLength = 3,
             healthPerTurn = 1,
-            foodStrategy = 1,  -- 1 = fixed, 2 = growing
+            foodStrategy = 3,  -- 1 = fixed, 2 = growing_uniform, 3 = growing_dynamic
             totalFood = 10,
-            addFoodTurns = 3,
+            addFoodTurns = 15,
             foodHealth = 100,
             enableGold = false,
             addGoldTurns = 100,

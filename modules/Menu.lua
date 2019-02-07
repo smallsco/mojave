@@ -231,11 +231,13 @@ function Menu.draw()
                 unused, config[ 'gameplay' ][ 'startingPosition' ] = imgui.Combo( "Snake Starting Position", config[ 'gameplay' ][ 'startingPosition' ], { "fixed", "random" }, 2 )
                 unused, config[ 'gameplay' ][ 'startingLength' ] = imgui.InputInt( "Snake Starting Length", config[ 'gameplay' ][ 'startingLength' ] )
                 unused, config[ 'gameplay' ][ 'healthPerTurn' ] = imgui.InputInt( "Health Lost Per Turn", config[ 'gameplay' ][ 'healthPerTurn' ] )
-                unused, config[ 'gameplay' ][ 'foodStrategy' ] = imgui.Combo( "Food Placement Method", config[ 'gameplay' ][ 'foodStrategy' ], { "fixed", "growing" }, 2 )
+                unused, config[ 'gameplay' ][ 'foodStrategy' ] = imgui.Combo( "Food Placement Method", config[ 'gameplay' ][ 'foodStrategy' ], { "fixed", "growing_uniform", "growing_dynamic" }, 3 )
                 if config[ 'gameplay' ][ 'foodStrategy' ] == 1 then
                     unused, config[ 'gameplay' ][ 'totalFood' ] = imgui.InputInt( "Total Food on Board", config[ 'gameplay' ][ 'totalFood' ] )
                 elseif config[ 'gameplay' ][ 'foodStrategy' ] == 2 then
                     unused, config[ 'gameplay' ][ 'addFoodTurns' ] = imgui.InputInt( "Add Food every X turns", config[ 'gameplay' ][ 'addFoodTurns' ] )
+                elseif config[ 'gameplay' ][ 'foodStrategy' ] == 3 then
+                    unused, config[ 'gameplay' ][ 'addFoodTurns' ] = imgui.InputInt( "Add Food at most X turns", config[ 'gameplay' ][ 'addFoodTurns' ] )
                 end
                 unused, config[ 'gameplay' ][ 'foodHealth' ] = imgui.InputInt( "Health Restored by Food", config[ 'gameplay' ][ 'foodHealth' ] )
                 unused, config[ 'gameplay' ][ 'enableGold' ] = imgui.Checkbox( "Enable Gold", config[ 'gameplay' ][ 'enableGold' ] )
@@ -421,12 +423,15 @@ As for the name... since rattlesnakes are known to roam the real Mojave desert, 
                 imgui.BulletText( "On each turn, snakes lose 1 health, unless they have eaten food that turn." )
                 imgui.BulletText( "If a snake's health reaches 0, it dies." )
                 imgui.BulletText([[
-If the food placement method is set to "growing", then food will appear on
-the game board at a random location every X turns.]])
-                imgui.BulletText([[
 If the food placement method is set to "fixed", then food will appear on
 the game board at the start of the game, and whenever another piece of
 food is consumed.]])
+                imgui.BulletText([[
+If the food placement method is set to "growing_uniform", then food will
+appear on the game board at a random location every X turns.]])
+                imgui.BulletText([[
+If the food placement method is set to "growing_dynamic", then food will
+appear on the game board at a random location at most every X turns.]])
                 imgui.BulletText([[
 If a snake lands on a food square, it "eats" the food, and its' health will
 be restored to 100. It's tail will grow by one square.]])
@@ -441,7 +446,7 @@ of how many snakes are currently alive.]])
                 imgui.BulletText( "Walls will never spawn directly in front of a snake." )
                 imgui.BulletText( "If a snake moves into a wall, it dies." )
                 imgui.Text( "\nBattles" )
-                imgui.BulletText( "If a snake moves into another snake's tail, it dies." )
+                imgui.BulletText( "If a snake moves into another snake's body, it dies." )
                 imgui.BulletText([[
 If two snakes move into the same tile simultaneously, the shorter snake
 will die. If both snakes are the same size, both snakes die.]])

@@ -29,6 +29,7 @@ function Game.new( opt )
     })
     self.timer = 0
     self.turn = -1
+    self.turnsSinceFoodSpawned = 0
     self.walls = {}
     self.food = {}
     self.gold = {}
@@ -69,10 +70,10 @@ function Game.new( opt )
                     self.map:setTile( x, y, Map[ 'TILE_SNEK_' .. i ] )
                 else
                     -- slots 9 & 10 get a random position
-                    x, y = self.map:setTileAtRandomFreeLocation( Map[ 'TILE_SNEK_' .. i ], 3 )
+                    x, y = self.map:setTileAtRandomFreeLocation( Map[ 'TILE_SNEK_' .. i ], 3, true )
                 end
             else
-                x, y = self.map:setTileAtRandomFreeLocation( Map[ 'TILE_SNEK_' .. i ], 3 )
+                x, y = self.map:setTileAtRandomFreeLocation( Map[ 'TILE_SNEK_' .. i ], 3, true )
             end
             local newSnake = Snake( snakes[i], i, self.id )
             for i = 1, config[ 'gameplay' ][ 'startingLength' ] do
@@ -1137,12 +1138,38 @@ function Game:tick()
         end
     end
     
-    -- If food strategy is growing, add more food if we pass the requisite number of ticks.
+    -- If food strategy is growing_uniform, add more food if we pass the requisite number of ticks.
     if config[ 'gameplay' ][ 'foodStrategy' ] == 2 then
         if self.turn % config[ 'gameplay' ][ 'addFoodTurns' ] == 0 then
             local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
             table.insert( self.food, { food_x, food_y } )
             self:log( string.format( 'Placed food at [%s, %s]', food_x, food_y ), 'debug' )
+        end
+    end
+    
+    -- If food strategy is growing_dynamic, the chance of a food spawn is increased with each
+    -- game tick since the last food spawn. If we pass the requisite number of ticks since the
+    -- last food spawn without food being spawned... then spawn more food.
+    if config[ 'gameplay' ][ 'foodStrategy' ] == 3 then
+        local foodSpawnedThisTurn = false
+        local minSpawnChance = 0.5
+        local ratio = math.pow( 1000 / minSpawnChance, 1 / ( config[ 'gameplay' ][ 'addFoodTurns' ] - 1 ) )
+        local spawnChance = minSpawnChance * ( (1 - math.pow( ratio, self.turnsSinceFoodSpawned ) ) / ( 1 - ratio ) )
+        local chance = love.math.random(0, 1000)
+        self:log( string.format( 'calculated chance: %s  spawn chance: %s', chance, spawnChance ), 'trace' )
+        
+        if chance <= spawnChance then
+            local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
+            table.insert( self.food, { food_x, food_y } )
+            foodSpawnedThisTurn = true
+            self:log( string.format( 'turns since food spawned: %s', self.turnsSinceFoodSpawned ), 'trace' )
+            self:log( string.format( 'Placed food at [%s, %s]', food_x, food_y ), 'debug' )
+        end
+        
+        if foodSpawnedThisTurn then
+            self.turnsSinceFoodSpawned = 0
+        else
+            self.turnsSinceFoodSpawned = self.turnsSinceFoodSpawned + 1
         end
     end
     

@@ -477,8 +477,9 @@ end
 --- Sets a tile of a specific type at a random, free location
 -- @param value The value to set the tile to
 -- @param border A border of tiles around the edge of the map that cannot be selected
+-- @param evenOnly If true, forces the location to be even-numbered
 -- @return The x and y coordinates that were selected
-function Map:setTileAtRandomFreeLocation( value, border )
+function Map:setTileAtRandomFreeLocation( value, border, evenOnly )
     local x, y
     repeat
         if border then
@@ -488,7 +489,7 @@ function Map:setTileAtRandomFreeLocation( value, border )
             x = love.math.random( self.numTilesX )
             y = love.math.random( self.numTilesY )
         end
-    until self.tiles[y][x] == Map.TILE_FREE
+    until self.tiles[y][x] == Map.TILE_FREE and ( ( not evenOnly ) or ( evenOnly and ( y + x ) % 2 == 0 ) )
     
     self.tiles[y][x] = value
     return x, y
