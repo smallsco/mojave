@@ -104,9 +104,17 @@ function Game.new( opt )
         self:log( string.format( 'Placed gold at [%s, %s]', gold_x, gold_y ), 'debug' )
     end
     
-    -- If we're playing with a fixed amount of food, place it now
     if config[ 'gameplay' ][ 'foodStrategy' ] == 1 then
+        -- If we're playing with a fixed amount of food, place it now
         for i = 1, config[ 'gameplay' ][ 'totalFood' ] do
+            local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
+            table.insert( self.food, { food_x, food_y } )
+            self:log( string.format( 'Placed food at [%s, %s]', food_x, food_y ), 'debug' )
+        end
+    else
+        -- If we're playing with a growing amount of food
+        -- then start the game with one food per snake on the board
+        for i = 1, #self.snakes do
             local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
             table.insert( self.food, { food_x, food_y } )
             self:log( string.format( 'Placed food at [%s, %s]', food_x, food_y ), 'debug' )

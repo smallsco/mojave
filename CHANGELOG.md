@@ -1,5 +1,10 @@
 ## CHANGELOG
 
+### v2.7.1 (2019-02-12)
+
+* Update default API timeout to 250ms
+* When using a growing food placement strategy, start the game with one food on the board for each snake in the game.
+
 ### v2.7 (2019-02-06)
 
 * Added a "dynamic growing" food placement strategy which is used by the official 2019 game board.
