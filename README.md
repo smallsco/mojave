@@ -87,9 +87,15 @@ Finally, setting the snake type to `robosnake2017` or `robosnake2018` will place
 * Total Food on Board
 	* For the "fixed" food placement strategy, the amount of food to keep in play at all times.
 * Add food every X turns
-	* For the "growing_uniform" food placement strategy, after how many turns **exactly** to place a new food square.
+	* For the "growing_uniform" food placement strategy, after how many turns **exactly** to place one or more new food squares.
 * Add food at most X turns
-	* For the "growing_dynamic" food placement strategy, after how many turns **at most** to place a new food square. 
+	* For the "growing_dynamic" food placement strategy, after how many turns **at most** to place one or more new food squares.
+* Add fixed food amount
+    * For growing food placement strategies, if selected, a fixed amount of food will be placed after the requisite amount of turns.
+* Number of Food to add
+    * For growing food placement strategies when "Add fixed food amount" is selected - this is the amount of food that will be placed on the board.
+* Add food equal to half the snakes left in play
+    * For growing food placement strategies, if selected, the amount of food that will be placed after the requisite amount of turns will be equal to half the number of living snakes on the board (rounded up).
 * Health Restored by Food
 	* How much health will be given to a snake that collects food. The official 2017/2018/2019 game boards use 100 for this value and the official 2016 game board uses 30.
 * Enable Gold
@@ -166,6 +172,7 @@ Finally, setting the snake type to `robosnake2017` or `robosnake2018` will place
 * No support for scoring (2016 arena only)
 * No support for tiebreakers (2016 arena only - the game can end in a draw if the last two snakes are the same length and have a head-on-head collision, or if they starve or hit a wall on the same turn)
 * No rewind functionality.
+* 2019 (and beyond) head and tail types are not supported and probably never will be as those images are AGPL-licensed. Sorry.
 * Probably other inconsistencies...
 
 ## Known Issues

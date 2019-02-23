@@ -239,6 +239,14 @@ function Menu.draw()
                 elseif config[ 'gameplay' ][ 'foodStrategy' ] == 3 then
                     unused, config[ 'gameplay' ][ 'addFoodTurns' ] = imgui.InputInt( "Add Food at most X turns", config[ 'gameplay' ][ 'addFoodTurns' ] )
                 end
+                if config[ 'gameplay' ][ 'foodStrategy' ] == 2 or config[ 'gameplay' ][ 'foodStrategy' ] == 3 then
+                    unused, config[ 'gameplay' ][ 'foodNumStrategy' ] = imgui.RadioButton( "Add fixed food amount", config[ 'gameplay' ][ 'foodNumStrategy' ], 1 )
+                    imgui.SameLine()
+                    unused, config[ 'gameplay' ][ 'foodNumStrategy' ] = imgui.RadioButton( "Add food equal to half the snakes left in play", config[ 'gameplay' ][ 'foodNumStrategy' ], 2 )
+                    if config[ 'gameplay' ][ 'foodNumStrategy' ] == 1 then
+                        unused, config[ 'gameplay' ][ 'numFoodToAdd' ] = imgui.InputInt( "Number of Food to add", config[ 'gameplay' ][ 'numFoodToAdd' ] )
+                    end
+                end
                 unused, config[ 'gameplay' ][ 'foodHealth' ] = imgui.InputInt( "Health Restored by Food", config[ 'gameplay' ][ 'foodHealth' ] )
                 unused, config[ 'gameplay' ][ 'enableGold' ] = imgui.Checkbox( "Enable Gold", config[ 'gameplay' ][ 'enableGold' ] )
                 if config[ 'gameplay' ][ 'enableGold' ] then

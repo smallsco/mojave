@@ -13,7 +13,7 @@ a battle snake arena
 ]]
 
 -- Version constant
-MOJAVE_VERSION = '2.7.1'
+MOJAVE_VERSION = '2.8'
 
 -- FIRST RUN LOGIC
 -- Extract the imgui shared library from the fused app and save it to appdata
@@ -175,6 +175,8 @@ function love.load()
             startingLength = 3,
             healthPerTurn = 1,
             foodStrategy = 3,  -- 1 = fixed, 2 = growing_uniform, 3 = growing_dynamic
+            foodNumStrategy = 2,
+            numFoodToAdd = 1,
             totalFood = 10,
             addFoodTurns = 15,
             foodHealth = 100,

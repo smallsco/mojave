@@ -1149,9 +1149,28 @@ function Game:tick()
     -- If food strategy is growing_uniform, add more food if we pass the requisite number of ticks.
     if config[ 'gameplay' ][ 'foodStrategy' ] == 2 then
         if self.turn % config[ 'gameplay' ][ 'addFoodTurns' ] == 0 then
-            local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
-            table.insert( self.food, { food_x, food_y } )
-            self:log( string.format( 'Placed food at [%s, %s]', food_x, food_y ), 'debug' )
+            if config[ 'gameplay' ][ 'foodNumStrategy' ] == 1 then
+                for i = 1, config[ 'gameplay' ][ 'numFoodToAdd' ] do
+                    local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
+                    table.insert( self.food, { food_x, food_y } )
+                    self:log( string.format( 'Placed food at [%s, %s]', food_x, food_y ), 'debug' )
+                end
+            else
+                local numLivingSnakes = 0
+                for i = 1, #self.snakes do
+                    if self.snakes[i][ 'alive' ] then
+                        numLivingSnakes = numLivingSnakes + 1
+                    end   
+                end
+                local numFoodToAdd = math.ceil( numLivingSnakes / 2 )
+                for i = 1, numFoodToAdd do
+                    local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
+                    table.insert( self.food, { food_x, food_y } )
+                    self:log( string.format( 'Placed food at [%s, %s]', food_x, food_y ), 'debug' )
+                end
+            end
+            
+            
         end
     end
     
@@ -1167,11 +1186,30 @@ function Game:tick()
         self:log( string.format( 'calculated chance: %s  spawn chance: %s', chance, spawnChance ), 'trace' )
         
         if chance <= spawnChance then
-            local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
-            table.insert( self.food, { food_x, food_y } )
-            foodSpawnedThisTurn = true
             self:log( string.format( 'turns since food spawned: %s', self.turnsSinceFoodSpawned ), 'trace' )
-            self:log( string.format( 'Placed food at [%s, %s]', food_x, food_y ), 'debug' )
+            foodSpawnedThisTurn = true
+            
+            if config[ 'gameplay' ][ 'foodNumStrategy' ] == 1 then
+                for i = 1, config[ 'gameplay' ][ 'numFoodToAdd' ] do
+                    local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
+                    table.insert( self.food, { food_x, food_y } )
+                    self:log( string.format( 'Placed food at [%s, %s]', food_x, food_y ), 'debug' )
+                end
+            else
+                local numLivingSnakes = 0
+                for i = 1, #self.snakes do
+                    if self.snakes[i][ 'alive' ] then
+                        numLivingSnakes = numLivingSnakes + 1
+                    end   
+                end
+                local numFoodToAdd = math.ceil( numLivingSnakes / 2 )
+                for i = 1, numFoodToAdd do
+                    local food_x, food_y = self.map:setTileAtRandomFreeLocation( Map.TILE_FOOD )
+                    table.insert( self.food, { food_x, food_y } )
+                    self:log( string.format( 'Placed food at [%s, %s]', food_x, food_y ), 'debug' )
+                end
+            end
+            
         end
         
         if foodSpawnedThisTurn then
