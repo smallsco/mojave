@@ -206,48 +206,56 @@ function Snake:api( endpoint, data )
                 self:setColor( response_data[ 'color' ], true )
             end
             
-            if response_data[ 'head_type' ] ~= nil then
-                if response_data[ 'head_type' ] == 'bendr' then
+            -- 2019 uses headType / tailType, 2017/2018 use head_type/tail_type
+            local headTypeKey = 'headType'
+            local tailTypeKey = 'tailType'
+            if self.type == 3 or self.type == 6 then
+                headTypeKey = 'head_type'
+                tailTypeKey = 'tail_type'
+            end
+            
+            if response_data[ headTypeKey ] ~= nil then
+                if response_data[ headTypeKey ] == 'bendr' then
                     self.head = snakeHeads[1]
-                elseif response_data[ 'head_type' ] == 'dead' then
+                elseif response_data[ headTypeKey ] == 'dead' then
                     self.head = snakeHeads[2]
-                elseif response_data[ 'head_type' ] == 'fang' then
+                elseif response_data[ headTypeKey ] == 'fang' then
                     self.head = snakeHeads[3]
-                elseif response_data[ 'head_type' ] == 'pixel' then
+                elseif response_data[ headTypeKey ] == 'pixel' then
                     self.head = snakeHeads[4]
-                elseif response_data[ 'head_type' ] == 'regular' then
+                elseif response_data[ headTypeKey ] == 'regular' then
                     self.head = snakeHeads[5]
-                elseif response_data[ 'head_type' ] == 'safe' then
+                elseif response_data[ headTypeKey ] == 'safe' then
                     self.head = snakeHeads[6]
-                elseif response_data[ 'head_type' ] == 'sand-worm' then
+                elseif response_data[ headTypeKey ] == 'sand-worm' then
                     self.head = snakeHeads[7]
-                elseif response_data[ 'head_type' ] == 'shades' then
+                elseif response_data[ headTypeKey ] == 'shades' then
                     self.head = snakeHeads[8]
-                elseif response_data[ 'head_type' ] == 'smile' then
+                elseif response_data[ headTypeKey ] == 'smile' then
                     self.head = snakeHeads[9]
-                elseif response_data[ 'head_type' ] == 'tongue' then
+                elseif response_data[ headTypeKey ] == 'tongue' then
                     self.head = snakeHeads[10]
                 end
             end
             
-            if response_data[ 'tail_type' ] ~= nil then
-                if response_data[ 'tail_type' ] == 'small-rattle' then
+            if response_data[ tailTypeKey ] ~= nil then
+                if response_data[ tailTypeKey ] == 'small-rattle' then
                     self.tail = snakeTails[1]
-                elseif response_data[ 'tail_type' ] == 'skinny-tail' then
+                elseif response_data[ tailTypeKey ] == 'skinny-tail' then
                     self.tail = snakeTails[2]
-                elseif response_data[ 'tail_type' ] == 'round-bum' then
+                elseif response_data[ tailTypeKey ] == 'round-bum' then
                     self.tail = snakeTails[3]
-                elseif response_data[ 'tail_type' ] == 'regular' then
+                elseif response_data[ tailTypeKey ] == 'regular' then
                     self.tail = snakeTails[4]
-                elseif response_data[ 'tail_type' ] == 'pixel' then
+                elseif response_data[ tailTypeKey ] == 'pixel' then
                     self.tail = snakeTails[5]
-                elseif response_data[ 'tail_type' ] == 'freckled' then
+                elseif response_data[ tailTypeKey ] == 'freckled' then
                     self.tail = snakeTails[6]
-                elseif response_data[ 'tail_type' ] == 'fat-rattle' then
+                elseif response_data[ tailTypeKey ] == 'fat-rattle' then
                     self.tail = snakeTails[7]
-                elseif response_data[ 'tail_type' ] == 'curled' then
+                elseif response_data[ tailTypeKey ] == 'curled' then
                     self.tail = snakeTails[8]
-                elseif response_data[ 'tail_type' ] == 'block-bum' then
+                elseif response_data[ tailTypeKey ] == 'block-bum' then
                     self.tail = snakeTails[9]
                 end
             end

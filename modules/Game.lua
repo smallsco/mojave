@@ -37,6 +37,16 @@ function Game.new( opt )
     
     -- add non-empty snakes to this game
     self.snakes = {}
+    local starting_positions = {
+        { 2, 2 },
+        { config[ 'gameplay' ][ 'boardWidth' ] - 1, config[ 'gameplay' ][ 'boardHeight' ] - 1 },
+        { 2, config[ 'gameplay' ][ 'boardHeight' ] - 1 },
+        { config[ 'gameplay' ][ 'boardWidth' ] - 1, 2 },
+        { math.ceil( config[ 'gameplay' ][ 'boardWidth' ] / 2 ), 2 },
+        { config[ 'gameplay' ][ 'boardWidth' ] - 1, math.ceil( config[ 'gameplay' ][ 'boardHeight' ] / 2 ) },
+        { math.ceil( config[ 'gameplay' ][ 'boardWidth' ] / 2 ), config[ 'gameplay' ][ 'boardHeight' ] - 1 },
+        { 2, math.ceil( config[ 'gameplay' ][ 'boardHeight' ] / 2 ) }
+    }
     for i = 1, #snakes do
         if snakes[i][ 'type' ] ~= 1 then
             local x, y
@@ -44,29 +54,10 @@ function Game.new( opt )
                config[ 'gameplay' ][ 'boardWidth' ] >= 7 and
                config[ 'gameplay' ][ 'boardHeight' ] >= 7
             then
-                if i == 1 then
-                    x, y = 2, 2
-                    self.map:setTile( x, y, Map[ 'TILE_SNEK_' .. i ] )
-                elseif i == 2 then
-                    x, y = config[ 'gameplay' ][ 'boardWidth' ] - 1, config[ 'gameplay' ][ 'boardHeight' ] - 1
-                    self.map:setTile( x, y, Map[ 'TILE_SNEK_' .. i ] )
-                elseif i == 3 then
-                    x, y = 2, config[ 'gameplay' ][ 'boardHeight' ] - 1
-                    self.map:setTile( x, y, Map[ 'TILE_SNEK_' .. i ] )
-                elseif i == 4 then
-                    x, y = config[ 'gameplay' ][ 'boardWidth' ] - 1, 2
-                    self.map:setTile( x, y, Map[ 'TILE_SNEK_' .. i ] )
-                elseif i == 5 then
-                    x, y = math.ceil( config[ 'gameplay' ][ 'boardWidth' ] / 2 ), 2
-                    self.map:setTile( x, y, Map[ 'TILE_SNEK_' .. i ] )
-                elseif i == 6 then
-                    x, y = config[ 'gameplay' ][ 'boardWidth' ] - 1, math.ceil( config[ 'gameplay' ][ 'boardHeight' ] / 2 )
-                    self.map:setTile( x, y, Map[ 'TILE_SNEK_' .. i ] )
-                elseif i == 7 then
-                    x, y = math.ceil( config[ 'gameplay' ][ 'boardWidth' ] / 2 ), config[ 'gameplay' ][ 'boardHeight' ] - 1
-                    self.map:setTile( x, y, Map[ 'TILE_SNEK_' .. i ] )
-                elseif i == 8 then
-                    x, y = 2, math.ceil( config[ 'gameplay' ][ 'boardHeight' ] / 2 )
+                if i >= 1 and i <= 8 then
+                    -- slots 1 through 8 are randomly assigned a fixed position
+                    pos = table.remove( starting_positions, love.math.random( 1, #starting_positions ) )
+                    x, y = pos[1], pos[2]
                     self.map:setTile( x, y, Map[ 'TILE_SNEK_' .. i ] )
                 else
                     -- slots 9 & 10 get a random position

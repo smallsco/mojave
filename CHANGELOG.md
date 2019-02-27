@@ -1,10 +1,15 @@
 ## CHANGELOG
 
+### v2.8.1 (2019-02-26)
+
+* When using fixed snake starting positions, those positions are now randomly assigned to the first eight snakes in play, rather than hardcoding a position to each snake slot.
+* Support 2017/2018 head and tail images on 2019 snakes.
+
 ### v2.8 (2019-02-22)
 
 * Added a new option to specify the amount of food that is placed on the game board when one of the growing food placement strategies is used.
 * Added a new option to place an amount of food equal to half the number of living snakes in play on the game board when using a growing food placement strategy (rather than a fixed value)
-* Updated the Readme to explain why 2019+ head and tail types will not be supported.
+* Updated the Readme to explain why new head and tail images added in 2019 will not be supported.
 
 ### v2.7.1 (2019-02-12)
 
