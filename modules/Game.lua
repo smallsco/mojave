@@ -80,6 +80,7 @@ function Game.new( opt )
                 newSnake[ 'type' ] ~= 2 and
                 newSnake[ 'type' ] ~= 4 and
                 newSnake[ 'type' ] ~= 8 and
+                newSnake[ 'type' ] ~= 9 and
                 newSnake[ 'taunt' ] ~= '' and
                 config[ 'gameplay' ][ 'enableTaunts' ]
             then
@@ -825,6 +826,18 @@ function Game:tick()
                         end
                     end
                     
+                end
+            elseif self.snakes[i][ 'type' ] == 9 then
+                local success, response_data = coroutine.resume(
+                    self.snakes[i].thread,
+                    Util.deepcopy( self:getState2019( self.snakes[i][ 'slot' ] ) )
+                )
+                if not success then
+                    self:log( string.format( 'ROBOSNAKE-MK-III: %s', response_data ), 'fatal' )
+                else
+                    if response_data[ 'move' ] ~= nil then
+                        self.snakes[i]:setDirection( response_data[ 'move' ] )
+                    end                    
                 end
             end
         end

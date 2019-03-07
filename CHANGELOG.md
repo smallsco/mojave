@@ -1,5 +1,9 @@
 ## CHANGELOG
 
+### v2.9 (2019-03-06)
+
+* Added the Robosnake Mk. III as another built-in snake! This version of Robo is the toughest yet, especially when many snakes are in play.
+
 ### v2.8.1 (2019-02-26)
 
 * When using fixed snake starting positions, those positions are now randomly assigned to the first eight snakes in play, rather than hardcoding a position to each snake slot.

@@ -13,7 +13,7 @@ a battle snake arena
 ]]
 
 -- Version constant
-MOJAVE_VERSION = '2.8.1'
+MOJAVE_VERSION = '2.9'
 
 -- FIRST RUN LOGIC
 -- Extract the imgui shared library from the fused app and save it to appdata
@@ -72,6 +72,7 @@ Game = require 'modules.Game'
 Map = require 'modules.Map'
 Menu = require 'modules.Menu'
 Robosnake = require 'robosnake.robosnake'
+RobosnakeMkIII = require 'robosnake-mk-iii.robosnake'
 Shaders = require 'modules.Shaders'
 Snake = require 'modules.Snake'
 SonOfRobosnake = require 'son-of-robosnake.robosnake'
@@ -129,7 +130,7 @@ function love.load()
         local newSnakes = {
             {
                 id = '',
-                type = 2,  -- 1 = empty, 2 = human, 3 = api2017, 4 = api2016, 5 = robosnake2017, 6 = api2018, 7 = robosnake2018, 8 = api2019
+                type = 2,  -- 1 = empty, 2 = human, 3 = api2017, 4 = api2016, 5 = robosnake2017, 6 = api2018, 7 = robosnake2018, 8 = api2019, 9 = robosnake2019
                 name = '',
                 url = ''
             }
@@ -190,6 +191,12 @@ function love.load()
             pinTails = false
         },
         robosnake2018 = {
+            recursionDepth = 6,
+            hungerThreshold = 40,
+            lowFoodThreshold = 8
+        },
+        robosnake2019 = {
+            maxAggressionSnakes = 4,
             recursionDepth = 6,
             hungerThreshold = 40,
             lowFoodThreshold = 8
@@ -265,6 +272,12 @@ function love.load()
         if config[ 'robosnake2018' ][k] == nil then
             print( 'Missing robosnake2018 config option ' .. k )
             config[ 'robosnake2018' ][k] = newConfig[ 'robosnake2018' ][k]
+        end
+    end
+    for k, v in pairs( newConfig[ 'robosnake2019' ] ) do
+        if config[ 'robosnake2019' ][k] == nil then
+            print( 'Missing robosnake2019 config option ' .. k )
+            config[ 'robosnake2019' ][k] = newConfig[ 'robosnake2019' ][k]
         end
     end
     for k, v in pairs( newConfig[ 'system' ] ) do

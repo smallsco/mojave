@@ -60,6 +60,10 @@ function Snake.new( opt, slot, game_id )
         -- SON OF ROBOSNAKE
         self.id = Util.generateUUID()
         self.name = 'Son of Robosnake'
+    elseif self.type == 9 then
+        -- ROBOSNAKE MK. III
+        self.id = Util.generateUUID()
+        self.name = 'Robosnake Mk. III'
     end
     self.taunt = opt.taunt or ''
     
@@ -113,6 +117,12 @@ function Snake.new( opt, slot, game_id )
     elseif self.type == 8 then
 	    -- 2019 API
         self:api( 'ping', '' )
+    elseif self.type == 9 then
+        -- ROBOSNAKE MK. III
+        self.thread = coroutine.create( RobosnakeMkIII.move )
+        self.color = { 93, 109, 126 }
+        self.head = snakeHeads[1]
+        self.tail = snakeTails[7]
     else
         error( 'Unsupported snake type' )
     end

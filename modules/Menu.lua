@@ -277,6 +277,15 @@ function Menu.draw()
                 imgui.Text( "\n" )
             end
             
+            -- Robosnake 2019 Options
+            if imgui.CollapsingHeader( "Robosnake Mk. III (2019)", { "DefaultOpen" } ) then
+                unused, config[ 'robosnake2019' ][ 'maxAggressionSnakes' ] = imgui.InputInt( "Max Aggression Snakes  ", config[ 'robosnake2019' ][ 'maxAggressionSnakes' ] )
+                unused, config[ 'robosnake2019' ][ 'recursionDepth' ] = imgui.InputInt( "Recursion Depth  ", config[ 'robosnake2019' ][ 'recursionDepth' ] )
+                unused, config[ 'robosnake2019' ][ 'hungerThreshold' ] = imgui.InputInt( "Hunger Threshold ", config[ 'robosnake2019' ][ 'hungerThreshold' ] )
+                unused, config[ 'robosnake2019' ][ 'lowFoodThreshold' ] = imgui.InputInt( "Low Food Threshold ", config[ 'robosnake2019' ][ 'lowFoodThreshold' ] )
+                imgui.Text( "\n" )
+            end
+            
             -- System Options
             if imgui.CollapsingHeader( "System", { "DefaultOpen" } ) then
                 unused, config[ 'system' ][ 'logLevel' ] = imgui.Combo( "Log Level", config[ 'system' ][ 'logLevel' ], { "trace", "debug", "info", "warn", "error", "fatal" }, 6 )
@@ -356,6 +365,8 @@ function Menu.draw()
                     buttonText = buttonText .. 'robosnake2018'
                 elseif snakes[i]['type'] == 8 then
                     buttonText = buttonText .. "api2019\n" .. snakes[i]['url']
+                elseif snakes[i]['type'] == 9 then
+                    buttonText = buttonText .. 'robosnake2019'
                 else
                     buttonText = buttonText .. 'empty'
                 end
@@ -389,6 +400,8 @@ function Menu.draw()
                     buttonText = buttonText .. 'robosnake2018'
                 elseif snakes[i]['type'] == 8 then
                     buttonText = buttonText .. "api2019\n" .. snakes[i]['url']
+                elseif snakes[i]['type'] == 9 then
+                    buttonText = buttonText .. 'robosnake2019'
                 else
                     buttonText = buttonText .. 'empty'
                 end
@@ -510,6 +523,11 @@ Son of Robosnake
 Copyright ©2017-2018 Redbrick Technologies, Inc.  
 https://github.com/rdbrck/bountysnake2018
 
+Robosnake Mk. III  
+Copyright ©2017-2018 Redbrick Technologies, Inc.  
+Copyright ©2019 Scott Small
+https://github.com/smallsco/robosnake
+
 Vignette Image
 Public Domain
 http://hitokageproduction.com/files/stockTextures/vignette2.png
@@ -525,7 +543,7 @@ end
 
 function Menu.EditSnakeDialog( snakeNum )
     imgui.Text( "Editing snake in slot " .. snakeNum .. "\n\n" )
-    unused, snakes[ snakeNum ][ 'type' ] = imgui.Combo( "Type", snakes[ snakeNum ][ 'type' ], { "empty", "human", "api2017", "api2016", "robosnake2017", "api2018", "robosnake2018", "api2019" }, 8 )
+    unused, snakes[ snakeNum ][ 'type' ] = imgui.Combo( "Type", snakes[ snakeNum ][ 'type' ], { "empty", "human", "api2017", "api2016", "robosnake2017", "api2018", "robosnake2018", "api2019", "robosnake2019" }, 9 )
     if snakeNum ~= 1 and snakes[ snakeNum ][ 'type' ] == 2 then
         snakes[ snakeNum ][ 'type' ] = 1
         imgui.OpenPopup( "NoHumanInThisSlot" )

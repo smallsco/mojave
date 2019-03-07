@@ -36,7 +36,7 @@ Setting the sname type to `api2016` will use the 2016 API for communicating with
 
 (On the official 2016 game server, the ID is generated when a snake is registered with the server, and remains the same for all games. Most snakes hard-code this ID into their application code and use it to identify themselves in the list of snakes sent by the server on each request. For this reason, when using a 2016-API snake with Mojave, you will need to look through the snake's source code, find its' ID, and specify it when adding the snake.)
 
-Finally, setting the snake type to `robosnake2017` or `robosnake2018` will place a built-in copy of [Redbrick](http://www.rdbrck.com)'s [2017](http://github.com/rdbrck/bountysnake2017) or [2018](http://github.com/rdbrck/bountysnake2018) bounty snakes into that slot, without requiring you to set up your own server or even have an internet connection. But be warned - these snakes are very difficult!
+Finally, setting the snake type to `robosnake2017`, `robosnake2018`, or `robosnake2019` will place a built-in copy of Robosnake [2017](http://github.com/rdbrck/bountysnake2017), [2018](http://github.com/rdbrck/bountysnake2018), or [2019](http://github.com/smallsco/robosnake) into that slot, without requiring you to set up your own server or even have an internet connection. But be warned - these snakes are very difficult!
 
 
 ## Configuration
@@ -115,17 +115,27 @@ Finally, setting the snake type to `robosnake2017` or `robosnake2018` will place
 * Pin Tails
    * Makes snakes grow on every turn (like a Tron game).
 
-### Robosnake (2017 Redbrick Bounty Snake)
+### Robosnake (2017)
 * Recursion Depth
-	* How many turns Robosnake is allowed to predict ahead. Higher numbers make for a much tougher opponent, but will slow the game down.
+	* How many turns Robo is allowed to predict ahead. Higher numbers make for a much tougher opponent, but will slow the game down.
 
-### Son of Robosnake (2018 Redbrick Bounty Snake)
+### Son of Robosnake (2018)
 * Recursion Depth
-	* How many turns Son of Robosnake is allowed to predict ahead. Higher numbers make for a much tougher opponent, but will slow the game down.
+	* How many turns Robo is allowed to predict ahead. Higher numbers make for a much tougher opponent, but will slow the game down.
 * Hunger Threshold
-   * When Son of Robosnake's health dips to this value (or below) it will start looking for food.
+   * When Robo's health dips to this value (or below) it will start looking for food.
 * Low Food Threshold
-   * If the food on the game board is at this number or lower, Son of Robosnake will use a less aggressive heuristic and prioritize food.
+   * If the food on the game board is at this number or lower, Robo will use a less aggressive heuristic and prioritize food.
+
+### Robosnake Mk. III (2019)
+* Max Aggression Snakes
+	* The maximum number of snakes that can be on the board for Robo to be aggressive. If there are more than this many living snakes in play, Robo will become passive and only target food.
+* Recursion Depth
+	* How many turns Robo is allowed to predict ahead. Higher numbers make for a much tougher opponent, but will slow the game down.
+* Hunger Threshold
+   * When Robo's health dips to this value (or below) it will start looking for food.
+* Low Food Threshold
+   * If the food on the game board is at this number or lower, Robo will use a less aggressive heuristic and prioritize food.
 
 ### System
 * Log Level
@@ -243,6 +253,11 @@ https://github.com/rdbrck/bountysnake2017
 Son of Robosnake  
 Copyright ©2017-2018 Redbrick Technologies, Inc.  
 https://github.com/rdbrck/bountysnake2018
+
+Robosnake Mk. III  
+Copyright ©2017-2018 Redbrick Technologies, Inc.  
+Copyright ©2019 Scott Small  
+https://github.com/smallsco/robosnake
 
 Vignette Image  
 Public Domain  
