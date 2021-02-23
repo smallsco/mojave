@@ -5,7 +5,7 @@ local algorithm = {}
 -- are faster if you create a local reference to that function.
 local util = require( "robosnake-mk-iii.util" )
 local DEBUG = 'trace'
-local log = function( level, str ) gameLog( 'ROBOSNAKE-MK-III: ' .. str, level ) end
+local log = function( level, str ) return end
 local mdist = util.mdist
 local n_complement = util.n_complement
 local prettyCoords = util.prettyCoords

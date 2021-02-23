@@ -23,10 +23,10 @@ function RobosnakeMkIII.move( gameState )
         ]]
         
         -- Constants
-        MAX_AGGRESSION_SNAKES = config[ 'robosnake2019' ][ 'maxAggressionSnakes' ]
-        MAX_RECURSION_DEPTH = config[ 'robosnake2019' ][ 'recursionDepth' ]
-        HUNGER_HEALTH = config[ 'robosnake2019' ][ 'hungerThreshold' ]
-        LOW_FOOD = config[ 'robosnake2019' ][ 'lowFoodThreshold' ]
+        MAX_AGGRESSION_SNAKES = config.robosnake.maxAggressionSnakes
+        MAX_RECURSION_DEPTH = config.robosnake.recursionDepth
+        HUNGER_HEALTH = config.robosnake.hungerThreshold
+        LOW_FOOD = config.robosnake.lowFoodThreshold
         
         local util = RobosnakeMkIII.util
         local algorithm = RobosnakeMkIII.algorithm
@@ -34,7 +34,7 @@ function RobosnakeMkIII.move( gameState )
         -- Lua optimization: any functions from another module called more than once
         -- are faster if you create a local reference to that function.
         local DEBUG = 'trace'
-        local log = function( level, str ) gameLog( 'ROBOSNAKE-MK-III: ' .. str, level ) end
+        local log = function( level, str ) return end
         local mdist = util.mdist
         local neighbours = algorithm.neighbours
         
