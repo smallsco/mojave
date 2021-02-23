@@ -4,7 +4,7 @@ local util = {}
 -- Lua optimization: any functions from another module called more than once
 -- are faster if you create a local reference to that function.
 local DEBUG = 'trace'
-local log = function( level, str ) gameLog( 'ROBOSNAKE-MK-III: ' .. str, level ) end
+local log = function( level, str ) return end
 local random = math.random
 
 

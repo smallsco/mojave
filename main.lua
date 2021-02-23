@@ -5,342 +5,159 @@
                                
 -------------------------------
 
-a battle snake arena
+a pretty battlesnake board
 
 @author Scott Small <smallsco@gmail.com>
-@license MIT
+@license GPL
 
 ]]
 
--- Version constant
-MOJAVE_VERSION = '2.9'
+-- Global Variables
+activeGame = nil
+config = nil
+snakes = nil
+screenWidth, screenHeight = nil
+snakeHeads, snakeTails = nil
+rightPane = nil
+Utils = nil
+Board = nil
+Game = nil
+Menu = nil
+Shaders = nil
+Snake = nil
+curl = nil
+json = nil
+moonshine = nil
 
--- FIRST RUN LOGIC
--- Extract the imgui shared library from the fused app and save it to appdata
--- This is because we can't load C libraries directly from fused apps
-if not love.filesystem.exists( 'imgui' ) then
-    if not love.filesystem.createDirectory( 'imgui/OS X' ) then
-        error( 'Unable to create imgui OS X directory' )
-    end
-    if not love.filesystem.createDirectory( 'imgui/Windows' ) then
-        error( 'Unable to create imgui Windows directory' )
-    end
-    if not love.filesystem.createDirectory( 'imgui/Linux' ) then
-        error( 'Unable to create imgui Linux directory' )
-    end
-    file, size = love.filesystem.read( 'thirdparty/imgui/OS X/imgui.so' )
-    if not file then
-        error( 'Unable to read OSX/imgui.so' )
-    end
-    local ok, err = love.filesystem.write( '/imgui/OS X/imgui.so', file, size )
-    if not ok then
-        error( 'Unable to write OSX/imgui.so: ' .. err)
-    end
-    file, size = love.filesystem.read( 'thirdparty/imgui/Linux/imgui.so' )
-    if not file then
-        error( 'Unable to read Linux/imgui.so' )
-    end
-    local ok, err = love.filesystem.write( '/imgui/Linux/imgui.so', file, size )
-    if not ok then
-        error( 'Unable to write Linux/imgui.so: ' .. err)
-    end
-    file, size = love.filesystem.read( 'thirdparty/imgui/Windows/imgui.dll' )
-    if not file then
-        error( 'Unable to read Windows/imgui.dll' )
-    end
-    local ok, err = love.filesystem.write( '/imgui/Windows/imgui.dll', file, size )
-    if not ok then
-        error( 'Unable to write Windows/imgui.dll: ' .. err)
-    end
-end
+-- Module Variables
+local min_dt = 0
+local next_time = 0
+local splash
+local splash_done = false
 
--- Load imgui module
-local cpath = love.filesystem.getSaveDirectory() .. "/imgui/" .. love.system.getOS()
-package.cpath = package.cpath .. ";" .. cpath .. "/?.so" .. ";" .. cpath .. "/?.dll"
-pcall(function() require "imgui" end)
-
--- Third-party modules
-gifload = require 'thirdparty.gifload'
-http = require 'socket.http'
-inspect = require 'thirdparty.inspect'
-json = require 'thirdparty.dkjson'
-ltn12 = require 'ltn12'
-o_ten_one = require "thirdparty.o-ten-one"
-
--- Internal modules
-Game = require 'modules.Game'
-Map = require 'modules.Map'
-Menu = require 'modules.Menu'
-Robosnake = require 'robosnake.robosnake'
-RobosnakeMkIII = require 'robosnake-mk-iii.robosnake'
-Shaders = require 'modules.Shaders'
-Snake = require 'modules.Snake'
-SonOfRobosnake = require 'son-of-robosnake.robosnake'
-Util = require 'modules.Util'
-
-local SPLASH_DONE = false
-
-function gameLog( msg, level )
-    if activeGame then
-        activeGame:log( msg, level )
-    end
-end
-
---- Application bootstrap function
+-- Application bootstrap function
 function love.load()
 
-    -- Global vars
-    activeGame = nil
-    bgVignette = love.graphics.newImage( 'images/vignette.png' )
-    config, configJson = nil
-    
-    snakeHeads = {
-        love.graphics.newImage( 'images/heads/bendr-snakehead.png', {mipmaps = true} ),
-        love.graphics.newImage( 'images/heads/dead-snakehead.png', {mipmaps = true} ),
-        love.graphics.newImage( 'images/heads/fang-snakehead.png', {mipmaps = true} ),
-        love.graphics.newImage( 'images/heads/pixel-snakehead.png', {mipmaps = true} ),
-        love.graphics.newImage( 'images/heads/regular-snakehead.png', {mipmaps = true} ),
-        love.graphics.newImage( 'images/heads/safe-snakehead.png', {mipmaps = true} ),
-        love.graphics.newImage( 'images/heads/sand-worm.png', {mipmaps = true} ),
-        love.graphics.newImage( 'images/heads/shades-snakehead.png', {mipmaps = true} ),
-        love.graphics.newImage( 'images/heads/smile-snakehead.png', {mipmaps = true} ),
-        love.graphics.newImage( 'images/heads/tongue-snakehead.png', {mipmaps = true} )
-    }
-    for i = 1, #snakeHeads do
-        snakeHeads[i]:setMipmapFilter( 'nearest', 100 )
+    -- FPS Limiter
+    min_dt = 1/60
+    next_time = love.timer.getTime()
+
+    -- Internal Modules Pt. 1
+    Utils = require 'modules.Utils'
+
+    -- Third-party shared libraries
+    if love.system.getOS() ~= "Linux" then
+        if not Utils.check_shared_library("libcurl") then
+            Utils.extract_shared_library("libcurl", "libcurl")
+        end
     end
-    snakeTails = {
-        love.graphics.newImage( 'images/tails/small-rattle-snaketail.png', {mipmaps = true} ),
-        love.graphics.newImage( 'images/tails/skinny-tail-snaketail.png', {mipmaps = true} ),
-        love.graphics.newImage( 'images/tails/round-bum-snaketail.png', {mipmaps = true} ),
-        love.graphics.newImage( 'images/tails/pointed-snaketail.png', {mipmaps = true} ),
-        love.graphics.newImage( 'images/tails/pixel-snaketail.png', {mipmaps = true} ),
-        love.graphics.newImage( 'images/tails/freckled-snaketail.png', {mipmaps = true} ),
-        love.graphics.newImage( 'images/tails/fat-rattle-snaketail.png', {mipmaps = true} ),
-        love.graphics.newImage( 'images/tails/curled-snaketail.png', {mipmaps = true} ),
-        love.graphics.newImage( 'images/tails/block-bum-snaketail.png', {mipmaps = true} )
-    }
-    snakeTails[10] = snakeTails[1]
-    for i = 1, #snakeTails do
-        snakeTails[i]:setMipmapFilter( 'nearest', 100 )
+    local curl_loaded, _ = pcall(function() curl = require "thirdparty.libcurl.libcurl" end)
+    if not curl_loaded then
+        Utils.shared_library_error("libcurl")
+    end
+    if not Utils.check_shared_library("imgui") then
+        -- for windows: https://go.microsoft.com/fwlink/?LinkId=746572
+        Utils.extract_shared_library("imgui", "imgui")
+    end
+    local imgui_loaded, _ = pcall(function() require "imgui" end)  -- injects an "imgui" global var
+    if not imgui_loaded then
+        Utils.shared_library_error("ImGui")
     end
 
-    -- Create snakes file if one does not exist
-    if not love.filesystem.exists( 'snakes.json' ) then
-        local newSnakes = {
-            {
-                id = '',
-                type = 2,  -- 1 = empty, 2 = human, 3 = api2017, 4 = api2016, 5 = robosnake2017, 6 = api2018, 7 = robosnake2018, 8 = api2019, 9 = robosnake2019
-                name = '',
-                url = ''
-            }
-        }
-        for i = 1, 9 do
-            table.insert( newSnakes, {
-                id = '',
-                type = 1,
-                name = '',
-                url = ''
-            })
-        end
-        local ok = love.filesystem.write( 'snakes.json', json.encode( newSnakes ) )
-        if not ok then
-            error( 'Unable to write snakes.json' )
-        end
+    -- Third-party Lua modules
+    json = require 'thirdparty.dkjson'
+    moonshine = require 'thirdparty.moonshine'
+    local o_ten_one = require "thirdparty.o-ten-one"
+
+    -- Internal Modules Pt.2
+    Board = require 'modules.Board'
+    Game = require 'modules.Game'
+    GameThread = require 'modules.GameThread'
+    Shaders = require 'modules.Shaders'
+    Snake = require 'modules.Snake'
+    Menu = require 'modules.Menu'
+
+    -- Init config
+    config = Utils.get_or_create_config()
+    snakes = Utils.get_or_create_snakes()
+
+    -- Set default menu pane
+    rightPane = 'game'
+    if not next(snakes) then
+        rightPane = 'snakes'
     end
 
-    -- Create config file if one does not exist
-    local newConfig = {
-        appearance = {
-            tilePrimaryColor = { 0/255, 0/255, 255/255, 255/255 },
-            tileSecondaryColor = { 0/255, 0/255, 235/255, 255/255 },
-            foodColor = { 0/255, 255/255, 160/255, 234/255 },
-            goldColor = { 209/255, 255/255, 123/255, 234/255 },
-            wallColor = { 8/255, 16/255, 32/255, 204/255 },
-            enableBloom = true,
-            fadeOutTails = true,
-            enableVignette = true,
-            fullscreen = false
-        },
-        audio = {
-            enableMusic = true,
-            enableSFX = true
-        },
-        gameplay = {
-            boardSize = 4,
-            boardHeight = 10,
-            boardWidth = 17,
-            responseTime = 0.5,
-            gameSpeed = 0.05,
-            startingPosition = 1,  -- 1 = fixed, 2 = random
-            startingLength = 3,
-            healthPerTurn = 1,
-            foodStrategy = 3,  -- 1 = fixed, 2 = growing_uniform, 3 = growing_dynamic
-            foodNumStrategy = 2,
-            numFoodToAdd = 1,
-            totalFood = 10,
-            addFoodTurns = 15,
-            foodHealth = 100,
-            enableGold = false,
-            addGoldTurns = 100,
-            goldToWin = 5,
-            enableWalls = false,
-            addWallTurns = 5,
-            wallTurnStart = 50,
-            enableTaunts = true,
-            pinTails = false
-        },
-        robosnake2018 = {
-            recursionDepth = 6,
-            hungerThreshold = 40,
-            lowFoodThreshold = 8
-        },
-        robosnake2019 = {
-            maxAggressionSnakes = 4,
-            recursionDepth = 6,
-            hungerThreshold = 40,
-            lowFoodThreshold = 8
-        },
-        system = {
-            logLevel = 3,
-            enableSanityChecks = false,
-            roboRecursionDepth = 4,
-            pauseNewGames = false
-        }
-    }
-    if not love.filesystem.exists( 'config.json' ) then
-        local ok = love.filesystem.write( 'config.json', json.encode( newConfig ) )
-        if not ok then
-            error( 'Unable to write config.json' )
-        end
-    end
-    
-    -- Read snakes file
-    snakesJson = love.filesystem.read( 'snakes.json' )
-    if not snakesJson then
-        error( 'Unable to read snakes.json' )
-    end
-    snakes, pos, err = json.decode( snakesJson, 1, json.null )
-    if not snakes then
-        error( 'Error parsing snakes.json: ' .. err )
-    end
-    if #snakes > 10 then
-        error( 'No more than 10 snakes can play in the arena!' )
-    end
-    if #snakes < 1 then
-        error( 'snakes.json must contain at least one snake!' )
-    end
-    
-    -- Read config file
-    configJson = love.filesystem.read( 'config.json' )
-    if not configJson then
-        error( 'Unable to read config.json' )
-    end
-    config, pos, err = json.decode( configJson, 1, json.null )
-    if not config then
-        error( 'Error parsing config.json: ' .. err )
-    end
-    
-    -- If this is an upgrade, there may be new options
-    -- that do not exist in the local copy of config.json,
-    -- so add anything missing.
-    for k,v in pairs( newConfig ) do
-        if config[k] == nil then
-            print( 'Missing config option ' .. k )
-            config[k] = v
-        end
-    end
-    for k, v in pairs( newConfig[ 'appearance' ] ) do
-        if config[ 'appearance' ][k] == nil then
-            print( 'Missing appearance config option ' .. k )
-            config[ 'appearance' ][k] = newConfig[ 'appearance' ][k]
-        end
-    end
-    for k, v in pairs( newConfig[ 'audio' ] ) do
-        if config[ 'audio' ][k] == nil then
-            print( 'Missing audio config option ' .. k )
-            config[ 'audio' ][k] = newConfig[ 'audio' ][k]
-        end
-    end
-    for k, v in pairs( newConfig[ 'gameplay' ] ) do
-        if config[ 'gameplay' ][k] == nil then
-            print( 'Missing gameplay config option ' .. k )
-            config[ 'gameplay' ][k] = newConfig[ 'gameplay' ][k]
-        end
-    end
-    for k, v in pairs( newConfig[ 'robosnake2018' ] ) do
-        if config[ 'robosnake2018' ][k] == nil then
-            print( 'Missing robosnake2018 config option ' .. k )
-            config[ 'robosnake2018' ][k] = newConfig[ 'robosnake2018' ][k]
-        end
-    end
-    for k, v in pairs( newConfig[ 'robosnake2019' ] ) do
-        if config[ 'robosnake2019' ][k] == nil then
-            print( 'Missing robosnake2019 config option ' .. k )
-            config[ 'robosnake2019' ][k] = newConfig[ 'robosnake2019' ][k]
-        end
-    end
-    for k, v in pairs( newConfig[ 'system' ] ) do
-        if config[ 'system' ][k] == nil then
-            print( 'Missing system config option ' .. k )
-            config[ 'system' ][k] = newConfig[ 'system' ][k]
-        end
-    end
-
-    -- Set fullscreen state
-    if config[ 'appearance' ][ 'fullscreen' ] ~= love.window.getFullscreen() then
-        love.window.setFullscreen( config[ 'appearance' ][ 'fullscreen' ] )
+    -- Enter fullscreen if requested to
+    if config.appearance.fullscreen ~= love.window.getFullscreen() then
+        love.window.setFullscreen( config.appearance.fullscreen )
     end
     screenWidth, screenHeight = love.graphics.getDimensions()
-    vxScale = love.graphics.getWidth() / bgVignette:getWidth()
-    vyScale = love.graphics.getHeight() / bgVignette:getHeight()
 
-    -- Splash Screen
-    splash = o_ten_one( { background={ 0, 0, 0 } }) 
+    -- Load snake head and tail images
+    snakeHeads, snakeTails = Utils.load_heads_and_tails()
+
+    -- Display Splash Screen
+    splash = o_ten_one({ background={ 0, 0, 0 } }) 
     splash.onDone = function()
-        SPLASH_DONE = true
+        splash_done = true
+        splash = nil
+        collectgarbage()
     end
-    
+
 end
 
---- Update loop
+-- Update loop
 -- @param dt Delta Time
 function love.update( dt )
-    if not SPLASH_DONE then
+
+    -- FPS limiter timer
+    next_time = next_time + min_dt
+
+    if not splash_done then
         splash:update( dt )
+    elseif activeGame then
+        activeGame:update( dt )
     else
-        if activeGame then
-            activeGame:update( dt )
-        else
-            Menu.update( dt )
-        end
+        Menu.update( dt )
     end
     imgui.NewFrame()
 end
 
---- Render loop
+-- Render loop
 function love.draw()
-    if not SPLASH_DONE then
+    if not splash_done then
         splash:draw()
-    elseif activeGame then
-        activeGame:draw()
     else
-        Menu.draw()
+        if activeGame then
+            activeGame:draw()
+        else
+            Menu.draw()
+        end
+
+        love.graphics.setColor( 1, 1, 1, 1 )
     end
-    
-    -- uncomment to enable imgui demo window
-    -- imgui.ShowTestWindow(true)
-    
+
+    -- Render imgui
     imgui.Render()
     
+    -- FPS limiter logic
+    -- https://love2d.org/forums/viewtopic.php?t=82831#p203027
+    local cur_time = love.timer.getTime()
+    if next_time <= cur_time then
+        next_time = cur_time
+        return
+    end
+    love.timer.sleep( next_time - cur_time )
 end
 
---- Cleanly destroy imgui when the app exits
 function love.quit()
-    imgui.ShutDown()
+    -- Cleanly destroy imgui when the app exits
+    if imgui then
+        imgui.ShutDown()
+    end
 end
 
---- Pass I/O from mouse and keyboard to imgui
+-- Pass I/O from mouse and keyboard to imgui
 function love.textinput(t)
     imgui.TextInput(t)
     if not imgui.GetWantCaptureKeyboard() then
@@ -348,12 +165,14 @@ function love.textinput(t)
     end
 end
 function love.keypressed(key)
-    splash:skip()
+    if not splash_done then
+        splash:skip()
+    end
     imgui.KeyPressed(key)
     if not imgui.GetWantCaptureKeyboard() then
         -- Pass event to the game
         if activeGame then
-            activeGame:keypressed( key )
+            activeGame:keypressed(key)
         end
     end
 end
@@ -370,7 +189,9 @@ function love.mousemoved(x, y)
     end
 end
 function love.mousepressed(x, y, button)
-    splash:skip()
+    if not splash_done then
+        splash:skip()
+    end
     imgui.MousePressed(button)
     if not imgui.GetWantCaptureMouse() then
         -- Pass event to the game
