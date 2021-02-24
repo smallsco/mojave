@@ -315,11 +315,11 @@ function Board:drawRaw( state, draw_grid )
                 if px == ax and py == ay  then
                     -- Draw rectangle if the snake body is straight 
                     love.graphics.rectangle(
-                    "fill",
-                    1 + (snake.body[i].x * self.tileWidth) + ((self.tileWidth - self.cellWidth) / 2),
-                    1 + ((self.numTilesY - 1 - snake.body[i].y) * self.tileHeight) + ((self.tileHeight - self.cellHeight) / 2),
-                    self.cellWidth,
-                    self.cellHeight
+                        "fill",
+                        1 + (snake.body[i].x * self.tileWidth) + ((self.tileWidth - self.cellWidth) / 2),
+                        1 + ((self.numTilesY - 1 - snake.body[i].y) * self.tileHeight) + ((self.tileHeight - self.cellHeight) / 2),
+                        self.cellWidth,
+                        self.cellHeight
                     )
                 else
                     -- Draw a corner if the snake body 'turn'
