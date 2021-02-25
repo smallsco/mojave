@@ -3,18 +3,18 @@ local Shaders = {}
 -- https://love2d.org/forums/viewtopic.php?f=4&t=3733&start=20#p38666
 
 Shaders = {
-	verticalblur = love.graphics.newShader([[
-		extern number canvas_h = 256.0;
-         
-         const number offset_1 = 1.3846153846;
-         const number offset_2 = 3.2307692308;
-         
-         const number weight_0 = 0.2270270270;
-         const number weight_1 = 0.3162162162;
-         const number weight_2 = 0.0702702703;
-         
-         vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 pixel_coords)
-         {
+    verticalblur = love.graphics.newShader([[
+        extern number canvas_h = 256.0;
+
+        const number offset_1 = 1.3846153846;
+        const number offset_2 = 3.2307692308;
+
+        const number weight_0 = 0.2270270270;
+        const number weight_1 = 0.3162162162;
+        const number weight_2 = 0.0702702703;
+
+        vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 pixel_coords)
+        {
             vec4 texcolor = Texel(texture, texture_coords);
             vec3 tc = texcolor.rgb * weight_0;
             
@@ -25,20 +25,20 @@ Shaders = {
             tc += Texel(texture, texture_coords - vec2(0.0, offset_2)/canvas_h).rgb * weight_2;
             
             return color * vec4(tc, 1.0);
-         }
-	]]),
-	horizontalblur = love.graphics.newShader([[
-		extern number canvas_w = 256.0;
+        }
+    ]]),
+    horizontalblur = love.graphics.newShader([[
+        extern number canvas_w = 256.0;
 
-         const number offset_1 = 1.3846153846;
-         const number offset_2 = 3.2307692308;
-         
-         const number weight_0 = 0.2270270270;
-         const number weight_1 = 0.3162162162;
-         const number weight_2 = 0.0702702703;
+        const number offset_1 = 1.3846153846;
+        const number offset_2 = 3.2307692308;
 
-         vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 pixel_coords)
-         {
+        const number weight_0 = 0.2270270270;
+        const number weight_1 = 0.3162162162;
+        const number weight_2 = 0.0702702703;
+
+        vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 pixel_coords)
+        {
             vec4 texcolor = Texel(texture, texture_coords);
             vec3 tc = texcolor.rgb * weight_0;
             
@@ -49,9 +49,9 @@ Shaders = {
             tc += Texel(texture, texture_coords - vec2(offset_2, 0.0)/canvas_w).rgb * weight_2;
             
             return color * vec4(tc, 1.0);
-         }
-	]]),
-	bloom = love.graphics.newShader([[
+        }
+    ]]),
+    bloom = love.graphics.newShader([[
         extern number threshold = 0.10;
         
         float luminance(vec3 color)

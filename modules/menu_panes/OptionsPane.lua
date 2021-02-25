@@ -47,9 +47,11 @@ function OptionsPane.draw()
 
         config.appearance.enableBloom = imgui.Checkbox( "Bloom Filter", config.appearance.enableBloom )
         imgui.SameLine()
+        config.appearance.enableAnimation = imgui.Checkbox( "Animations", config.appearance.enableAnimation )
+
         config.appearance.fadeOutTails = imgui.Checkbox( "Fade Tails", config.appearance.fadeOutTails )
         imgui.SameLine()
-        config.appearance.enableAnimation = imgui.Checkbox( "Animations", config.appearance.enableAnimation )
+        config.appearance.curveOnTurns = imgui.Checkbox( "Curve on Turns", config.appearance.curveOnTurns )
 
         imgui.Text( "\n" )
     end

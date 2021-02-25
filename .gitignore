@@ -38,3 +38,6 @@ luac.out
 
 # GraphicConverter
 *.gcimgd
+
+# PyCharm
+.idea

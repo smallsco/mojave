@@ -38,7 +38,7 @@ Under Constrictor rules, there is no food on the board. Instead, snakes will gro
     if imgui.CollapsingHeader( "Mojave Credits", { "DefaultOpen" } ) then
         imgui.TextWrapped([[
 Mojave
-Copyright ©2017-2021 Scott Small
+Copyright ©2017-2021 Scott Small and contributors
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
