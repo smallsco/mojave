@@ -116,6 +116,7 @@ You can use the playback controls at the top right of the game window, while a g
 * The "Play/Pause" button will pause and resume game playback (do note that pausing will only pause the UI, the game will continue to run in the background).
 * The "Fast Forward" button will step forward one turn.
 * The "Last" button will jump to the last turn of the game.
+* The "Rematch" button will end the current game and start a new game with the same options.
 * The "Close" button will end the current game and return to the main menu.
 
 The "Debug" button located above each snake preview will copy the JSON data that was sent to that snake on the last turn, and that snake's response, to the clipboard.
@@ -124,8 +125,8 @@ You can also hover over a snake's preview image to see their latency for the cur
 
 ## Configuration
 <p align="center">
-	<img src="readme_screenshots/options1.png" width="300">
-	<img src="readme_screenshots/options2.png" width="300">
+	<img src="readme_screenshots/options1.png" width="400">
+	<img src="readme_screenshots/options2.png" width="400">
 </p>
 
 ### Appearance
@@ -137,15 +138,17 @@ You can also hover over a snake's preview image to see their latency for the cur
 	* This changes the color of hazard tiles on the game board (note: you cannot set the transparancy value because these tiles fade in and out).
 * Fullscreen
 	* This toggles full-screen mode.
-* Bloom Filter
-	* This enables a [bloom filter](https://en.wikipedia.org/wiki/Bloom_(shader_effect)), which brightens and blurs snakes at the cost of performance.
 * Vignette
 	* This enables a [vignette](https://en.wikipedia.org/wiki/Vignette_(graphic_design)), which shades the background at the cost of performance.
-	* The radius, opacity, and softness of the vignette can be adjusted.
-* Fade Tails
-	* This fades out snake tails rather than have every square of the snake be opaque. Looks nice and doesn't affect performance, but can make it hard to tell living and dead snakes apart.
+	* The radius, opacity, softness, and color of the vignette can be adjusted.
+* Bloom Filter
+	* This enables a [bloom filter](https://en.wikipedia.org/wiki/Bloom_(shader_effect)), which brightens and blurs snakes at the cost of performance.
 * Animations
 	* This enables animations, specifically, making food spin and hazards fade in and out. They can be disabled for a small performance boost.
+* Fade Tails
+	* This fades out snake tails rather than have every square of the snake be opaque. Looks nice and doesn't affect performance, but can make it hard to tell living and dead snakes apart.
+* Curve on Turns
+	* This will draw snake bodies using curves when they make turns on the game board. Doesn't impact performance.
 
 ### Audio
 * Enable Music
@@ -308,7 +311,7 @@ Extra special thanks to:
 
 ## License
 Mojave  
-Copyright ©2017-2021 Scott Small
+Copyright ©2017-2021 Scott Small and contributors
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the [GNU General Public License](LICENSE) as published by

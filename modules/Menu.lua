@@ -65,8 +65,8 @@ function Menu.draw()
 
     -- Footer text
     love.graphics.setFont( defaultFont )
-    love.graphics.printf( "©2017-2021 Scott Small", 0, screenHeight*0.95, screenWidth, "center" )
-    love.graphics.print( Utils.MOJAVE_VERSION, screenWidth*0.975, screenHeight*0.975 )
+    love.graphics.printf( "©2017-2021 Scott Small and contributors", 0, screenHeight*0.95, screenWidth, "center" )
+    love.graphics.print( Utils.MOJAVE_VERSION, screenWidth*0.970, screenHeight*0.970 )
     
     -- Render Main Menu
     imgui.SetNextWindowSize(

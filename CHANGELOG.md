@@ -1,5 +1,10 @@
 ## CHANGELOG
 
+### v3.1 (2021-02-24)
+
+* Snakes are now drawn with curves when turning. This is configurable via a new appearance option. Thank you to [Nettogrof](https://github.com/nettogrof/) for contributing this feature!
+* Added a rematch button to the in-game controls that when pressed starts a new game with the same options as the current game.
+
 ### v3.0 (2021-02-22)
 
 Mojave 3.0 is a significant rewrite, much like 2.0 was. There are many changes, the notable ones are listed below:

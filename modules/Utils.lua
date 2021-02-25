@@ -2,20 +2,20 @@ local Utils = {}
 local ffi = require 'ffi'
 
 -- Version constant
-Utils.MOJAVE_VERSION = '3.0'
+Utils.MOJAVE_VERSION = '3.1'
 
 -- Shared Library Hashes (used for library updates)
 -- If these change, we'll re-extract the corresponding library when the app starts.
 Utils.SHARED_LIBRARY_MD5_HASHES = {
     libcurl = {
         ["OS X"] = "eb3e7465c6d38cb7a4594738b7906983",
-		["Windows"] = "4d2f61c4626081102e431d2ae2c7db91",
+        ["Windows"] = "4d2f61c4626081102e431d2ae2c7db91",
         -- we use the distro's libcurl devel package on linux
     },
     imgui = {
         ["OS X"] = "df99fc1f73f817296fbf4cecf27605a6",
-		["Windows"] = "2cbfd53dba7233810c087cc4390fff9c",
-		["Linux"] = "e90533010dd802b94b7b1c74c1323f56",
+        ["Windows"] = "2cbfd53dba7233810c087cc4390fff9c",
+        ["Linux"] = "e90533010dd802b94b7b1c74c1323f56",
     }
 }
 
@@ -34,7 +34,8 @@ Utils.DEFAULT_CONFIG = {
         vignetteSoftness = 0.8,
         vignetteColor = {0, 0, 0},
         fullscreen = false,
-        enableAnimation = true
+        enableAnimation = true,
+        curveOnTurns = true
     },
     audio = {
         enableMusic = true,
@@ -228,10 +229,10 @@ Utils.HTML_COLORS = {
 function Utils.check_shared_library(name)
     local os = love.system.getOS()
     local libName = {
-		["OS X"] = string.format("%s.dylib", name),
-		["Windows"] = string.format("%s.dll", name),
-		["Linux"] = string.format("%s.so", name),
-	}
+        ["OS X"] = string.format("%s.dylib", name),
+        ["Windows"] = string.format("%s.dll", name),
+        ["Linux"] = string.format("%s.so", name),
+    }
     libName = libName[os]
     local contents, _ = love.filesystem.read( 'data', string.format( '%s', libName ) )
     if not contents then
@@ -290,10 +291,10 @@ end
 -- into the appdata directory, where we will then be able to load it.
 function Utils.extract_shared_library(name, folder_name)
     local libName = {
-		["OS X"] = string.format("%s.dylib", name),
-		["Windows"] = string.format("%s.dll", name),
-		["Linux"] = string.format("%s.so", name),
-	}
+        ["OS X"] = string.format("%s.dylib", name),
+        ["Windows"] = string.format("%s.dll", name),
+        ["Linux"] = string.format("%s.so", name),
+    }
     libName = libName[love.system.getOS()]
     local contents, size = love.filesystem.read( 'data', string.format( 'thirdparty/%s/%s', folder_name, libName ) )
     if not contents then
@@ -462,9 +463,9 @@ function Utils.http_request_multi(params)
         m:add(req)
     end
     while true do
-		local n = m:perform()
-		if n == 0 then break end
-	end
+        local n = m:perform()
+        if n == 0 then break end
+    end
     while true do
         local info = m:info_read()
         if not info then break end
@@ -578,10 +579,10 @@ end
 -- Shuffles a table using the fisher-yates algorithm
 -- see: https://programming-idioms.org/idiom/10/shuffle-a-list/1313/lua
 function Utils.shuffle(list)
-	for i = #list, 2, -1 do
-		local j = love.math.random(i)
-		list[i], list[j] = list[j], list[i]
-	end
+    for i = #list, 2, -1 do
+        local j = love.math.random(i)
+        list[i], list[j] = list[j], list[i]
+    end
 end
 
 -- Returns true if a string starts with another string

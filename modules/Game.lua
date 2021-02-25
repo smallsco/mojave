@@ -22,6 +22,7 @@ local imgForward = love.graphics.newImage('images/controls/forward.png')
 local imgNext = love.graphics.newImage('images/controls/next.png')
 local imgPause = love.graphics.newImage('images/controls/pause.png')
 local imgPrevious = love.graphics.newImage('images/controls/previous.png')
+local imgReturn = love.graphics.newImage('images/controls/return.png')
 local imgRewind = love.graphics.newImage('images/controls/rewind.png')
 
 -- Constructor / Factory Function
@@ -29,7 +30,7 @@ local imgRewind = love.graphics.newImage('images/controls/rewind.png')
 -- @return Game
 function Game.new( opt )
     local self = setmetatable( {}, Game )
-    opt = opt or {}
+    self.opt = opt or {}
 
     -- Create game thread
     self.thread = love.thread.newThread("thread.lua")
@@ -38,20 +39,20 @@ function Game.new( opt )
     self.humanChannel = love.thread.getChannel("human")
 
     -- not the actual game rules, just an int
-    self.rules = opt.rules
+    self.rules = self.opt.rules
 
     self.thread:start({
-        rules = opt.rules,
-        snakes = opt.snakes,
-        width = opt.width,
-        height = opt.height,
-        squad_map = opt.squad_map or {}
+        rules = self.opt.rules,
+        snakes = self.opt.snakes,
+        width = self.opt.width,
+        height = self.opt.height,
+        squad_map = self.opt.squad_map or {}
     })
 
     -- Create an empty board
     self.board = Board({
-        width = opt.width,
-        height = opt.height
+        width = self.opt.width,
+        height = self.opt.height
     })
     self.timer = 0
     self.latencyHistory = {}
@@ -142,14 +143,13 @@ function Game:draw()
     imgui.SetNextWindowSize(256, screenHeight-60)
     imgui.SetNextWindowPos(screenWidth-256, 60)
     if imgui.Begin( "Snakes", nil, { "NoResize", "NoCollapse", "NoTitleBar" } ) then
-        imgui.Columns( 2, "gameStats", false )
+        imgui.PushStyleVar( "ItemSpacing", 7, 4 )
 
         -- Current Turn
         imgui.Text( "Turn\n" .. self.state.turn )
-        imgui.NextColumn()
+        imgui.SameLine()
 
-        -- Playback and return-to-menu controls
-        imgui.SetColumnWidth( 0, 50 )
+        -- Playback, rematch, and return-to-menu controls
         if imgui.ImageButton( imgPrevious, 16, 16 ) then
             self.state = self.history[1]
         end
@@ -188,9 +188,17 @@ function Game:draw()
             self.state = self.history[#self.history]
         end
         imgui.SameLine()
+        if imgui.ImageButton( imgReturn, 16, 16 ) then
+            self:shutdownThread()
+            activeGame = Game(self.opt)
+        end
+        imgui.SameLine()
         if imgui.ImageButton( imgCross, 16, 16 ) then
             imgui.OpenPopup( "ReturnMenu" )
         end
+        imgui.PopStyleVar()
+
+        -- Return to Menu dialog
         if imgui.BeginPopupModal( "ReturnMenu", nil, { "NoResize" } ) then
             imgui.Text( "Are you sure you want to return to the menu?\n\n" )
             imgui.Separator()
@@ -205,7 +213,6 @@ function Game:draw()
             end
             imgui.EndPopup()
         end
-        imgui.Columns(1)
         imgui.Separator()
         imgui.Text( "\n" )
 

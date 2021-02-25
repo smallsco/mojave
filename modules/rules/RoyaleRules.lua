@@ -48,8 +48,8 @@ function RoyaleRules:populateOutOfBounds(state, turn)
     math.randomseed(self.seed)
 
     local numShrinks = math.floor(turn / self.ShrinkEveryNTurns)
-	local minX, maxX = 0, state.width - 1
-	local minY, maxY = 0, state.height - 1
+    local minX, maxX = 0, state.width - 1
+    local minY, maxY = 0, state.height - 1
 
     for i=1, numShrinks do
         local case = math.random(4)

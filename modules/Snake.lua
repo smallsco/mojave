@@ -17,11 +17,11 @@ Snake.TYPES = {
 
 Snake.ELIMINATION_CAUSES = {
     NotEliminated = "",
-	EliminatedByCollision = "snake-collision",
-	EliminatedBySelfCollision = "snake-self-collision",
-	EliminatedByOutOfHealth = "out-of-health",
-	EliminatedByHeadToHeadCollision = "head-collision",
-	EliminatedByOutOfBounds = "wall-collision",
+    EliminatedByCollision = "snake-collision",
+    EliminatedBySelfCollision = "snake-self-collision",
+    EliminatedByOutOfHealth = "out-of-health",
+    EliminatedByHeadToHeadCollision = "head-collision",
+    EliminatedByOutOfBounds = "wall-collision",
     EliminatedBySquad = "squad-eliminated"
 }
 

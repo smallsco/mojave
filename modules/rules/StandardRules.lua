@@ -50,15 +50,15 @@ function StandardRules:placeSnakesFixed(state)
     -- Create eight start points
     local mn, md, mx = 1, (state.width - 1)/2, state.width - 2
     local start_points = {
-		{x = mn, y = mn},
-		{x = mn, y = md},
-		{x = mn, y = mx},
-		{x = md, y = mn},
-		{x = md, y = mx},
-		{x = mx, y = mn},
-		{x = mx, y = md},
-		{x = mx, y = mx},
-	}
+        {x = mn, y = mn},
+        {x = mn, y = md},
+        {x = mn, y = mx},
+        {x = md, y = mn},
+        {x = md, y = mx},
+        {x = mx, y = mn},
+        {x = mx, y = md},
+        {x = mx, y = mx},
+    }
 
     -- Sanity check
     local numSnakes = 0
