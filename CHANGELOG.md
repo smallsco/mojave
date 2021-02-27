@@ -1,5 +1,10 @@
 ## CHANGELOG
 
+### v3.1.1 (2021-02-27)
+
+* Added additional head and tail images.
+* Fixed a crash when adding a snake that does not specify a color customization. Snakes without a color customization will now be assigned a random color.
+
 ### v3.1 (2021-02-24)
 
 * Snakes are now drawn with curves when turning. This is configurable via a new appearance option. Thank you to [Nettogrof](https://github.com/nettogrof/) for contributing this feature!

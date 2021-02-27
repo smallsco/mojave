@@ -333,7 +333,12 @@ function GameThread:requestStart(snake)
 
         local resp, latency, err = Utils.http_request(snake.url .. '/start', request_json)
         if snake.apiversion == 0 or snake.type == Snake.TYPES.API_OLD then
-            snake.color = "#FFFFFF"
+            snake.color = {
+                love.math.random(0, 255) / 255,
+                love.math.random(0, 255) / 255,
+                love.math.random(0, 255) / 255,
+                1
+            }
             snake.headSrc = "default"
             snake.tailSrc = "default"
             if not resp then
@@ -346,16 +351,14 @@ function GameThread:requestStart(snake)
                 return latency
             end
 
-            local color = data.color
-
-            if not color then
-                color = snake.color
+            if data.color and data.color ~= '' then
+                if Utils.HTML_COLORS[string.lower(data.color)] then
+                    snake.color = Utils.HTML_COLORS[string.lower(data.color)]
+                else
+                    snake.color = data.color
+                end
             end
 
-            if Utils.HTML_COLORS[string.lower(color)] then
-                color = Utils.HTML_COLORS[string.lower(color)]
-            end
-            snake.color = color
             snake.headSrc = data.headType or data.head_type or "default"
             snake.tailSrc = data.tailType or data.tail_type or "default"
             if not snakeHeads[snake.headSrc] then
