@@ -39,20 +39,27 @@ Battlesnake's mission is to make programming fun and accessible for everyone! Wi
 ## Download and Install
 
 ### Mac OS
-* For Mac users, the minimum OS requirement is 10.14 (also called Mojave ... hey Apple, I used the name first!)
+For Mac users, the minimum OS requirement is 10.14 (also called Mojave ... hey Apple, I used the name first!)
+
+Apple Silicon users: Mojave has not been tested on the M1. It won't work natively due to the use of shared libraries that will need to be recompiled - but it should run correctly under Rosetta emulation. Let me know if you've tried it!
+
+#### Mac OS Standard Installation
 * Download the latest version of Mojave from the [Releases](https://github.com/smallsco/mojave/releases) page and extract the zip file into your Applications folder.
 * The first time you run Mojave, you need to **right-click** on the application icon and select the **Open** option from the contextual menu. You will be presented with a warning dialog that the application cannot be opened because the developer cannot be verified. Click **Cancel**.
 * Then, repeat the previous step. This time you will have an option to **Open** from the warning dialog. Click **Open** and Mojave will launch. You should only have to do this once per update.
 
-Unfortunately, with each new Mac OS update, Apple makes it increasingly difficult to install and run software that has not been code signed by a member of their developer program. If you still have trouble launching the game despite following the above instructions, you can try running it using [LÖVE](https://www.love2d.org) 11.3 directly. Follow the instructions for Linux users (ignoring the bit about libcurl), but make sure to download the Mac version instead (the command string will look something like: `/Applications/love.app/Contents/MacOS/love --fused /path/to/mojave`)
+Unfortunately, with each new Mac OS update, Apple makes it increasingly difficult to install and run software that has not been code signed by a member of their developer program. If you still have trouble launching the game despite following the above instructions, you can try running it using LÖVE 11.3 directly via the alternate installation instructions below:
 
-Apple Silicon users: Mojave has not been tested on the M1. It won't work natively due to the use of shared libraries that will need to be recompiled - but it should run correctly under Rosetta emulation. Let me know if you've tried it!
+#### Mac OS Alternate Installation
+* You will then need to download and install [LÖVE](https://www.love2d.org) 11.3 for Mac OS.
+* Once you have installed that, you can download the latest version of Mojave from the [Releases](https://github.com/smallsco/mojave/releases) page and extract the zip file somewhere on your computer. **Download the *Linux* version, not the Mac OS version!**
+* Open the `Mojave-x.y.z.love` file to start playing!
 
 ### Windows
-* For Windows users, the minimum requirement is Windows Vista.
+* For Windows users, the minimum requirement is Windows Vista. A 64-bit version of Windows is required.
 * You will need to download and install the [Visual C++ 2017 Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572) package from Microsoft if you don't already have it installed on your computer. [Get it here](https://go.microsoft.com/fwlink/?LinkId=746572).
 * Once you have installed that, you can download the latest version of Mojave from the [Releases](https://github.com/smallsco/mojave/releases) page and extract the zip file somewhere on your computer.
-* Open the `mojave3.exe` file to start!
+* Open the `Mojave.exe` application to start playing!
 
 ### Linux
 * For Linux users, any recent distribution should work.
@@ -60,14 +67,14 @@ Apple Silicon users: Mojave has not been tested on the M1. It won't work nativel
 	* For Ubuntu/Debian: `sudo apt-get install libcurl4-openssl-dev`
 	* For Fedora/Centos: `sudo yum install libcurl-devel`
 * You will then need to download and install [LÖVE](https://www.love2d.org) 11.3 for your Linux distribution. You can do this via your package manager, or download a package directly from the [LÖVE web site](https://www.love2d.org).
-* Once you have installed that, you can download the latest version of Mojave from the [Releases](https://github.com/smallsco/mojave/releases) page and extract the zip file somewhere on your computer. Use the "Source Code" download rather than the Windows or Mac links.
-* Launch the game from a terminal by calling `love` with the path to the extracted directory, i.e. `love --fused /path/to/mojave`. The `--fused` parameter is important, it will ensure that the game's save data is kept in the correct location.
+* Once you have installed that, you can download the latest version of Mojave from the [Releases](https://github.com/smallsco/mojave/releases) page and extract the zip file somewhere on your computer.
+* Open the `Mojave-x.y.z.love` file to start playing!
 
 ### Building from Source
 * Clone this repository to somewhere on your computer, or use the latest "Source Code" download from the [Releases](https://github.com/smallsco/mojave/releases) page.
-* Download and install [love-release](https://github.com/MisterDA/love-release)
-* Run the command `love-release -W64 -M` from the mojave directory.
-* This will create a new folder inside the mojave directory, `releases`, containing zipped binaries for Windows and Mac OS X.
+* Navigate to the packager directory: `cd mojave/packager`
+* Run the command `./lp-build.sh` from the packager directory.
+* This will create a new folder inside the packager directory, `builds`, containing zipped binaries for Windows and Mac OS, and a zipped .love file for Linux.
 
 ## Managing Snakes
 ![Manage Snakes Screen](readme_screenshots/manage_snakes.png?raw=true)
@@ -209,11 +216,11 @@ You can also hover over a snake's preview image to see their latency for the cur
 ## Troubleshooting
 In the event the application experiences errors, you can reset the configuration and snakes by removing the data directory. This directory will be recreated the next time the application is launched.
 
-On Mac OS, the data directory can be found at `/Users/<USER_NAME>/Library/Application Support/mojave3/`
+On Mac OS, the data directory can be found at `/Users/<USER_NAME>/Library/Application Support/mojave3/` if you used the standard installation, or `/Users/<USER_NAME>/Library/Application Support/LOVE/mojave3/` if you used the alternate installation.
 
 On Windows, the data directory can be found at `C:\Users\<USER_NAME>\AppData\Roaming\mojave3\`
 
-On Linux, the data directory can be found at `/home/<USER_NAME>/.local/share/mojave3/`
+On Linux, the data directory can be found at `/home/<USER_NAME>/.local/share/love/mojave3/`
 
 ## Credits
 Special thanks to the following third-party software, for whom without
@@ -269,6 +276,11 @@ License: ZLIB
 Copyright ©2016 slages  
 License: MIT  
 <https://github.com/MikuAuahDark/love-imgui>  
+
+**LovePackaging**  
+Copyright ©2014-2016 Paul Liverman III  
+License: MIT  
+<https://github.com/TangentFoxy/LovePackaging>  
 
 **Monoton Font**  
 Copyright ©2011 Vernon Adams  

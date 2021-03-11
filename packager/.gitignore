@@ -1,0 +1,5 @@
+!builds/
+builds/*
+!builds/latest/
+!builds/build.number
+tmp/

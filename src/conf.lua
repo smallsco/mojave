@@ -46,23 +46,4 @@ function love.conf(t)
     t.modules.touch = false              -- Enable the touch module (boolean)
     t.modules.video = false              -- Enable the video module (boolean)
     t.modules.window = true              -- Enable the window module (boolean)
-    
-    t.releases = {
-        title = 'Mojave',                               -- The project title (string)
-        package = 'mojave3',                            -- The project command and package name (string)
-        loveVersion = '11.3',                           -- The project LÖVE version
-        version = nil,                                  -- The project version
-        author = 'Scott Small',                         -- Your name (string)
-        email = 'smallsco@gmail.com',                   -- Your email (string)
-        description = 'a pretty battlesnake board',     -- The project description (string)
-        homepage = 'http://github.com/smallsco/mojave', -- The project homepage (string)
-        identifier = 'org.scottsmall.mojave3',          -- The project Uniform Type Identifier (string)
-        excludeFileList = {
-            '.DS_Store', '.idea', 'README.md',
-            'readme_screenshots', 'CHANGELOG.md',
-            '.gitignore', 'Icon.gcimgd', 'Logo.gcimgd'
-        },                                              -- File patterns to exclude. (string list)
-        releaseDirectory = nil,                         -- Where to store the project releases (string)
-    }
-    
 end

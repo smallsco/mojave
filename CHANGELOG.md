@@ -1,5 +1,11 @@
 ## CHANGELOG
 
+### v3.1.2 (2021-03-10)
+
+* Fixed a major bug on Mac OS where Mojave would fail to load ImGui on systems that did not have LuaJIT installed.
+* Switched build system from love-release to LovePackaging.
+* Application icon now persists.
+
 ### v3.1.1 (2021-02-27)
 
 * Added additional head and tail images.

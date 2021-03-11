@@ -109,6 +109,11 @@ Copyright ©2016 slages
 License: MIT
 https://github.com/MikuAuahDark/love-imgui
 
+LovePackaging
+Copyright ©2014-2016 Paul Liverman III
+License: MIT
+https://github.com/TangentFoxy/LovePackaging
+
 Monoton Font
 Copyright ©2011 Vernon Adams
 License: OFL

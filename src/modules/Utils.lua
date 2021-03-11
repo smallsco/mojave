@@ -2,7 +2,7 @@ local Utils = {}
 local ffi = require 'ffi'
 
 -- Version constant
-Utils.MOJAVE_VERSION = '3.1.1'
+Utils.MOJAVE_VERSION = '3.1.2'
 
 -- Shared Library Hashes (used for library updates)
 -- If these change, we'll re-extract the corresponding library when the app starts.
@@ -13,7 +13,7 @@ Utils.SHARED_LIBRARY_MD5_HASHES = {
         -- we use the distro's libcurl devel package on linux
     },
     imgui = {
-        ["OS X"] = "df99fc1f73f817296fbf4cecf27605a6",
+        ["OS X"] = "7e9f70508ee23c6a4c2be354ddd6eaa6",
         ["Windows"] = "2cbfd53dba7233810c087cc4390fff9c",
         ["Linux"] = "e90533010dd802b94b7b1c74c1323f56",
     }
