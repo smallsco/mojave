@@ -8,7 +8,7 @@ setmetatable( ConstrictorRules, {
 })
 
 function ConstrictorRules.new( opt )
-    local self = setmetatable( StandardRules(), ConstrictorRules )
+    local self = setmetatable( StandardRules(opt), ConstrictorRules )
     opt = opt or {}
 
     return self

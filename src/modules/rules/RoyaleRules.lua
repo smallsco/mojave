@@ -8,7 +8,7 @@ setmetatable( RoyaleRules, {
 })
 
 function RoyaleRules.new( opt )
-    local self = setmetatable( StandardRules(), RoyaleRules )
+    local self = setmetatable( StandardRules(opt), RoyaleRules )
     opt = opt or {}
 
     self.seed = opt.random_seed or os.time()

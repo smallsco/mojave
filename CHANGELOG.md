@@ -1,5 +1,11 @@
 ## CHANGELOG
 
+### v3.1.3 (2021-03-19)
+
+* Fixed a bug that caused the food spawn chance, minimum food, snake max health, and snake start size options to not be respected in non-standard game modes.
+* Fixed a bug that would cause the game to crash if a snake response was valid JSON, but was not contained in a dictionary.
+* Corrected love-imgui URL to use the correct fork in docs/credits.
+
 ### v3.1.2 (2021-03-10)
 
 * Fixed a major bug on Mac OS where Mojave would fail to load ImGui on systems that did not have LuaJIT installed.

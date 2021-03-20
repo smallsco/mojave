@@ -8,7 +8,7 @@ setmetatable( SquadRules, {
 })
 
 function SquadRules.new( opt )
-    local self = setmetatable( StandardRules(), SquadRules )
+    local self = setmetatable( StandardRules(opt), SquadRules )
     opt = opt or {}
 
     self.SquadMap = opt.squad_map

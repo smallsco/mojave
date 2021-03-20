@@ -8,7 +8,7 @@ setmetatable( SoloRules, {
 })
 
 function SoloRules.new( opt )
-    local self = setmetatable( StandardRules(), SoloRules )
+    local self = setmetatable( StandardRules(opt), SoloRules )
     opt = opt or {}
 
     return self

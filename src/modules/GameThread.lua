@@ -346,7 +346,7 @@ function GameThread:requestStart(snake)
                 return latency
             end
             local data = json.decode(resp)
-            if not data then
+            if type(data) ~= 'table' then
                 snake.response = ""
                 return latency
             end
@@ -437,7 +437,7 @@ function GameThread:requestMoves()
         else
             self.state.snakes[id].response = response.response
             local data = json.decode(response.response)
-            if not data then
+            if type(data) ~= 'table' then
                 moves[id] = "default"
                 shouts[id] = ""
             else
