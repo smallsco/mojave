@@ -369,12 +369,12 @@ function Board:drawRaw( state, draw_grid )
         if tailDir == 'up' then
             tailRot = math.rad(90)
             local tmp = tailScaleY
-            tailScaleY = tailScaleX
+            tailScaleY = -tailScaleX
             tailScaleX = tmp
         elseif tailDir == 'down' then
             tailRot = math.rad(270)
             local tmp = tailScaleY
-            tailScaleY = tailScaleX
+            tailScaleY = -tailScaleX
             tailScaleX = tmp
         elseif tailDir == 'right' then
             tailScaleX = -tailScaleX

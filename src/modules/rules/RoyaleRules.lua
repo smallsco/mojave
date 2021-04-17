@@ -92,7 +92,7 @@ function RoyaleRules:damageOutOfBounds(state)
                         snake.health = 0
                     end
                     if self:snakeIsOutOfHealth(snake) then
-                        snake.EliminatedCause = Snake.ELIMINATION_CAUSES.EliminatedByOutOfHealth
+                        snake.eliminatedCause = Snake.ELIMINATION_CAUSES.EliminatedByOutOfHealth
                     end
                 end
             end

@@ -1,5 +1,11 @@
 ## CHANGELOG
 
+### v3.1.4 (2021-04-16)
+
+* Fixed a bug causing hazard deaths in Royale games to not register on the correct turn.
+* Corrected tail rendering when being drawn in up/down state.
+* Added additional head and tail images.
+
 ### v3.1.3 (2021-03-19)
 
 * Fixed a bug that caused the food spawn chance, minimum food, snake max health, and snake start size options to not be respected in non-standard game modes.
