@@ -1,5 +1,9 @@
 ## CHANGELOG
 
+### v3.1.5 (2021-06-12)
+
+* Added additional head and tail images.
+
 ### v3.1.4 (2021-04-16)
 
 * Fixed a bug causing hazard deaths in Royale games to not register on the correct turn.
