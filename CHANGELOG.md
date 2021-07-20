@@ -1,5 +1,10 @@
 ## CHANGELOG
 
+### v3.1.6 (2021-07-19)
+
+* Squad games now send the correct ruleset name in the snake request JSON.
+* Fixed a bug that could cause the "shout" key to be dropped for some snakes in the request JSON.
+
 ### v3.1.5 (2021-06-12)
 
 * Added additional head and tail images.

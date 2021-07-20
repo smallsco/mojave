@@ -80,7 +80,7 @@ function GameThread.new(opt)
         self.ruleset = "royale"
         self.rules = RoyaleRules(rules_options)
     elseif opt.rules == GameThread.RULES_SQUADS then
-        self.ruleset = "squads"
+        self.ruleset = "squad"
         self.rules = SquadRules(rules_options)
     elseif opt.rules == GameThread.RULES_CONSTRICTOR then
         self.ruleset = "constrictor"
@@ -158,7 +158,7 @@ function GameThread:buildMoveJson2017(snake)
     end
     for _, other_snake in pairs(self.state.snakes) do
         local snake_json = {
-            taunt=other_snake.shout,
+            taunt=other_snake.shout or "",
             name=other_snake.name,
             id=other_snake.id,
             health_points=other_snake.health,
@@ -200,7 +200,7 @@ function GameThread:buildMoveJson2018(snake)
                 data=other_snake.body
             },
             health=other_snake.health,
-            taunt=other_snake.shout
+            taunt=other_snake.shout or ""
         }
         if other_snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
             table.insert(move_json.snakes.data, snake_json)
@@ -215,7 +215,7 @@ function GameThread:buildMoveJson2018(snake)
             data=snake.body
         },
         health=snake.health,
-        taunt=snake.shout
+        taunt=snake.shout or ""
     }
 
     return json.encode(move_json)
@@ -251,10 +251,10 @@ function GameThread:buildMoveJson(snake)
             head=other_snake.body[1],
             body=other_snake.body,
             health=other_snake.health,
-            shout=other_snake.shout,
+            shout=other_snake.shout or "",
             latency=tostring(other_snake.latency)
         }
-        if self.ruleset == "squads" then
+        if self.ruleset == "squad" then
             snake_json.squad = tostring(other_snake.squad)
         end
         if other_snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
@@ -269,10 +269,10 @@ function GameThread:buildMoveJson(snake)
         head=snake.body[1],
         body=snake.body,
         health=snake.health,
-        shout=snake.shout,
+        shout=snake.shout or "",
         latency=tostring(snake.latency)
     }
-    if self.ruleset == "squads" then
+    if self.ruleset == "squad" then
         move_json.you.squad = tostring(snake.squad)
     end
 

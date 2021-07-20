@@ -222,6 +222,8 @@ On Windows, the data directory can be found at `C:\Users\<USER_NAME>\AppData\Roa
 
 On Linux, the data directory can be found at `/home/<USER_NAME>/.local/share/love/mojave3/`
 
+For questions or support, you can use the `#mojave-questions` channel on the [Battlesnake Discord](https://play.battlesnake.com/discord/)!
+
 ## Credits
 Special thanks to the following third-party software, for whom without
 Mojave would not be possible:
