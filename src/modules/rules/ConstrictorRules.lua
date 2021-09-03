@@ -14,10 +14,11 @@ function ConstrictorRules.new( opt )
     return self
 end
 
-function ConstrictorRules:createInitialBoardState(width, height, snakes)
-    local initialBoardState = StandardRules.createInitialBoardState(self, width, height, snakes)
-    self:applyConstrictorRules(initialBoardState)
-    return initialBoardState
+function ConstrictorRules:modifyInitialBoardState(initialBoardState)
+    initialBoardState = StandardRules.modifyInitialBoardState(self, initialBoardState)
+    local newBoardState = BoardState.clone(initialBoardState)
+    self:applyConstrictorRules(newBoardState)
+    return newBoardState
 end
 
 function ConstrictorRules:createNextBoardState(prevState, moves)
@@ -32,7 +33,7 @@ function ConstrictorRules:applyConstrictorRules(state)
 
     -- Set all snakes to max health and ensure they grow next turn
     for _, snake in pairs(state.snakes) do
-        snake.health = self.SnakeMaxHealth
+        snake.health = BoardState.SnakeMaxHealth
 
         local tail = snake.body[#snake.body]
         local subTail = snake.body[#snake.body - 1]

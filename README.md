@@ -30,7 +30,7 @@ Battlesnake's mission is to make programming fun and accessible for everyone! Wi
 * Customizable visuals for the ultimate sensory experience including a bloom filter, vignette and animations
 * Supports all Battlesnake API versions from 2017 and up, simultaneously in one game - try your snake out against the best snakes from years past!
 	* Note: Snakes built on API versions earlier than v1 can only play in Standard rules games
-* Play with different sets of rules including Royale, Squads and Constrictor
+* Play with different sets of rules including Royale, Squads, Constrictor, and Wrapped
 * Pause, step forward and backward through games to debug your snake's behaviour
 * Dump the JSON request/response being sent to/from your snake at any turn
 * Includes the [Robosnake](https://github.com/smallsco/robosnake) as a built-in opponent to test your snake against
@@ -91,8 +91,8 @@ To start a new game, click the **Create Game** button on the menu to get to the 
 
 Note that there are a few restrictions on game creation:
 
-* Only snakes using the modern Battlesnake API, or Human snakes may play using the Royale, Squads, and Constrictor game modes.
-* The Royale and Constrictor game modes require a minimum of two snakes to play.
+* Only snakes using the modern Battlesnake API, or Human snakes may play using the Royale, Squads, Constrictor, and Wrapped game modes.
+* The Royale, Constrictor, and Wrapped game modes require a minimum of two snakes to play.
 * The Squads game mode requires a minimum of two _squads_ to play.
 * Only one Human snake may participate in a game.
 
@@ -110,6 +110,9 @@ Under Squads rules, all snakes are assigned to one of up to four squads. Snakes 
 
 ### Constrictor
 Under Constrictor rules, there is no food on the board. Instead, snakes will grow on every turn, with their tail locked to their starting position. This is also known as a Tron game.
+
+### Wrapped
+Under Wrapped rules, if a snake crosses the edge of the board, instead of being killed, it will re-enter the board from the opposite edge.
 
 ## Development Tools
 <p align="center">

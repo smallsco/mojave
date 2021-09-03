@@ -12,175 +12,20 @@ function StandardRules.new( opt )
 
     self.FoodSpawnChance = opt.food_spawn_chance or 15
     self.MinimumFood = opt.minimum_food or 1
-    self.SnakeMaxHealth = opt.max_health or 100
-    self.SnakeStartSize = opt.start_size or 3
+    self.HazardDamagePerTurn = opt.hazard_damage_per_turn or 15
 
     return self
 end
 
-function StandardRules:createInitialBoardState(width, height, snakes)
-    local state = Utils.deepcopy(GameThread.DEFAULT_STATE)
-    state.height = height
-    state.width = width
-
-    -- Set defaults for snakes
-    state.snakes = snakes
-    for _, snake in pairs(state.snakes) do
-        snake.health = self.SnakeMaxHealth
-    end
-
-    -- Place snakes
-    self:placeSnakes(state)
-
-    -- Place food
-    self:placeFood(state)
-
-    return state
-end
-
-function StandardRules:placeSnakes(state)
-    if self:isKnownBoardSize(state) then
-        self:placeSnakesFixed(state)
-    else
-        self:placeSnakesRandomly(state)
-    end
-end
-
-function StandardRules:placeSnakesFixed(state)
-    -- Create eight start points
-    local mn, md, mx = 1, (state.width - 1)/2, state.width - 2
-    local start_points = {
-        {x = mn, y = mn},
-        {x = mn, y = md},
-        {x = mn, y = mx},
-        {x = md, y = mn},
-        {x = md, y = mx},
-        {x = mx, y = mn},
-        {x = mx, y = md},
-        {x = mx, y = mx},
-    }
-
-    -- Sanity check
-    local numSnakes = 0
-    for _, _ in pairs(state.snakes) do
-        numSnakes = numSnakes + 1
-    end
-    if numSnakes > #start_points then
-        local err = 'Sorry, a maximum of %s snakes are supported for this board configuration.'
-        error(string.format(err, #start_points), 0)
-    end
-
-    -- Randomly order them
-    Utils.shuffle(start_points)
-
-    -- Assign to snakes in order given
-    local i = 1
-    for _, snake in pairs(state.snakes) do
-        for j=1, self.SnakeStartSize do
-            table.insert(snake.body, start_points[i])
-        end
-        i = i + 1
-    end
-end
-
-function StandardRules:placeSnakesRandomly(state)
-    local i = 1
-    for _, snake in pairs(state.snakes) do
-
-        local unoccupiedPoints = self:getEvenUnoccupiedPoints(state)
-        if #unoccupiedPoints <= 0 then
-            error("Sorry, there is not enough room on the board to place snakes.")
-        end
-
-        local point = unoccupiedPoints[love.math.random(#unoccupiedPoints)]
-
-        for j=1, self.SnakeStartSize do
-            table.insert(snake.body, point)
-        end
-        i = i + 1
-    end
-end
-
-function StandardRules:placeFood(state)
-    if self:isKnownBoardSize(state) then
-        self:placeFoodFixed(state)
-    else
-        self:placeFoodRandomly(state)
-    end
-end
-
-function StandardRules:placeFoodFixed(state)
-    -- Place 1 food within exactly 2 moves of each snake
-    for _, snake in pairs(state.snakes) do
-        local snakeHead = snake.body[1]
-        local possibleFoodLocations = {
-            {x=snakeHead.x - 1, y=snakeHead.y - 1},
-            {x=snakeHead.x - 1, y=snakeHead.y + 1},
-            {x=snakeHead.x + 1, y=snakeHead.y - 1},
-            {x=snakeHead.x + 1, y=snakeHead.y + 1},
-        }
-        local availableFoodLocations = {}
-
-        for i, point in ipairs(possibleFoodLocations) do
-            local isOccupiedAlready = false
-            for _, food in ipairs(state.food) do
-                if food.x == point.x and food.y == point.y then
-                    isOccupiedAlready = true
-                    break
-                end
-            end
-            if not isOccupiedAlready then
-                table.insert(availableFoodLocations, point)
-            end
-        end
-
-        if #availableFoodLocations <= 0 then
-            error("Sorry, there is not enough room on the board to place food.")
-        end
-
-        local placedFood = availableFoodLocations[love.math.random(#availableFoodLocations)]
-        table.insert(state.food, placedFood)
-    end
-
-    -- Finally, always place 1 food in center of board for dramatic purposes
-    local isCenterOccupied = true
-    local centerCoord = {x=(state.width - 1)/2, y=(state.height - 1)/2}
-    local unoccupiedPoints = self:getUnoccupiedPoints(state, true)
-    for _, point in ipairs(unoccupiedPoints) do
-        if point.x == centerCoord.x and point.y == centerCoord.y then
-            isCenterOccupied = false
-            break
-        end
-    end
-    if isCenterOccupied then
-        error("Sorry, there is not enough room on the board to place food.")
-    end
-    table.insert(state.food, centerCoord)
-end
-
-function StandardRules:placeFoodRandomly(state)
-    local numSnakes = 0
-    for _, _ in pairs(state.snakes) do
-        numSnakes = numSnakes + 1
-    end
-    self:spawnFood(state, numSnakes)
-end
-
-function StandardRules:isKnownBoardSize(state)
-    if state.width == 7 and state.height == 7 then
-        return true
-    elseif state.width == 11 and state.height == 11 then
-        return true
-    elseif state.width == 19 and state.height == 19 then
-        return true
-    end
-    return false
+function StandardRules:modifyInitialBoardState(initialState)
+    return initialState
 end
 
 function StandardRules:createNextBoardState(prevState, moves)
-    local nextState = Utils.deepcopy(prevState)
+    local nextState = BoardState.clone(prevState)
     self:moveSnakes(nextState, moves)
     self:reduceSnakeHealth(nextState)
+    self:maybeDamageHazards(nextState)
     self:maybeFeedSnakes(nextState)
     self:maybeSpawnFood(nextState)
     self:maybeEliminateSnakes(nextState)
@@ -226,6 +71,10 @@ function StandardRules:moveSnakes(state, moves)
                 if #snake.body >= 2 then
                     dx = snake.body[1].x - snake.body[2].x
                     dy = snake.body[1].y - snake.body[2].y
+                    if dy > 1 then dy = -1 end
+                    if dy < -1 then dy = 1 end
+                    if dx > 1 then dx = -1 end
+                    if dx < -1 then dx = 1 end
                     if dx == 0 and dy == 0 then
                         dy = 1  -- Move up if no last move was made
                     end
@@ -247,6 +96,38 @@ function StandardRules:reduceSnakeHealth(state)
     for _, snake in pairs(state.snakes) do
         if snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
             snake.health = snake.health - 1
+        end
+    end
+end
+
+function StandardRules:maybeDamageHazards(state)
+    for _, snake in pairs(state.snakes) do
+        if snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
+            local head = snake.body[1]
+            for _, p in ipairs(state.hazards) do
+                if head.x == p.x and head.y == p.y then
+
+                    -- If there's a food in this square, don't reduce health
+                    local foundFood = false
+                    for _, food in ipairs(state.food) do
+                        if food.x == p.x and food.y == p.y then
+                            foundFood = true
+                        end
+                    end
+
+                    -- Snake is in a hazard, reduce health
+                    if not foundFood then
+                        snake.health = snake.health - self.HazardDamagePerTurn
+                        if snake.health < 0 then
+                            snake.health = 0
+                        end
+                        if self:snakeIsOutOfHealth(snake) then
+                            snake.eliminatedCause = Snake.ELIMINATION_CAUSES.EliminatedByOutOfHealth
+                        end
+                    end
+
+                end
+            end
         end
     end
 end
@@ -420,7 +301,7 @@ end
 
 function StandardRules:feedSnake(snake)
     self:growSnake(snake)
-    snake.health = self.SnakeMaxHealth
+    snake.health = BoardState.SnakeMaxHealth
 end
 
 function StandardRules:growSnake(snake)
@@ -432,103 +313,10 @@ end
 function StandardRules:maybeSpawnFood(state)
     local numCurrentFood = #state.food
     if numCurrentFood < self.MinimumFood then
-        self:spawnFood(state, self.MinimumFood - numCurrentFood)
+        BoardState.placeFoodRandomly(state, self.MinimumFood - numCurrentFood)
     elseif self.FoodSpawnChance > 0 and love.math.random(100) < self.FoodSpawnChance then
-        self:spawnFood(state, 1)
+        BoardState.placeFoodRandomly(state, 1)
     end
-end
-
-function StandardRules:spawnFood(state, num)
-    for i = 1, num do
-        local unoccupiedPoints = self:getUnoccupiedPoints(state, false)
-        if #unoccupiedPoints > 0 then
-            local newFood = unoccupiedPoints[love.math.random(#unoccupiedPoints)]
-            table.insert(state.food, newFood)
-        end
-    end
-end
-
-function StandardRules:getUnoccupiedPoints(state, includePossibleMoves)
-    -- N.B. Recall that Lua indexes tables starting at 1, so we need to add
-    -- 1 to the values for pointIsOccupied.
-
-    -- Create an empty grid
-    local pointIsOccupied = {}
-    for x = 1, state.width do
-        pointIsOccupied[x] = {}
-        for y = 1, state.height do
-            pointIsOccupied[x][y] = false
-        end
-    end
-
-    -- add food
-    for _, food in ipairs(state.food) do
-        pointIsOccupied[food.x + 1][food.y + 1] = true
-    end
-
-    -- add snakes
-    for _, snake in pairs(state.snakes) do
-        if snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
-            for i, body_point in ipairs(snake.body) do
-
-                -- There's a crash that can occur here because adding food takes place in between moving snakes
-                -- and eliminating them. So if a snake is out-of-bounds but not yet eliminated, that body part
-                -- will fall outside the bounds of the pointIsOccupied table. To work around this, double-check
-                -- that all body parts fall within the bounds of the game board, and skip over any that do not.
-                --
-                -- It doesn't seem like the official rules check for this? But the game works, so maybe it's just
-                -- something I don't understand about go array syntax  *shrug*
-                if body_point.x >= 0 and body_point.y >= 0 and body_point.x < state.width and body_point.y < state.height then
-
-                    pointIsOccupied[body_point.x + 1][body_point.y + 1] = true
-                    if i == 1 and not includePossibleMoves then
-                        local nextMovePoints = {
-                            {x = body_point.x - 1, y = body_point.y},
-                            {x = body_point.x + 1, y = body_point.y},
-                            {x = body_point.x, y = body_point.y - 1},
-                            {x = body_point.x, y = body_point.y + 1}
-                        }
-                        for _, next_point in ipairs(nextMovePoints) do
-                            if next_point.x > 0 and next_point.x < state.width then
-                                if next_point.y > 0 and next_point.y < state.height then
-                                    pointIsOccupied[next_point.x + 1][next_point.y + 1] = true
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
-
-    -- generate unoccupied points table
-    local unoccupiedPoints = {}
-    for x = 1, state.width do
-        for y = 1, state.height do
-            if not pointIsOccupied[x][y] then
-                table.insert(unoccupiedPoints, {x=x-1, y=y-1})
-            end
-        end
-    end
-
-    return unoccupiedPoints
-end
-
-function StandardRules:getEvenUnoccupiedPoints(state)
-
-    -- Start by getting unoccupied points
-    local unoccupiedPoints = self:getUnoccupiedPoints(state, true)
-
-    -- Create a new array to hold points that are even
-    local evenUnoccupiedPoints = {}
-
-    for _, point in ipairs(unoccupiedPoints) do
-        if (point.x + point.y) % 2 == 0 then
-            table.insert(evenUnoccupiedPoints, point)
-        end
-    end
-    return evenUnoccupiedPoints
-
 end
 
 function StandardRules:isGameOver(state)

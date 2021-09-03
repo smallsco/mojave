@@ -30,6 +30,9 @@ Under Squads rules, all snakes are assigned to one of up to four squads. Snakes 
 
 Constrictor
 Under Constrictor rules, there is no food on the board. Instead, snakes will grow on every turn, with their tail locked to their starting position. This is also known as a Tron game.
+
+Wrapped
+Under Wrapped rules, if a snake crosses the edge of the board, instead of being killed, it will re-enter the board from the opposite edge.
         ]])
         imgui.Text("\n")
     end

@@ -13,30 +13,25 @@ function RoyaleRules.new( opt )
 
     self.seed = opt.random_seed or os.time()
     self.ShrinkEveryNTurns = opt.shrink_every_n_turns or 25
-    self.DamagePerTurn = opt.damage_per_turn or 15
 
     return self
 end
 
 function RoyaleRules:createNextBoardState(prevState, moves)
-    if self.ShrinkEveryNTurns < 1 then
-        error("Royale game must shrink at least every turn")
+    if self.HazardDamagePerTurn < 1 then
+        error("Royale damage per turn must be greater than zero")
     end
 
-    -- Slight difference to the official ruleset here...
-    -- Mojave tracks the hazards in the state, so we can use that
-    -- when calling damageOutOfBounds() without needing to call
-    -- the populateOutOfBounds() function first to save performance.
-
     local nextBoardState = StandardRules.createNextBoardState(self, prevState, moves)
-    self:damageOutOfBounds(nextBoardState)
-    self:populateOutOfBounds(nextBoardState, nextBoardState.turn + 1)
+
+    -- Royale's only job is now to populate the hazards for next turn - StandardRules takes care of applying hazard damage.
+    self:populateHazards(nextBoardState, nextBoardState.turn + 1)
     return nextBoardState
 end
 
-function RoyaleRules:populateOutOfBounds(state, turn)
+function RoyaleRules:populateHazards(state, turn)
     if self.ShrinkEveryNTurns < 1 then
-        error("Royale game must shrink at least every turn")
+        error("Royale game can't shrink more frequently than every turn")
     end
 
     if turn < self.ShrinkEveryNTurns then
@@ -64,40 +59,16 @@ function RoyaleRules:populateOutOfBounds(state, turn)
         end
     end
 
-    local OutOfBounds = {}
+    local hazards = {}
     for x=0, state.width-1 do
         for y=0, state.height-1 do
             if x < minX or x > maxX or y < minY or y > maxY then
-                table.insert(OutOfBounds, {x=x, y=y})
+                table.insert(hazards, {x=x, y=y})
             end
         end
     end
-    state.hazards = OutOfBounds
+    state.hazards = hazards
 
-end
-
-function RoyaleRules:damageOutOfBounds(state)
-    if self.DamagePerTurn < 1 then
-        error("Royale damage per turn must be greater than zero")
-    end
-
-    for _, snake in pairs(state.snakes) do
-        if snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
-            local head = snake.body[1]
-            for _, p in ipairs(state.hazards) do
-                if head.x == p.x and head.y == p.y then
-                    -- Snake is now out of bounds, reduce health
-                    snake.health = snake.health - self.DamagePerTurn
-                    if snake.health < 0 then
-                        snake.health = 0
-                    end
-                    if self:snakeIsOutOfHealth(snake) then
-                        snake.eliminatedCause = Snake.ELIMINATION_CAUSES.EliminatedByOutOfHealth
-                    end
-                end
-            end
-        end
-    end
 end
 
 return RoyaleRules

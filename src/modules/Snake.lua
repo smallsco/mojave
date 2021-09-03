@@ -93,8 +93,11 @@ function Snake:refresh()
     if self.type == Snake.TYPES.API then
 
         -- Try the root endpoint, throw an error if there was an HTTP error
-        local resp, latency, err = Utils.http_request(self.url)
+        local resp, _, err = Utils.http_request(self.url)
         if not resp then
+            err = err .. "\n\nPlease make sure you have entered the snake name and URL in the correct fields"
+            err = err .. "\n(name should be in the first field, URL should be in the second field) and that"
+            err = err .. "\nyou have typed the URL correctly, including the protocol and port number."
             return false, err
         end
         local data = json.decode(resp)
@@ -103,7 +106,7 @@ function Snake:refresh()
         -- then check to see if there is a working /ping endpoint. If so, this is an API V0 snake.
         -- If not, throw an error because this isn't a snake at all.
         if (not data) or (not data.apiversion) then
-            local presp, platency, perr = Utils.http_request(self.url .. '/ping')
+            local presp, _, perr = Utils.http_request(self.url .. '/ping')
             if not presp then
                 return false, perr
             end

@@ -6,24 +6,18 @@ setmetatable( GameThread, {
   end,
 })
 
-GameThread.DEFAULT_STATE = {
-    id = "",
-    food = {},
-    hazards = {},
-    snakes = {},
-    turn = 0,
-    width = 0,
-    height = 0
-}
 GameThread.RULES_STANDARD = 1
 GameThread.RULES_ROYALE = 2
 GameThread.RULES_SQUADS = 3
 GameThread.RULES_CONSTRICTOR = 4
+GameThread.RULES_WRAPPED = 5
 
 -- Constructor
 function GameThread.new(opt)
     local self = setmetatable( {}, GameThread )
     opt = opt or {}
+
+    self.max_turns = opt.max_turns
 
     -- Set up communication channels to the main thread
     self.channel = love.thread.getChannel("game")
@@ -59,10 +53,8 @@ function GameThread.new(opt)
         squad_map = opt.squad_map,
         food_spawn_chance = config.gameplay.foodSpawnChance,
         minimum_food = config.gameplay.minimumFood,
-        max_health = config.gameplay.maxHealth,
-        start_size = config.gameplay.startSize,
         shrink_every_n_turns = config.royale.shrinkEveryNTurns,
-        damage_per_turn = config.royale.damagePerTurn,
+        hazard_damage_per_turn = config.royale.damagePerTurn,
         allow_body_collisions = config.squads.allowBodyCollisions,
         shared_elimination = config.squads.sharedElimination,
         shared_health = config.squads.sharedHealth,
@@ -85,11 +77,17 @@ function GameThread.new(opt)
     elseif opt.rules == GameThread.RULES_CONSTRICTOR then
         self.ruleset = "constrictor"
         self.rules = ConstrictorRules(rules_options)
+    elseif opt.rules == GameThread.RULES_WRAPPED then
+        self.ruleset = "wrapped"
+        self.rules = WrappedRules(rules_options)
     end
 
     -- Create turn 0 (initial board state)
     -- Note: Lua arrays start at 1, so turn 0 is at index 1, turn 1 is at index 2, etc.
-    self.state = self.rules:createInitialBoardState(opt.width, opt.height, opt.snakes)
+    local initial_state = BoardState.newBoardState(opt.width, opt.height)
+    BoardState.placeSnakesAutomatically(initial_state, opt.snakes)
+    BoardState.placeFoodAutomatically(initial_state)
+    self.state = self.rules:modifyInitialBoardState(initial_state)
     self.state.id = Utils.generateUUID()
 
     -- Query each snake for the game start
@@ -225,11 +223,30 @@ end
 function GameThread:buildMoveJson(snake)
     local move_json = {}
 
+    local settings = {
+        foodSpawnChance=config.gameplay.foodSpawnChance,
+        minimumFood=config.gameplay.minimumFood,
+        hazardDamagePerTurn=config.royale.damagePerTurn,
+        royale={
+            shrinkEveryNTurns=config.royale.shrinkEveryNTurns
+        },
+        squad={
+            allowBodyCollisions=config.squads.allowBodyCollisions,
+            sharedElimination=config.squads.sharedElimination,
+            sharedHealth=config.squads.sharedHealth,
+            sharedLength=config.squads.sharedLength
+        }
+    }
+    if snake.apiversion == 0 then
+        settings = nil
+    end
+
     move_json.game = {
         id=self.state.id,
         ruleset={
             name=self.ruleset,
-            version=string.format("Mojave/%s", Utils.MOJAVE_VERSION)
+            version=string.format("Mojave/%s", Utils.MOJAVE_VERSION),
+            settings=settings
         },
         timeout=config.gameplay.responseTime
     }
@@ -252,11 +269,9 @@ function GameThread:buildMoveJson(snake)
             body=other_snake.body,
             health=other_snake.health,
             shout=other_snake.shout or "",
-            latency=tostring(other_snake.latency)
+            latency=tostring(other_snake.latency),
+            squad=tostring(other_snake.squad or "")
         }
-        if self.ruleset == "squad" then
-            snake_json.squad = tostring(other_snake.squad)
-        end
         if other_snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
             table.insert(move_json.board.snakes, snake_json)
         end
@@ -270,11 +285,9 @@ function GameThread:buildMoveJson(snake)
         body=snake.body,
         health=snake.health,
         shout=snake.shout or "",
-        latency=tostring(snake.latency)
+        latency=tostring(snake.latency),
+        squad=tostring(snake.squad or "")
     }
-    if self.ruleset == "squad" then
-        move_json.you.squad = tostring(snake.squad)
-    end
 
     return json.encode(move_json)
 end
@@ -513,7 +526,7 @@ end
 function GameThread:tick()
 
     -- Check for game over
-    if self.rules:isGameOver(self.state) then
+    if self.rules:isGameOver(self.state) or (self.max_turns > 0 and self.state.turn >= self.max_turns) then
         self:requestEnds()
         self.cmdChannel:push('exit')
         return

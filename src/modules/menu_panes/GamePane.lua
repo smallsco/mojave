@@ -26,6 +26,8 @@ function GamePane.draw()
             newGameType = imgui.RadioButton( "Squads", newGameType, GameThread.RULES_SQUADS )
             imgui.SameLine()
             newGameType = imgui.RadioButton( "Constrictor", newGameType, GameThread.RULES_CONSTRICTOR )
+            imgui.SameLine()
+            newGameType = imgui.RadioButton( "Wrapped", newGameType, GameThread.RULES_WRAPPED )
             imgui.Text( "\n" )
         end
 
@@ -246,7 +248,8 @@ function GamePane.draw()
                             height = config[ 'gameplay' ][ 'boardHeight' ],
                             snakes = snakesForGame,
                             rules = newGameType,
-                            squad_map = squadsForGame
+                            squad_map = squadsForGame,
+                            max_turns = config[ 'gameplay' ][ 'maxTurns' ]
                         })
                     end)
                     if not createGameOK then

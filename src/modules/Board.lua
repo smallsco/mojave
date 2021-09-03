@@ -229,6 +229,10 @@ function Board:drawRaw( state, draw_grid )
         if #snake.body > 1 then
             local dx = snake.body[1].x - snake.body[2].x
             local dy = snake.body[1].y - snake.body[2].y
+            if dy > 1 then dy = -1 end
+            if dy < -1 then dy = 1 end
+            if dx > 1 then dx = -1 end
+            if dx < -1 then dx = 1 end
             if dx == -1 and dy == 0 then
                 headDir = 'left'
             elseif dx == 0 and dy == -1 then
@@ -254,6 +258,10 @@ function Board:drawRaw( state, draw_grid )
                 end
                 local dx = px - snake.body[#snake.body].x
                 local dy = py - snake.body[#snake.body].y
+                if dy > 1 then dy = -1 end
+                if dy < -1 then dy = 1 end
+                if dx > 1 then dx = -1 end
+                if dx < -1 then dx = 1 end
                 if dx == -1 and dy == 0 then
                     tailDir = 'left'
                 elseif dx == 0 and dy == -1 then

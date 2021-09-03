@@ -1,5 +1,26 @@
 ## CHANGELOG
 
+### v3.2 (2021-09-02)
+
+* Updated Battlesnake Client API:
+    * Ruleset configuration parameters are now sent to API v1 snakes in the move JSON.
+    * "squad" is now always sent as part of the move JSON.
+* Ported changes from latest Battlesnake Rules (v1.0.22):
+    * Moved board generation logic out of StandardRules.
+    * StandardRules is now responsible for applying hazard damage.
+    * Snake health is not reduced when eating food in a hazard.
+* Added support for the Wrapped game mode.
+* Added a config option to optionally limit the number of turns that a game can run for.
+* Reduced the default hazard damage to 14 (Note: if you are upgrading from a previous version, you will need to make this change in the Options yourself)
+* Minor UX improvements:
+    * Added some text to the Options screen to make it clear that changes to options, while having immediate effect, do not persist unless the save button is pressed.
+    * Added some text to the error dialog when trying to add a new snake that says to double-check that the name and URL were entered into the correct fields.
+    * Centered the Save / Revert Options buttons to make them more prominent.
+    * Left-aligned the text field labels when adding a new snake.
+* Snake shouts can now be viewed under the latency when hovering over a snake avatar during a game.
+* Disabled some debugging messages that could cause confusion when launching the game for the first time under Linux.
+* Added additional head and tail images.
+
 ### v3.1.6 (2021-07-19)
 
 * Squad games now send the correct ruleset name in the snake request JSON.
@@ -42,48 +63,48 @@
 Mojave 3.0 is a significant rewrite, much like 2.0 was. There are many changes, the notable ones are listed below:
 
 * Appearance
-    * Added application icon (but only when the app is running).
-    * Updated to a more recent version of _dear imgui_ and tweaked UI colors.
-    * Replaced static vignette image with a shader powered by _Moonshine_. Vignette properties can be configured.
-  		* This lays the groundwork for adding other moonshine effects in the future, i.e. filmgrain.
-    * The renderer is now capped at 60 FPS, significantly reducing CPU usage.
+	* Added application icon (but only when the app is running).
+	* Updated to a more recent version of _dear imgui_ and tweaked UI colors.
+	* Replaced static vignette image with a shader powered by _Moonshine_. Vignette properties can be configured.
+		* This lays the groundwork for adding other moonshine effects in the future, i.e. filmgrain.
+	* The renderer is now capped at 60 FPS, significantly reducing CPU usage.
 	* Snakes built on API V1, plus human and robo snakes will have preview images rendered in menus.
-    * All snakes will have a preview rendered during the game.
+	* All snakes will have a preview rendered during the game.
 	* Control buttons for advancing, pausing, rewinding the game now use image labels.
 	* When running in fullscreen mode, the game board will be scaled and the snake stats pane will retain a fixed width.
 	* Shrunk food size so that it stays within its tile when rotating.
 	* Added a tile fade effect for hazards.
 	* All animations can now be disabled via the options menu for improved performance on older computers.
 * Gameplay
-    * The [official Battlesnake rules](https://github.com/BattlesnakeOfficial/rules) have been open-sourced, so I have ported them to Lua for use in Mojave. This means that Mojave should now fully exhibit the same behavior (and bugs) as the official game board, at least when it comes to gameplay.
-    * Dropped support for the 2016 Battlesnake API.
-    * Renamed the 2019 API version to V0 and implemented support for the V1 API.
-    * Dropped support for deprecated game features (gold, walls, avatars, and taunts).
-  		* Shouts will be used as taunts for the 2017/2018 API requests.
-    * Added support for Royale, Squads, and Constrictor game modes.
-    * Added support for hazards.
-    * Added support for post-2018 head and tail types.
+	* The [official Battlesnake rules](https://github.com/BattlesnakeOfficial/rules) have been open-sourced, so I have ported them to Lua for use in Mojave. This means that Mojave should now fully exhibit the same behavior (and bugs) as the official game board, at least when it comes to gameplay.
+	* Dropped support for the 2016 Battlesnake API.
+	* Renamed the 2019 API version to V0 and implemented support for the V1 API.
+	* Dropped support for deprecated game features (gold, walls, avatars, and taunts).
+		* Shouts will be used as taunts for the 2017/2018 API requests.
+	* Added support for Royale, Squads, and Constrictor game modes.
+	* Added support for hazards.
+	* Added support for post-2018 head and tail types.
 	* Added support for stepping back through games.
 	* Stepping forward through games will no longer generate API calls if the turn has already been played.
 	* Hover over a snake in the stats pane during an active game to view that snake's latency.
 	* Press the "Debug" button above a snake in the stats pane during an active game to copy the request/response JSON for that turn to the clipboard.
 * Bug Fixes
-    * You can no longer start a game without any snakes.
+	* You can no longer start a game without any snakes.
 * Other
-    * Relicensed Mojave under GPL 3.0. This was required in order to bundle the latest Battlesnake head and tail images, and port the rules, which are AGPL-licensed.
-    * Replaced all music and sound effects (this was a side effect of relicensing).
-    * Mojave now runs the game in a separate thread from the GUI. This makes the GUI significantly more responsive when a game is in progress.    
+	* Relicensed Mojave under GPL 3.0. This was required in order to bundle the latest Battlesnake head and tail images, and port the rules, which are AGPL-licensed.
+	* Replaced all music and sound effects (this was a side effect of relicensing).
+	* Mojave now runs the game in a separate thread from the GUI. This makes the GUI significantly more responsive when a game is in progress.    
 	* Incorporated _libcurl_ in order to support snakes over HTTPS and simultaneous requests.
-    * Moved the appdata directory to "mojave3" so that we can run side-by-side with 2.x and earlier versions.
-    * Updated game engine to LÖVE 11.3, which has changed system requirements.
-        * Windows:
-		    * Dropped support for Windows XP. The minimum OS requirement is now Windows Vista.
+	* Moved the appdata directory to "mojave3" so that we can run side-by-side with 2.x and earlier versions.
+	* Updated game engine to LÖVE 11.3, which has changed system requirements.
+		* Windows:
+			* Dropped support for Windows XP. The minimum OS requirement is now Windows Vista.
 			* The Microsoft Visual C++ 2017 Redistributable package is now required to run the game.
-    	* Mac:
-		    * The minimum OS requirement is now Mac OS 10.14 (also called Mojave...)
-		    * Added support for macOS 11 (Big Sur).
-		    * Apple Silicon (ARM) based machines are not natively supported at this time. They should be able to run the game under emulation, though this hasn't been tested.
-	    * All: A 64-bit operating system is now required. 
+		* Mac:
+			* The minimum OS requirement is now Mac OS 10.14 (also called Mojave...)
+			* Added support for macOS 11 (Big Sur).
+			* Apple Silicon (ARM) based machines are not natively supported at this time. They should be able to run the game under emulation, though this hasn't been tested.
+		* All: A 64-bit operating system is now required. 
 
 ### v2.9 (2019-03-06)
 
