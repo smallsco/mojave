@@ -2,21 +2,35 @@ local OptionsPane = {}
 
 function OptionsPane.draw()
 
-    -- Save Options top button
-    if imgui.Button( "Save Changes##top", imgui.GetWindowContentRegionWidth() * 0.2, 50 ) then
-        local ok = love.filesystem.write( 'config.json', json.encode( config ) )
-        if not ok then
-            error( 'Unable to write config.json' )
-        end
-        imgui.OpenPopup( "SaveOptions" )
-    end
+    -- Positioning for buttons
+    local buttonWidth = imgui.GetWindowContentRegionWidth() * 0.2
+    local buttonX = ( imgui.GetWindowContentRegionWidth() * 0.5 ) - ( buttonWidth )
 
-    -- Revert Options top button
-    imgui.SameLine()
-    if imgui.Button( "Revert Changes##top", imgui.GetWindowContentRegionWidth() * 0.2, 50 ) then
-        imgui.OpenPopup( "RevertOptions" )
+    -- Save and Revert (top)
+    if imgui.CollapsingHeader( "Save & Revert##otop", { "DefaultOpen" } ) then
+        imgui.TextWrapped([[
+Changes will take effect immediately, but will not be saved across application restarts unless the "Save Options" button below is pressed.
+]])
+        imgui.Text("\n")
+
+        -- Save Options top button
+        imgui.Text( "" )
+        imgui.SameLine( buttonX )
+        if imgui.Button( "Save Changes##top", buttonWidth, 50 ) then
+            local ok = love.filesystem.write( 'config.json', json.encode( config ) )
+            if not ok then
+                error( 'Unable to write config.json' )
+            end
+            imgui.OpenPopup( "SaveOptions" )
+        end
+
+        -- Revert Options top button
+        imgui.SameLine()
+        if imgui.Button( "Revert Changes##top", buttonWidth, 50 ) then
+            imgui.OpenPopup( "RevertOptions" )
+        end
+        imgui.Text("\n")
     end
-    imgui.Text("\n")
 
     -- Appearance Options
     if imgui.CollapsingHeader( "Appearance", { "DefaultOpen" } ) then
@@ -77,6 +91,8 @@ function OptionsPane.draw()
         imgui.SameLine()
         config.gameplay.maxHealth = imgui.InputInt( "Maximum Health", config.gameplay.maxHealth)
         config.gameplay.startSize = imgui.InputInt( "Start Size             ", config.gameplay.startSize)
+        imgui.SameLine()
+        config.gameplay.maxTurns = imgui.InputInt( "Turn Limit (0 to disable)", config.gameplay.maxTurns)
         imgui.PopItemWidth()
         imgui.Text( "\n" )
     end
@@ -119,14 +135,34 @@ function OptionsPane.draw()
         imgui.Text( "\n" )
     end
 
-    -- Save Options button and dialog
-    if imgui.Button( "Save Changes##bottom", imgui.GetWindowContentRegionWidth() * 0.2, 50 ) then
-        local ok = love.filesystem.write( 'config.json', json.encode( config ) )
-        if not ok then
-            error( 'Unable to write config.json' )
+    -- Save and Revert (bottom)
+    if imgui.CollapsingHeader( "Save & Revert##obottom", { "DefaultOpen" } ) then
+
+        imgui.TextWrapped([[
+Changes will take effect immediately, but will not be saved across application restarts unless the "Save Options" button below is pressed.
+]])
+        imgui.Text("\n")
+
+        -- Save Options bottom button
+        imgui.Text( "" )
+        imgui.SameLine( buttonX )
+        if imgui.Button( "Save Changes##bottom", buttonWidth, 50 ) then
+            local ok = love.filesystem.write( 'config.json', json.encode( config ) )
+            if not ok then
+                error( 'Unable to write config.json' )
+            end
+            imgui.OpenPopup( "SaveOptions" )
         end
-        imgui.OpenPopup( "SaveOptions" )
+
+        -- Revert Options bottom button
+        imgui.SameLine()
+        if imgui.Button( "Revert Changes##bottom", buttonWidth, 50 ) then
+            imgui.OpenPopup( "RevertOptions" )
+        end
+
     end
+
+    -- Save Options dialog
     if imgui.BeginPopupModal( "SaveOptions", nil, { "NoResize" } ) then
         imgui.Text( "Configuration changes have been saved.\n\n" )
         imgui.Separator()
@@ -136,11 +172,7 @@ function OptionsPane.draw()
         imgui.EndPopup()
     end
 
-    -- Revert Options button and dialog
-    imgui.SameLine()
-    if imgui.Button( "Revert Changes##bottom", imgui.GetWindowContentRegionWidth() * 0.2, 50 ) then
-        imgui.OpenPopup( "RevertOptions" )
-    end
+    -- Revert Options dialog
     if imgui.BeginPopupModal( "RevertOptions", nil, { "NoResize" } ) then
         imgui.Text( "Are you sure you want to revert your changes?\n\n" )
         imgui.Separator()
@@ -154,7 +186,6 @@ function OptionsPane.draw()
         end
         imgui.EndPopup()
     end
-
 end
 
 return OptionsPane

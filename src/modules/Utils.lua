@@ -2,7 +2,7 @@ local Utils = {}
 local ffi = require 'ffi'
 
 -- Version constant
-Utils.MOJAVE_VERSION = '3.1.6'
+Utils.MOJAVE_VERSION = '3.2'
 
 -- Shared Library Hashes (used for library updates)
 -- If these change, we'll re-extract the corresponding library when the app starts.
@@ -51,11 +51,12 @@ Utils.DEFAULT_CONFIG = {
         foodSpawnChance = 15,
         minimumFood = 1,
         maxHealth = 100,
-        startSize = 3
+        startSize = 3,
+        maxTurns = 0
     },
     royale = {
         shrinkEveryNTurns = 25,
-        damagePerTurn = 15
+        damagePerTurn = 14
     },
     squads = {
         allowBodyCollisions = true,
@@ -236,13 +237,13 @@ function Utils.check_shared_library(name)
     libName = libName[os]
     local contents, _ = love.filesystem.read( 'data', string.format( '%s', libName ) )
     if not contents then
-        print( 'Missing shared library ' .. name .. ' will be extracted' )
+        --print( 'Missing shared library ' .. name .. ' will be extracted' )
         return false
     end
     local hash = love.data.encode( 'string', 'hex', love.data.hash( 'md5', contents ) )
     local expected_hash = Utils.SHARED_LIBRARY_MD5_HASHES[name][os]
     if hash ~= expected_hash then
-        print( 'Modified shared library ' .. name .. ' will be extracted' )
+        --print( 'Modified shared library ' .. name .. ' will be extracted' )
         return false
     end
     return true
@@ -352,12 +353,12 @@ function Utils.get_or_create_config()
     -- so add anything missing.
     for k, v in pairs( default_config ) do
         if config[k] == nil then
-            print( 'Missing config option ' .. k )
+            --print( 'Missing config option ' .. k )
             config[k] = v
         end
         for subk, subv in pairs(default_config[k]) do
             if config[k][subk] == nil then
-                print(string.format('Missing %s config option %s', k, subk))
+                --print(string.format('Missing %s config option %s', k, subk))
                 config[k][subk] = subv
             end
         end

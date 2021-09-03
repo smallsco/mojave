@@ -46,7 +46,8 @@ function Game.new( opt )
         snakes = self.opt.snakes,
         width = self.opt.width,
         height = self.opt.height,
-        squad_map = self.opt.squad_map or {}
+        squad_map = self.opt.squad_map or {},
+        max_turns = self.opt.max_turns or 0
     })
 
     -- Create an empty board
@@ -279,7 +280,7 @@ function Game:draw()
             -- Name / Health Bar / Length / Kills
             imgui.SetColumnWidth( 0, 60 )
             imgui.TextWrapped(snake.name)
-            local xpos, ypos = imgui.GetCursorPos()
+            local xpos, _ = imgui.GetCursorPos()
             if snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
                 local snakeColor
                 if snake.squad then
@@ -349,8 +350,9 @@ end
 -- Render the latency tooltip when hovering over snake preview
 function Game:drawLatency(snake)
     imgui.BeginTooltip()
-    imgui.Text(string.format("Current Latency: %sms", snake.latency))
     imgui.PlotLines("", self.latencyHistory[snake.id], #self.latencyHistory[snake.id])
+    imgui.Text(string.format("Latency: %sms", snake.latency))
+    imgui.TextWrapped(string.format("Shout: %s", snake.shout))
     imgui.EndTooltip()
 end
 

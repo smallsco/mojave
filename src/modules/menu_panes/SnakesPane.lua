@@ -21,12 +21,12 @@ function SnakesPane.draw()
         -- Grab head and tail names
         local snakeHeadsSelect = {}
         local snakeTailsSelect = {}
-        for k, v in pairs(snakeHeads) do
+        for k, _ in pairs(snakeHeads) do
             if not (Utils.string_starts_with(k, "bwc-") or Utils.string_starts_with(k, "bfl-") or Utils.string_starts_with(k, "shac-")) then
                 table.insert(snakeHeadsSelect, k)
             end
         end
-        for k, v in pairs(snakeTails) do
+        for k, _ in pairs(snakeTails) do
             if not (Utils.string_starts_with(k, "bwc-") or Utils.string_starts_with(k, "bfl-") or Utils.string_starts_with(k, "shac-")) then
                 table.insert(snakeTailsSelect, k)
             end
@@ -49,21 +49,35 @@ function SnakesPane.draw()
         else
             imgui.PushItemWidth(imgui.GetWindowContentRegionWidth() * 0.33)
         end
-        newSnakeName = imgui.InputText( "Name", newSnakeName, 256 )
+        imgui.AlignTextToFramePadding()
+        imgui.Text("Name")
+        imgui.SameLine()
+        newSnakeName = imgui.InputText( "##Name", newSnakeName, 256 )
         imgui.SameLine()
         if newSnakeType == Snake.TYPES.API or newSnakeType == Snake.TYPES.API_OLD then
-            newSnakeURL = imgui.InputText( "URL", newSnakeURL, 256 )
-        else
-            newSnakeColor = {imgui.ColorEdit3("Color", unpack(newSnakeColor))}
-            newSnakeHead = imgui.Combo("Head", newSnakeHead, snakeHeadsSelect, #snakeHeadsSelect)
+            imgui.Text("URL")
             imgui.SameLine()
-            newSnakeTail = imgui.Combo("Tail", newSnakeTail, snakeTailsSelect, #snakeTailsSelect)
+            newSnakeURL = imgui.InputText( "##URL", newSnakeURL, 256 )
+        else
+            imgui.Text("Color")
+            imgui.SameLine()
+            newSnakeColor = {imgui.ColorEdit3("##Color", unpack(newSnakeColor))}
+            imgui.AlignTextToFramePadding()
+            imgui.Text("Head")
+            imgui.SameLine()
+            newSnakeHead = imgui.Combo("##Head", newSnakeHead, snakeHeadsSelect, #snakeHeadsSelect)
+            imgui.SameLine()
+            imgui.Text("Tail")
+            imgui.SameLine()
+            newSnakeTail = imgui.Combo("##Tail", newSnakeTail, snakeTailsSelect, #snakeTailsSelect)
         end
         imgui.SameLine()
         imgui.PopItemWidth()
         if newSnakeType == Snake.TYPES.API_OLD then
             imgui.PushItemWidth(imgui.GetWindowContentRegionWidth() * 0.10)
-            newSnakeYear = imgui.Combo("Year", newSnakeYear, snakeyears, #snakeyears)
+            imgui.Text("Year")
+            imgui.SameLine()
+            newSnakeYear = imgui.Combo("##Year", newSnakeYear, snakeyears, #snakeyears)
             imgui.SameLine()
             imgui.PopItemWidth()
         end
@@ -79,7 +93,7 @@ function SnakesPane.draw()
         end
 
         -- Add button
-        if imgui.Button( "Add Snake", 100, 20 ) then
+        if imgui.Button( "Add Snake", 90, 20 ) then
             local newSnakeOpts = {
                 type = newSnakeType,
                 name = newSnakeName
