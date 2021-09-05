@@ -30,8 +30,8 @@ function GameThread.new(opt)
 
     -- Set some default snake properties that aren't rule-based
     local numSnakes = 0
+    local snakesWithBodies = 0
     for _, snake in pairs(opt.snakes) do
-        snake.body = {}
         snake.eliminatedCause = Snake.ELIMINATION_CAUSES.NotEliminated
         snake.eliminatedBy = ""
         snake.age = 0
@@ -42,6 +42,12 @@ function GameThread.new(opt)
         snake.request = ""
         snake.response = ""
         numSnakes = numSnakes + 1
+
+        if snake.body then
+            snakesWithBodies = snakesWithBodies + 1
+        else
+            snake.body = {}
+        end
 
         if snake.type == Snake.TYPES.ROBOSNAKE then
             self.coroutines[snake.id] = coroutine.create(RobosnakeMkIII.move)
@@ -85,7 +91,21 @@ function GameThread.new(opt)
     -- Create turn 0 (initial board state)
     -- Note: Lua arrays start at 1, so turn 0 is at index 1, turn 1 is at index 2, etc.
     local initial_state = BoardState.newBoardState(opt.width, opt.height)
-    BoardState.placeSnakesAutomatically(initial_state, opt.snakes)
+    if snakesWithBodies > 0 then
+        -- Manually place snakes
+        for _, snake in pairs(opt.snakes) do
+            if #snake.body == 0 then
+                error("Empty snake body")
+            end
+
+            -- This is a bit silly since the snake's body is _already_ attached to the snake
+            -- but I want to keep the BoardState interface identical to the official rules :\
+            BoardState.placeSnake(initial_state, snake, snake.body)
+        end
+    else
+        -- Automatically place snakes
+        BoardState.placeSnakesAutomatically(initial_state, opt.snakes)
+    end
     BoardState.placeFoodAutomatically(initial_state)
     self.state = self.rules:modifyInitialBoardState(initial_state)
     self.state.id = Utils.generateUUID()

@@ -1,5 +1,11 @@
 ## CHANGELOG
 
+### v3.2.1 (2021-09-04)
+* Manual placement of snakes on the game board is now supported, although we don't use this anywhere yet.
+* Corrected the text on the Options screen because in some cases, you actually need to press Save Changes for the changes to take effect. Also I had the name of the button wrong...
+* Fixed an edge case where hazard damage would default to 15 instead of 14.
+* Minor portability fixes.
+
 ### v3.2 (2021-09-02)
 
 * Updated Battlesnake Client API:

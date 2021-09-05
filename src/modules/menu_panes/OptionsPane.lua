@@ -9,7 +9,7 @@ function OptionsPane.draw()
     -- Save and Revert (top)
     if imgui.CollapsingHeader( "Save & Revert##otop", { "DefaultOpen" } ) then
         imgui.TextWrapped([[
-Changes will take effect immediately, but will not be saved across application restarts unless the "Save Options" button below is pressed.
+Changes will not take effect until the "Save Changes" button below is pressed.
 ]])
         imgui.Text("\n")
 
@@ -139,7 +139,7 @@ Changes will take effect immediately, but will not be saved across application r
     if imgui.CollapsingHeader( "Save & Revert##obottom", { "DefaultOpen" } ) then
 
         imgui.TextWrapped([[
-Changes will take effect immediately, but will not be saved across application restarts unless the "Save Options" button below is pressed.
+Changes will not take effect until the "Save Changes" button below is pressed.
 ]])
         imgui.Text("\n")
 

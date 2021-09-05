@@ -12,7 +12,7 @@ function StandardRules.new( opt )
 
     self.FoodSpawnChance = opt.food_spawn_chance or 15
     self.MinimumFood = opt.minimum_food or 1
-    self.HazardDamagePerTurn = opt.hazard_damage_per_turn or 15
+    self.HazardDamagePerTurn = opt.hazard_damage_per_turn or 14
 
     return self
 end
@@ -136,8 +136,8 @@ function StandardRules:maybeEliminateSnakes(state)
     -- First order snake indices by length.
     -- In multi-collision scenarios we want to always attribute elimination to the longest snake.
     local snakeIDsByLength = {}
-    for id, _ in pairs(state.snakes) do
-        table.insert(snakeIDsByLength, id)
+    for _, snake in pairs(state.snakes) do
+        table.insert(snakeIDsByLength, snake.id)
     end
     table.sort(snakeIDsByLength, function(i, j)
         local len_i = #state.snakes[i].body
@@ -236,8 +236,8 @@ function StandardRules:maybeEliminateSnakes(state)
 
     -- Apply collision elimimations
     for _, elimination in ipairs(collisionEliminations) do
-        for id, snake in pairs(state.snakes) do
-            if id == elimination.id then
+        for _, snake in pairs(state.snakes) do
+            if snake.id == elimination.id then
                 snake.eliminatedCause = elimination.cause
                 snake.eliminatedBy = elimination.by
             end
