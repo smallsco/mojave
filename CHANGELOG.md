@@ -1,6 +1,19 @@
 ## CHANGELOG
 
+### v3.3 (2021-09-26)
+
+* Mojave can now run at higher resolutions!
+    * The game window can be resized, both at the menu and while a game is in progress.
+    * The menu background now draws correctly if the game is launched in fullscreen mode.
+    * The menu UI scales up correctly if the window is resized or the game enters fullscreen mode.
+    * Do note that the minimum required resolution remains 1280x720.
+    * There is still UI work to be done to improve _usability_ at higher resolutions, but much of the foundational work is now complete.
+* Added the ability to spawn food and hazards deterministically when starting a game, although we're not using it anywhere yet.
+* Timeouts used when adding a snake are now hardcoded to 5 seconds rather than using the in-game timeout.
+* Added additional head and tail images.
+
 ### v3.2.1 (2021-09-04)
+
 * Manual placement of snakes on the game board is now supported, although we don't use this anywhere yet.
 * Corrected the text on the Options screen because in some cases, you actually need to press Save Changes for the changes to take effect. Also I had the name of the button wrong...
 * Fixed an edge case where hazard damage would default to 15 instead of 14.

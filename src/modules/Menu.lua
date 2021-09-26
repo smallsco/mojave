@@ -7,6 +7,7 @@ local OptionsPane = require 'modules.menu_panes.OptionsPane'
 local SnakesPane = require 'modules.menu_panes.SnakesPane'
 
 local defaultFont = love.graphics.newFont( 12 )
+defaultFont:setFilter("nearest", "nearest")
 local logoFont = love.graphics.newFont( 'fonts/monoton/Monoton-RXOM.ttf', 144 )
 local bgVignette = moonshine( moonshine.effects.vignette )
 bgVignette.vignette.radius = 1
@@ -38,13 +39,22 @@ function Menu.update( dt )
         end
     end
 
-    -- Check fullscreen state
+    -- If we toggle the fullscreen checkbox, switch fullscreen mode and resize vignette
     if config.appearance.fullscreen ~= love.window.getFullscreen() then
         love.window.setFullscreen( config.appearance.fullscreen )
+
+        -- Note, we still need to do this because the resize callback isn't necessarily called
+        -- when entering or exiting fullscreen.
+        -- see: https://love2d.org/wiki/love.resize
         screenWidth, screenHeight = love.graphics.getDimensions()
         bgVignette.resize(screenWidth, screenHeight)
     end
 
+end
+
+-- Callback to execute when the window is resized
+function Menu.resize(width, height)
+    bgVignette.resize(width, height)
 end
 
 -- Menu render loop
@@ -65,26 +75,23 @@ function Menu.draw()
 
     -- Footer text
     love.graphics.setFont( defaultFont )
-    love.graphics.printf( "©2017-2021 Scott Small and contributors", 0, screenHeight*0.95, screenWidth, "center" )
-    love.graphics.print( Utils.MOJAVE_VERSION, screenWidth*0.970, screenHeight*0.970 )
-    
+    love.graphics.printf( "©2017-2021 Scott Small and contributors", 0, screenHeight-25, screenWidth, "center" )
+    love.graphics.print( Utils.MOJAVE_VERSION, screenWidth-40, screenHeight-25 )
+
     -- Render Main Menu
-    imgui.SetNextWindowSize(
-        screenWidth - ( screenWidth * 0.1 ),    -- 90% of screen width
-        screenHeight - ( screenHeight * 0.4 )   -- 60% of screen height
-    )
-    imgui.SetNextWindowPos(
-        screenWidth - ( screenWidth * 0.95 ),
-        screenHeight - ( screenHeight * 0.675 )
-    )
+    local menuWidth = screenWidth - ( screenWidth * 0.1 )    -- 90% of screen width
+    local menuHeight = screenHeight - 290
+    imgui.SetNextWindowSize(menuWidth, menuHeight)
+    imgui.SetNextWindowPos( screenWidth - ( screenWidth * 0.95 ), 235)
     if imgui.Begin( "Menu", nil, { "NoResize", "NoCollapse", "NoTitleBar" } ) then
 
         -- Left Pane
         imgui.BeginChild( "Sub1", imgui.GetWindowContentRegionWidth() * 0.5, 0 )
 
-            imgui.PushStyleVar( "ItemSpacing", 8, 24 )
-            local buttonWidth = 200
-            local buttonHeight = 50
+            -- Main Menu Buttons
+            imgui.PushStyleVar( "ItemSpacing", 8, screenHeight / 30 )
+            local buttonWidth = screenWidth * 0.15
+            local buttonHeight = screenHeight * 0.069
             local buttonX = ( imgui.GetWindowWidth() * 0.5 ) - ( buttonWidth / 2 )
             imgui.Text( "" )
             imgui.Text( "" )

@@ -2,7 +2,7 @@ local Utils = {}
 local ffi = require 'ffi'
 
 -- Version constant
-Utils.MOJAVE_VERSION = '3.2.1'
+Utils.MOJAVE_VERSION = '3.3'
 
 -- Shared Library Hashes (used for library updates)
 -- If these change, we'll re-extract the corresponding library when the app starts.
@@ -405,12 +405,15 @@ end
 
 -- Abstraction layer around libcurl so that I can write
 -- http requests using less code
-function Utils.http_request(url, postbody)
+function Utils.http_request(url, postbody, timeout)
+    if not timeout then
+        timeout = 500
+    end
     local t = {}
     local options = {
         useragent = "Mojave/" .. Utils.MOJAVE_VERSION,
         url = url,
-        timeout_ms = config.gameplay.responseTime,
+        timeout_ms = timeout,
         writefunction = function(data, size)
             if size == 0 then return end
             table.insert(t, ffi.string(data, size))
@@ -437,11 +440,14 @@ function Utils.http_request_multi(params)
     local m = curl.multi()
     local responses = {}
     for _, param in ipairs(params) do
+        if not param.timeout then
+            param.timeout = 500
+        end
         local t = {}
         local options = {
             useragent = "Mojave/" .. Utils.MOJAVE_VERSION,
             url = param.url,
-            timeout_ms = config.gameplay.responseTime,
+            timeout_ms = param.timeout,
             writefunction = function(data, size)
                 if size == 0 then return end
                 table.insert(t, ffi.string(data, size))

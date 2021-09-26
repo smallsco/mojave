@@ -46,8 +46,12 @@ function Game.new( opt )
         snakes = self.opt.snakes,
         width = self.opt.width,
         height = self.opt.height,
-        squad_map = self.opt.squad_map or {},
-        max_turns = self.opt.max_turns or 0
+        food_spawns = self.opt.food_spawns,
+        hazard_spawns = self.opt.hazard_spawns,
+        squad_map = self.opt.squad_map,
+        max_turns = self.opt.max_turns,
+        timeout = self.opt.timeout,
+        human_timeout = self.opt.human_timeout
     })
 
     -- Create an empty board
@@ -362,6 +366,11 @@ function Game:keypressed(key)
     if self.running then
         self.humanChannel:push(key)
     end
+end
+
+-- Resize callback
+function Game:resize(width, height)
+    self.board:resize(width, height)
 end
 
 -- Cleanly shut down the game thread and clear the message queues

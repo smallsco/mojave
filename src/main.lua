@@ -150,6 +150,16 @@ function love.draw()
     love.timer.sleep( next_time - cur_time )
 end
 
+function love.resize(width, height)
+    screenWidth = width
+    screenHeight = height
+    if activeGame then
+        activeGame:resize(width, height)
+    else
+        Menu.resize(width, height)
+    end
+end
+
 function love.quit()
     -- Cleanly destroy imgui when the app exits
     if imgui then

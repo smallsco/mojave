@@ -18,6 +18,10 @@ function GameThread.new(opt)
     opt = opt or {}
 
     self.max_turns = opt.max_turns
+    self.timeout = opt.timeout
+    self.human_timeout = opt.human_timeout
+    self.food_spawns = opt.food_spawns
+    self.hazard_spawns = opt.hazard_spawns
 
     -- Set up communication channels to the main thread
     self.channel = love.thread.getChannel("game")
@@ -106,7 +110,25 @@ function GameThread.new(opt)
         -- Automatically place snakes
         BoardState.placeSnakesAutomatically(initial_state, opt.snakes)
     end
+
+    -- Automatically place food on the board
+    -- TODO: watch what the official engine does with this, it might be getting deprecated?
     BoardState.placeFoodAutomatically(initial_state)
+
+    -- Manually place food for turn 0 on the board
+    for _, food in ipairs(self.food_spawns) do
+        if food.turn == 0 and not self:isPointOccupied(initial_state, food.x, food.y) then
+            table.insert(initial_state.food, {x=food.x, y=food.y})
+        end
+    end
+
+    -- Manually place hazards for turn 0 on the board
+    for _, hazard in ipairs(self.hazard_spawns) do
+        if hazard.turn == 0 and not self:isPointOccupied(initial_state, hazard.x, hazard.y) then
+            table.insert(initial_state.hazards, {x=hazard.x, y=hazard.y})
+        end
+    end
+
     self.state = self.rules:modifyInitialBoardState(initial_state)
     self.state.id = Utils.generateUUID()
 
@@ -268,7 +290,7 @@ function GameThread:buildMoveJson(snake)
             version=string.format("Mojave/%s", Utils.MOJAVE_VERSION),
             settings=settings
         },
-        timeout=config.gameplay.responseTime
+        timeout=self.timeout
     }
 
     move_json.turn = self.state.turn
@@ -322,6 +344,27 @@ function GameThread:handleCommand()
     return false
 end
 
+-- Checks to see if a point on the game board is currently occupied or not.
+-- Not sure the best place to put this function :\ It should belong in rules.BoardState
+-- but I want to keep that file identical to what's in the official rules.
+function GameThread:isPointOccupied(state, x, y)
+    for _, point in ipairs(state.food) do
+        if x == point.x and y == point.y then
+            return true
+        end
+    end
+    for _, snake in pairs(state.snakes) do
+        if snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
+            for _, point in ipairs(snake.body) do
+                if x == point.x and y == point.y then
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
+
 -- Make HTTP requests to snakes for the end of the game
 function GameThread:requestEnds()
     local apisnakes = {}
@@ -346,7 +389,8 @@ function GameThread:requestEnds()
         table.insert(requests, {
             id = snake.id,
             url = snake.url .. '/end',
-            postbody = request_json
+            postbody = request_json,
+            timeout = self.timeout
         })
     end
 
@@ -364,7 +408,7 @@ function GameThread:requestStart(snake)
         end
         snake.request = request_json
 
-        local resp, latency, err = Utils.http_request(snake.url .. '/start', request_json)
+        local resp, latency, err = Utils.http_request(snake.url .. '/start', request_json, self.timeout)
         if snake.apiversion == 0 or snake.type == Snake.TYPES.API_OLD then
             snake.color = {
                 love.math.random(0, 255) / 255,
@@ -453,7 +497,8 @@ function GameThread:requestMoves()
         table.insert(requests, {
             id = snake.id,
             url = snake.url .. '/move',
-            postbody = move_json
+            postbody = move_json,
+            timeout = self.timeout
         })
         snake.request = move_json
     end
@@ -521,12 +566,12 @@ function GameThread:requestMoves()
     end
 
     -- For Humans, when the user presses an arrow key, we put that event into a dedicated channel
-    -- that the game thread listens on. The thread blocks for humanResponseTime ms and if there is
-    -- no event in the channel after that time has elapsed, we return the default move. Otherwise
-    -- we grab the event from the channel and use it as the move.
+    -- that the game thread listens on. The thread blocks for human_timeout ms and if there is no
+    -- event in the channel after that time has elapsed, we return the default move. Otherwise we
+    -- grab the event from the channel and use it as the move.
     for _, snake in ipairs(humans) do
         local start_time = love.timer.getTime()
-        local move = self.humanChannel:demand(config.gameplay.humanResponseTime / 1000)
+        local move = self.humanChannel:demand(self.human_timeout / 1000)
         local end_time = love.timer.getTime()
         if move then
             moves[snake.id] = move
@@ -557,6 +602,7 @@ function GameThread:tick()
 
     -- Generate the next board state
     local new_state = self.rules:createNextBoardState(self.state, moves)
+    new_state.turn = new_state.turn + 1
     for id, snake in pairs(new_state.snakes) do
         snake.latency = latencies[id]
         snake.shout = shouts[id]
@@ -569,11 +615,24 @@ function GameThread:tick()
         end
 
     end
-    self.state = new_state
-    self.state.turn = self.state.turn + 1
+
+    -- Spawn Food
+    for _, food in ipairs(self.food_spawns) do
+        if food.turn == new_state.turn and not self:isPointOccupied(new_state, food.x, food.y) then
+            table.insert(new_state.food, {x=food.x, y=food.y})
+        end
+    end
+
+    -- Spawn Hazards
+    for _, hazard in ipairs(self.hazard_spawns) do
+        if hazard.turn == new_state.turn and not self:isPointOccupied(new_state, hazard.x, hazard.y) then
+            table.insert(new_state.hazards, {x=hazard.x, y=hazard.y})
+        end
+    end
 
     -- Send it to the main thread
-    self.channel:push(new_state)
+    self.state = new_state
+    self.channel:push(self.state)
 end
 
 return GameThread

@@ -26,46 +26,14 @@ function Board.new( opt )
     local self = setmetatable( {}, Board )
     opt = opt or {}
 
-    -- Size of the game board
-    self.boardWidth = screenWidth - 256
-    self.boardHeight = screenHeight
-
     -- How many tiles/squares to fit into boardWidth/boardHeight
     self.numTilesX = opt.width
     self.numTilesY = opt.height
 
-    -- Compute the width and height of each tile
-    self.tileWidth = self.boardWidth / self.numTilesX
-    self.tileHeight = self.boardHeight / self.numTilesY
+    -- The size of the gap between tiles
+    self.outlineSize = opt.outlineSize or 1
 
-    -- The "cell" is the part of each tile that we will actually draw
-    -- the rest of the tile is reserved to allow the background to show through
-    local outlineSize = opt.outlineSize or 1
-    self.cellWidth = self.tileWidth - outlineSize
-    self.cellHeight = self.tileHeight - outlineSize
-
-    -- Set up vignette, if enabled
-    if config.appearance.enableVignette then
-        -- in the future we could also enable other moonshine effects here, i.e. filmgrain
-        self.bgVignette = moonshine( self.boardWidth, self.boardHeight, moonshine.effects.vignette )
-        self.bgVignette.vignette.radius = config.appearance.vignetteRadius
-        self.bgVignette.vignette.opacity = config.appearance.vignetteOpacity
-        self.bgVignette.vignette.softness = config.appearance.vignetteSoftness
-        local vr, vg, vb = unpack(config.appearance.vignetteColor)
-        vr = vr * 255
-        vg = vg * 255
-        vb = vb * 255
-        self.bgVignette.vignette.color = {vr, vg, vb}
-    end
-
-    -- Create canvases for the bloom filter, if enabled
-    if config.appearance.enableBloom then
-        self.bloom = love.graphics.newCanvas( self.boardWidth/4, self.boardHeight/4 )
-        self.hblur = love.graphics.newCanvas( self.boardWidth/4, self.boardHeight/4 )
-        self.vblur = love.graphics.newCanvas( self.boardWidth/4, self.boardHeight/4 )
-        self.bloomscene = love.graphics.newCanvas( self.boardWidth, self.boardHeight )
-        self.scene = love.graphics.newCanvas( self.boardWidth, self.boardHeight )
-    end
+    self:resize(screenWidth, screenHeight)
 
     return self
 end
@@ -407,6 +375,48 @@ function Board:drawRaw( state, draw_grid )
 
     end
 
+end
+
+-- Computes the size of the components that make up the game board.
+-- This is run once when we init the board, and again whenever the
+-- game window is resized.
+function Board:resize(windowWidth, windowHeight)
+
+    -- Size of the game board
+    self.boardWidth = windowWidth - 256
+    self.boardHeight = windowHeight
+
+    -- Compute the width and height of each tile
+    self.tileWidth = self.boardWidth / self.numTilesX
+    self.tileHeight = self.boardHeight / self.numTilesY
+
+    -- The "cell" is the part of each tile that we will actually draw
+    -- the rest of the tile is reserved to allow the background to show through
+    self.cellWidth = self.tileWidth - self.outlineSize
+    self.cellHeight = self.tileHeight - self.outlineSize
+
+    -- Set up vignette, if enabled
+    if config.appearance.enableVignette then
+        -- in the future we could also enable other moonshine effects here, i.e. filmgrain
+        self.bgVignette = moonshine( self.boardWidth, self.boardHeight, moonshine.effects.vignette )
+        self.bgVignette.vignette.radius = config.appearance.vignetteRadius
+        self.bgVignette.vignette.opacity = config.appearance.vignetteOpacity
+        self.bgVignette.vignette.softness = config.appearance.vignetteSoftness
+        local vr, vg, vb = unpack(config.appearance.vignetteColor)
+        vr = vr * 255
+        vg = vg * 255
+        vb = vb * 255
+        self.bgVignette.vignette.color = {vr, vg, vb}
+    end
+
+    -- Create canvases for the bloom filter, if enabled
+    if config.appearance.enableBloom then
+        self.bloom = love.graphics.newCanvas( self.boardWidth/4, self.boardHeight/4 )
+        self.hblur = love.graphics.newCanvas( self.boardWidth/4, self.boardHeight/4 )
+        self.vblur = love.graphics.newCanvas( self.boardWidth/4, self.boardHeight/4 )
+        self.bloomscene = love.graphics.newCanvas( self.boardWidth, self.boardHeight )
+        self.scene = love.graphics.newCanvas( self.boardWidth, self.boardHeight )
+    end
 end
 
 return Board

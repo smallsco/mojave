@@ -243,13 +243,18 @@ function GamePane.draw()
                     collectgarbage()
                     Menu.stopBGM()
                     createGameOK, createGameError = pcall(function()
+                        -- TODO: isolate "default" options in config from per-game options
                         activeGame = Game({
-                            width = config[ 'gameplay' ][ 'boardWidth' ],
-                            height = config[ 'gameplay' ][ 'boardHeight' ],
+                            width = config.gameplay.boardWidth,
+                            height = config.gameplay.boardHeight,
                             snakes = snakesForGame,
                             rules = newGameType,
                             squad_map = squadsForGame,
-                            max_turns = config[ 'gameplay' ][ 'maxTurns' ]
+                            max_turns = config.gameplay.maxTurns,
+                            timeout = config.gameplay.responseTime,
+                            human_timeout = config.gameplay.humanResponseTime,
+                            food_spawns = {},
+                            hazard_spawns = {}
                         })
                     end)
                     if not createGameOK then
