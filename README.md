@@ -119,15 +119,16 @@ Under Wrapped rules, if a snake crosses the edge of the board, instead of being 
 	<img src="readme_screenshots/development_tools.png">
 </p>
 
-You can use the playback controls at the top right of the game window, while a game is taking place, to debug your snake:
+You can use the playback controls at the top right of the game window, while a game is taking place, to debug your snake:  
+(these controls can also be accessed by using the function keys on your keyboard)
 
-* The "First" button will jump to the first turn of the game.
-* The "Rewind" button will step back one turn.
-* The "Play/Pause" button will pause and resume game playback (do note that pausing will only pause the UI, the game will continue to run in the background).
-* The "Fast Forward" button will step forward one turn.
-* The "Last" button will jump to the last turn of the game.
-* The "Rematch" button will end the current game and start a new game with the same options.
-* The "Close" button will end the current game and return to the main menu.
+* The "First" button (or F6) will jump to the first turn of the game.
+* The "Rewind" button (or F7) will step back one turn.
+* The "Play/Pause" button (or F8) will pause and resume game playback (do note that pausing will only pause the UI, the game will continue to run in the background).
+* The "Fast Forward" button (or F9) will step forward one turn.
+* The "Last" button (or F10) will jump to the last turn of the game.
+* The "Rematch" button (or F11) will end the current game and start a new game with the same options.
+* The "Close" button (or F12) will end the current game and return to the main menu.
 
 The "Debug" button located above each snake preview will copy the JSON data that was sent to that snake on the last turn, and that snake's response, to the clipboard.
 
@@ -147,7 +148,7 @@ You can also hover over a snake's preview image to see their latency for the cur
 * Hazard Color
 	* This changes the color of hazard tiles on the game board (note: you cannot set the transparancy value because these tiles fade in and out).
 * Fullscreen
-	* This toggles full-screen mode.
+	* This toggles fullscreen mode. Fullscreen mode can also be toggled by using the F5 key on your keyboard.
 * Vignette
 	* This enables a [vignette](https://en.wikipedia.org/wiki/Vignette_(graphic_design)), which shades the background at the cost of performance.
 	* The radius, opacity, softness, and color of the vignette can be adjusted.
@@ -161,6 +162,7 @@ You can also hover over a snake's preview image to see their latency for the cur
 	* This will draw snake bodies using curves when they make turns on the game board. Doesn't impact performance.
 
 ### Audio
+Note: Audio can be quickly toggled by using the F4 key. This will toggle both the SFX and the music at once.
 * Enable Music
 	* When enabled, plays background music on the menu and during the game.
 * Enable SFX

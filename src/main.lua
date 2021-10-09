@@ -155,9 +155,8 @@ function love.resize(width, height)
     screenHeight = height
     if activeGame then
         activeGame:resize(width, height)
-    else
-        Menu.resize(width, height)
     end
+    Menu.resize(width, height)
 end
 
 function love.quit()
@@ -180,7 +179,24 @@ function love.keypressed(key)
     end
     imgui.KeyPressed(key)
     if not imgui.GetWantCaptureKeyboard() then
-        -- Pass event to the game
+
+        -- Keys used during both the menu and the game
+        if key == 'f4' then
+            if config.audio.enableMusic or config.audio.enableSFX then
+                config.audio.enableMusic = false
+                config.audio.enableSFX = false
+            else
+                config.audio.enableMusic = true
+                config.audio.enableSFX = true
+            end
+        elseif key == 'f5' then
+            local fullscreen = not love.window.getFullscreen()
+            config.appearance.fullscreen = fullscreen
+            love.window.setFullscreen( fullscreen )
+            love.resize(love.graphics.getDimensions())
+        end
+
+        -- Keys used in-game only (i.e. human player controls)
         if activeGame then
             activeGame:keypressed(key)
         end

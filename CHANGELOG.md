@@ -1,5 +1,13 @@
 ## CHANGELOG
 
+### v3.3.1 (2021-10-09)
+
+* You can now use the function keys on your keyboard to control Mojave:
+    * F4 - toggles music and SFX
+    * F5 - toggles fullscreen mode
+    * F6 through F12 - correspond to the in-game controls: first turn, previous turn, pause/resume, next turn, last turn, restart game, and exit.
+    * Thank you to [Xtagon](https://github.com/xtagon) for suggesting this feature!
+
 ### v3.3 (2021-09-26)
 
 * Mojave can now run at higher resolutions!

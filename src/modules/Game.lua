@@ -32,6 +32,8 @@ function Game.new( opt )
     local self = setmetatable( {}, Game )
     self.opt = opt or {}
 
+    self.drawExitDialogOnNextFrame = false
+
     -- Create game thread
     self.thread = love.thread.newThread("thread.lua")
     self.channel = love.thread.getChannel("game")
@@ -90,6 +92,66 @@ function Game.new( opt )
     self.running = true
 
     return self
+end
+
+-- Previous UI button
+-- returns to the start of the current game
+function Game:btnPrevious()
+    self.state = self.history[1]
+end
+
+-- Rewind UI button
+-- goes back 1 turn
+function Game:btnRewind()
+    local index = self.state.turn
+    if index < 1 then
+        index = 1
+    end
+    self.state = self.history[index]
+end
+
+-- Pause UI button
+function Game:btnPause()
+    self.running = false
+end
+
+-- Forward UI button
+-- resumes the paused game or returns to start if game is over
+function Game:btnForward()
+    local index = self.state.turn + 2
+    if index > #self.history then
+        self.state = self.history[1]
+    end
+    self.running = true
+end
+
+-- Fast Forward UI button
+-- advances 1 turn (or does nothing if the next turn hasn't been played yet)
+function Game:btnFastForward()
+    local index = self.state.turn + 2
+    if index > #self.history then
+        index = #self.history
+    end
+    self.state = self.history[index]
+end
+
+-- Next UI button
+-- advances to the current turn
+function Game:btnNext()
+    self.state = self.history[#self.history]
+end
+
+-- Return UI button
+-- ends the current game and immediately starts a new game with the same configuration
+function Game:btnReturn()
+    self:shutdownThread()
+    activeGame = Game(self.opt)
+end
+
+-- Cross UI button
+-- prompts the user if they would like to return to the main menu
+function Game:btnCross()
+    self.drawExitDialogOnNextFrame = true
 end
 
 -- Check if we need to play a sound. The gameplay is happening in a thread
@@ -156,52 +218,43 @@ function Game:draw()
 
         -- Playback, rematch, and return-to-menu controls
         if imgui.ImageButton( imgPrevious, 16, 16 ) then
-            self.state = self.history[1]
+            self:btnPrevious()
         end
         imgui.SameLine()
         if imgui.ImageButton( imgRewind, 16, 16 ) then
-            local index = self.state.turn
-            if index < 1 then
-                index = 1
-            end
-            self.state = self.history[index]
+            self:btnRewind()
         end
         imgui.SameLine()
         if self.running then
             if imgui.ImageButton( imgPause, 16, 16 ) then
-                self.running = false
+                self:btnPause()
             end
         else
             if imgui.ImageButton( imgForward, 16, 16 ) then
-                local index = self.state.turn + 2
-                if index > #self.history then
-                    self.state = self.history[1]
-                end
-                self.running = true
+                self:btnForward()
             end
         end
         imgui.SameLine()
         if imgui.ImageButton( imgFastForward, 16, 16 ) then
-            local index = self.state.turn + 2
-            if index > #self.history then
-                index = #self.history
-            end
-            self.state = self.history[index]
+            self:btnFastForward()
         end
         imgui.SameLine()
         if imgui.ImageButton( imgNext, 16, 16 ) then
-            self.state = self.history[#self.history]
+            self:btnNext()
         end
         imgui.SameLine()
         if imgui.ImageButton( imgReturn, 16, 16 ) then
-            self:shutdownThread()
-            activeGame = Game(self.opt)
+            self:btnReturn()
         end
         imgui.SameLine()
         if imgui.ImageButton( imgCross, 16, 16 ) then
-            imgui.OpenPopup( "ReturnMenu" )
+            self:btnCross()
         end
         imgui.PopStyleVar()
+
+        if self.drawExitDialogOnNextFrame == true then
+            imgui.OpenPopup( "ReturnMenu" )
+        end
 
         -- Return to Menu dialog
         if imgui.BeginPopupModal( "ReturnMenu", nil, { "NoResize" } ) then
@@ -214,6 +267,7 @@ function Game:draw()
             end
             imgui.SameLine()
             if imgui.Button( "Cancel" ) then
+                self.drawExitDialogOnNextFrame = false
                 imgui.CloseCurrentPopup()
             end
             imgui.EndPopup()
@@ -361,9 +415,28 @@ function Game:drawLatency(snake)
 end
 
 -- Keypress handler - allows a human player to control a snake
+-- also handles shortcut keys for UI functions
 -- @param key The key that was pressed
 function Game:keypressed(key)
-    if self.running then
+    if key == 'f6' then
+        self:btnPrevious()
+    elseif key == 'f7' then
+        self:btnRewind()
+    elseif key == 'f8' then
+        if self.running then
+            self:btnPause()
+        else
+            self:btnForward()
+        end
+    elseif key == 'f9' then
+        self:btnFastForward()
+    elseif key == 'f10' then
+        self:btnNext()
+    elseif key == 'f11' then
+        self:btnReturn()
+    elseif key == 'f12' then
+        self:btnCross()
+    elseif self.running then
         self.humanChannel:push(key)
     end
 end
