@@ -87,12 +87,12 @@ To get started, you'll need to add at least one snake. Click the **Manage Snakes
 
 ## Game Setup
 ![Create Game Screen](readme_screenshots/create_game.png?raw=true)
-To start a new game, click the **Create Game** button on the menu to get to the game setup screen. You will need to select the rules to play under (see the "How to Play" section below for a description of the different rules), the board size, and which of your snakes you would like to add to this game.
+To start a new game, click the **Create Game** button on the menu to get to the game setup screen. You will need to select the rules to play under (see the "How to Play" section below for a description of the different rules), the board size, and which of your snakes you would like to add to this game. If you select the Royale game mode, you will also need to specify how quickly hazards should advance. For both the Royale and Custom game modes, you will need to specify how much damage to take when entering a hazard.
 
 Note that there are a few restrictions on game creation:
 
-* Only snakes using the modern Battlesnake API, or Human snakes may play using the Royale, Squads, Constrictor, and Wrapped game modes.
-* The Royale, Constrictor, and Wrapped game modes require a minimum of two snakes to play.
+* Only snakes using the modern Battlesnake API, or Human snakes may play using the Royale, Squads, Constrictor, Wrapped, and Custom game modes.
+* The Royale, Constrictor, Wrapped, and Custom game modes require a minimum of two snakes to play.
 * The Squads game mode requires a minimum of two _squads_ to play.
 * Only one Human snake may participate in a game.
 
@@ -113,6 +113,9 @@ Under Constrictor rules, there is no food on the board. Instead, snakes will gro
 
 ### Wrapped
 Under Wrapped rules, if a snake crosses the edge of the board, instead of being killed, it will re-enter the board from the opposite edge.
+
+### Custom
+Custom games make use of a pre-set template to pre-place food, hazards, and snakes at the start of the game. They are played using Standard rules, however, hazard damage can be customized in a manner similar to Royale games.
 
 ## Development Tools
 <p align="center">
@@ -152,8 +155,8 @@ You can also hover over a snake's preview image to see their latency for the cur
 * Vignette
 	* This enables a [vignette](https://en.wikipedia.org/wiki/Vignette_(graphic_design)), which shades the background at the cost of performance.
 	* The radius, opacity, softness, and color of the vignette can be adjusted.
-* Bloom Filter
-	* This enables a [bloom filter](https://en.wikipedia.org/wiki/Bloom_(shader_effect)), which brightens and blurs snakes at the cost of performance.
+* Bloom Effect
+	* This enables a [bloom effect](https://en.wikipedia.org/wiki/Bloom_(shader_effect)), which brightens and blurs snakes at the cost of performance.
 * Animations
 	* This enables animations, specifically, making food spin and hazards fade in and out. They can be disabled for a small performance boost.
 * Fade Tails
@@ -184,12 +187,6 @@ Note: Audio can be quickly toggled by using the F4 key. This will toggle both th
 * Start Size
 	* The starting length of each snake.
 
-### Royale
-* Shrink every N turns
-	* One edge of the game board will become hazards every N turns, with N being the number you put here.
-* Damage per Turn
-	* If a snake head is in a hazard during a turn, this is the amount of damage they will be penalized.
-
 ### Squads
 * Allow Body Collisions
 	* If true, snakes on the same squad can pass through each other's bodies without penalty.
@@ -217,6 +214,8 @@ Note: Audio can be quickly toggled by using the F4 key. This will toggle both th
 * Robosnake cannot be used with non-standard game rules.
 * The Debug button copies JSON data from the _previous_ turn, not the _current_ turn. This is non-intuitive but correct (it's showing the request/response, using the previous turn as input, to generate the current turn).
 * Many snakes expect a square game board and their code will crash when using Mojave's default 17x12 board size. If you download a snake and find that it doesn't work, try using one of the "standard" square board sizes, i.e. 11x11.
+* Under MacOS 12 (Monterey), single clicks may not be recognized. If this happens, exit and re-launch the game a few times which will usually fix it.
+* Under Ubuntu Linux, the game may launch at the incorrect resolution. This can be fixed by resizing the game window to the desired resolution, or by pressing F5 to enter fullscreen mode. This issue does not seem to occur on other Linux distributions.
 
 ## Troubleshooting
 In the event the application experiences errors, you can reset the configuration and snakes by removing the data directory. This directory will be recreated the next time the application is launched.

@@ -11,6 +11,7 @@ GameThread.RULES_ROYALE = 2
 GameThread.RULES_SQUADS = 3
 GameThread.RULES_CONSTRICTOR = 4
 GameThread.RULES_WRAPPED = 5
+GameThread.RULES_CUSTOM = 6
 
 -- Constructor
 function GameThread.new(opt)
@@ -22,6 +23,8 @@ function GameThread.new(opt)
     self.human_timeout = opt.human_timeout
     self.food_spawns = opt.food_spawns
     self.hazard_spawns = opt.hazard_spawns
+    self.shrink_every_n_turns = opt.shrink_every_n_turns
+    self.hazard_damage_per_turn = opt.hazard_damage_per_turn
 
     -- Set up communication channels to the main thread
     self.channel = love.thread.getChannel("game")
@@ -34,11 +37,12 @@ function GameThread.new(opt)
 
     -- Set some default snake properties that aren't rule-based
     local numSnakes = 0
-    local snakesWithBodies = 0
-    for _, snake in pairs(opt.snakes) do
+    for i=1, #opt.snakes do
+        local snake = opt.snakes[i]
         snake.eliminatedCause = Snake.ELIMINATION_CAUSES.NotEliminated
         snake.eliminatedBy = ""
         snake.age = 0
+        snake.body = {}
         snake.kills = 0
         snake.latency = 0
         snake.shout = ""
@@ -46,12 +50,6 @@ function GameThread.new(opt)
         snake.request = ""
         snake.response = ""
         numSnakes = numSnakes + 1
-
-        if snake.body then
-            snakesWithBodies = snakesWithBodies + 1
-        else
-            snake.body = {}
-        end
 
         if snake.type == Snake.TYPES.ROBOSNAKE then
             self.coroutines[snake.id] = coroutine.create(RobosnakeMkIII.move)
@@ -63,8 +61,8 @@ function GameThread.new(opt)
         squad_map = opt.squad_map,
         food_spawn_chance = config.gameplay.foodSpawnChance,
         minimum_food = config.gameplay.minimumFood,
-        shrink_every_n_turns = config.royale.shrinkEveryNTurns,
-        hazard_damage_per_turn = config.royale.damagePerTurn,
+        shrink_every_n_turns = self.shrink_every_n_turns,
+        hazard_damage_per_turn = self.hazard_damage_per_turn,
         allow_body_collisions = config.squads.allowBodyCollisions,
         shared_elimination = config.squads.sharedElimination,
         shared_health = config.squads.sharedHealth,
@@ -95,25 +93,11 @@ function GameThread.new(opt)
     -- Create turn 0 (initial board state)
     -- Note: Lua arrays start at 1, so turn 0 is at index 1, turn 1 is at index 2, etc.
     local initial_state = BoardState.newBoardState(opt.width, opt.height)
-    if snakesWithBodies > 0 then
-        -- Manually place snakes
-        for _, snake in pairs(opt.snakes) do
-            if #snake.body == 0 then
-                error("Empty snake body")
-            end
 
-            -- This is a bit silly since the snake's body is _already_ attached to the snake
-            -- but I want to keep the BoardState interface identical to the official rules :\
-            BoardState.placeSnake(initial_state, snake, snake.body)
-        end
-    else
-        -- Automatically place snakes
-        BoardState.placeSnakesAutomatically(initial_state, opt.snakes)
+    -- Automatically place food on the board, unless we're placing some manually
+    if #opt.food_spawns == 0 then
+        BoardState.placeFoodAutomatically(initial_state)
     end
-
-    -- Automatically place food on the board
-    -- TODO: watch what the official engine does with this, it might be getting deprecated?
-    BoardState.placeFoodAutomatically(initial_state)
 
     -- Manually place food for turn 0 on the board
     for _, food in ipairs(self.food_spawns) do
@@ -129,13 +113,28 @@ function GameThread.new(opt)
         end
     end
 
+    -- Place snakes on the board
+    if #opt.start_positions > 0 then
+        if #opt.start_positions < #opt.snakes then
+            error("Not enough start positions for the number of snakes in game")
+        end
+
+        -- Manually place snakes
+        for i=1, #opt.snakes do
+            BoardState.placeSnake(initial_state, opt.snakes[i], {opt.start_positions[i], opt.start_positions[i], opt.start_positions[i]})
+        end
+    else
+        -- Automatically place snakes
+        BoardState.placeSnakesAutomatically(initial_state, opt.snakes)
+    end
+
     self.state = self.rules:modifyInitialBoardState(initial_state)
     self.state.id = Utils.generateUUID()
 
     -- Query each snake for the game start
-    for _, snake in pairs(self.state.snakes) do
-        local latency = self:requestStart(snake)
-        snake.latency = latency
+    for i=1, #self.state.snakes do
+        local latency = self:requestStart(self.state.snakes[i])
+        self.state.snakes[i].latency = latency
     end
 
     -- Send starting state back to main thread
@@ -153,7 +152,8 @@ function GameThread:buildOldEndJson()
     end_json.dead_snakes = {
         data = {}
     }
-    for _, snake in pairs(self.state.snakes) do
+    for i=1, #self.state.snakes do
+        local snake = self.state.snakes[i]
         if snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
             table.insert(end_json.winners, snake.id)
         else
@@ -196,7 +196,8 @@ function GameThread:buildMoveJson2017(snake)
     for _, food in ipairs(self.state.food) do
         table.insert(move_json.food, {food.x, food.y})
     end
-    for _, other_snake in pairs(self.state.snakes) do
+    for i=1, #self.state.snakes do
+        local other_snake = self.state.snakes[i]
         local snake_json = {
             taunt=other_snake.shout or "",
             name=other_snake.name,
@@ -231,7 +232,8 @@ function GameThread:buildMoveJson2018(snake)
     move_json.snakes = {
         data = {}
     }
-    for _, other_snake in pairs(self.state.snakes) do
+    for i=1, #self.state.snakes do
+        local other_snake = self.state.snakes[i]
         local snake_json = {
             id=other_snake.id,
             name=other_snake.name,
@@ -268,9 +270,9 @@ function GameThread:buildMoveJson(snake)
     local settings = {
         foodSpawnChance=config.gameplay.foodSpawnChance,
         minimumFood=config.gameplay.minimumFood,
-        hazardDamagePerTurn=config.royale.damagePerTurn,
+        hazardDamagePerTurn=self.hazard_damage_per_turn,
         royale={
-            shrinkEveryNTurns=config.royale.shrinkEveryNTurns
+            shrinkEveryNTurns=self.shrink_every_n_turns
         },
         squad={
             allowBodyCollisions=config.squads.allowBodyCollisions,
@@ -290,7 +292,8 @@ function GameThread:buildMoveJson(snake)
             version=string.format("Mojave/%s", Utils.MOJAVE_VERSION),
             settings=settings
         },
-        timeout=self.timeout
+        timeout=self.timeout,
+        source="custom"
     }
 
     move_json.turn = self.state.turn
@@ -302,7 +305,8 @@ function GameThread:buildMoveJson(snake)
         food=self.state.food,
         hazards=self.state.hazards
     }
-    for _, other_snake in pairs(self.state.snakes) do
+    for i=1, #self.state.snakes do
+        local other_snake = self.state.snakes[i]
         local snake_json = {
             id=other_snake.id,
             name=other_snake.name,
@@ -353,7 +357,8 @@ function GameThread:isPointOccupied(state, x, y)
             return true
         end
     end
-    for _, snake in pairs(state.snakes) do
+    for i=1, #state.snakes do
+        local snake = state.snakes[i]
         if snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
             for _, point in ipairs(snake.body) do
                 if x == point.x and y == point.y then
@@ -371,7 +376,8 @@ function GameThread:requestEnds()
     local robosnakes = {}
     local requests = {}
 
-    for _, snake in pairs(self.state.snakes) do
+    for i=1, #self.state.snakes do
+        local snake = self.state.snakes[i]
         if snake.type == Snake.TYPES.API or (snake.type == Snake.TYPES.API_OLD and snake.apiversion == 2018) then
             table.insert(apisnakes, snake)
         elseif snake.type == Snake.TYPES.ROBOSNAKE then
@@ -469,7 +475,8 @@ function GameThread:requestMoves()
     local requests = {}
 
     -- Split snakes into api/robo/human
-    for _, snake in pairs(self.state.snakes) do
+    for i=1, #self.state.snakes do
+        local snake = self.state.snakes[i]
         if snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
             if snake.type == Snake.TYPES.API or snake.type == Snake.TYPES.API_OLD then
                 table.insert(apisnakes, snake)
@@ -507,36 +514,40 @@ function GameThread:requestMoves()
     -- the response from the server.
     local responses = Utils.http_request_multi(requests)
     for id, response in pairs(responses) do
-        latencies[id] = response.latency
-        if not response.response then
-            moves[id] = "default"
-            shouts[id] = ""
-            self.state.snakes[id].response = ""
-        else
-            self.state.snakes[id].response = response.response
-            local data = json.decode(response.response)
-            if type(data) ~= 'table' then
-                moves[id] = "default"
-                shouts[id] = ""
-            else
-                local move = data.move
-                if not move then
+        for i=1, #self.state.snakes do
+            if id == self.state.snakes[i].id then
+                latencies[id] = response.latency
+                if not response.response then
                     moves[id] = "default"
                     shouts[id] = ""
+                    self.state.snakes[i].response = ""
                 else
-                    -- The Y axis is inverted for all API versions prior to API V1, so those snakes will see a flipped
-                    -- version of the board and move accordingly. So we need to invert their response if they make a
-                    -- move along the Y axis.
-                    if self.state.snakes[id].apiversion == 0 or self.state.snakes[id].type == Snake.TYPES.API_OLD then
-                        if move == "down" then
-                            move = "up"
-                        elseif move == "up" then
-                            move = "down"
+                    self.state.snakes[i].response = response.response
+                    local data = json.decode(response.response)
+                    if type(data) ~= 'table' then
+                        moves[id] = "default"
+                        shouts[id] = ""
+                    else
+                        local move = data.move
+                        if not move then
+                            moves[id] = "default"
+                            shouts[id] = ""
+                        else
+                            -- The Y axis is inverted for all API versions prior to API V1, so those snakes will see a flipped
+                            -- version of the board and move accordingly. So we need to invert their response if they make a
+                            -- move along the Y axis.
+                            if self.state.snakes[i].apiversion == 0 or self.state.snakes[i].type == Snake.TYPES.API_OLD then
+                                if move == "down" then
+                                    move = "up"
+                                elseif move == "up" then
+                                    move = "down"
+                                end
+                            end
+
+                            moves[id] = move
+                            shouts[id] = data.shout or ""
                         end
                     end
-
-                    moves[id] = move
-                    shouts[id] = data.shout or ""
                 end
             end
         end
@@ -603,15 +614,16 @@ function GameThread:tick()
     -- Generate the next board state
     local new_state = self.rules:createNextBoardState(self.state, moves)
     new_state.turn = new_state.turn + 1
-    for id, snake in pairs(new_state.snakes) do
-        snake.latency = latencies[id]
-        snake.shout = shouts[id]
+    for i=1, #new_state.snakes do
+        local snake = new_state.snakes[i]
+        snake.latency = latencies[snake.id]
+        snake.shout = shouts[snake.id]
         snake.age = snake.age + 1
 
         -- Track kills here - it should be done in rules but I want to keep
         -- the rules as close to official battlesnake as possible :)
-        if snake.eliminatedBy ~= "" and self.state.snakes[id].eliminatedBy == "" then
-            new_state.snakes[snake.eliminatedBy].kills = new_state.snakes[snake.eliminatedBy].kills + 1
+        if snake.eliminatedBy ~= "" and self.state.snakes[i].eliminatedBy == "" then
+            snake.kills = snake.kills + 1
         end
 
     end

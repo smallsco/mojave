@@ -10,7 +10,7 @@ copyrightYear="2017-2021"
 # (It should be fine to leave this as its default.)
 identifier="org.scottsmall.mojave3"
 # Current version (of your program)
-version="3.3.1"
+version="3.4"
 
 ###### Important! ONLY USE ABSOLUATE PATHS ######
 # Where to place the resulting executables.

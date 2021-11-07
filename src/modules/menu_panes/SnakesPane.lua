@@ -12,6 +12,8 @@ local newSnakeHead = 1
 local newSnakeTail = 1
 local snakeyears = {"2017", "2018"}
 local newSnakeColor = {1, 1, 1}
+local snakeHeadsSelect = {}
+local snakeTailsSelect = {}
 
 function SnakesPane.draw()
 
@@ -19,16 +21,20 @@ function SnakesPane.draw()
     if imgui.CollapsingHeader( "Add New Snake", { "DefaultOpen" } ) then
 
         -- Grab head and tail names
-        local snakeHeadsSelect = {}
-        local snakeTailsSelect = {}
-        for k, _ in pairs(snakeHeads) do
-            if not (Utils.string_starts_with(k, "bwc-") or Utils.string_starts_with(k, "bfl-") or Utils.string_starts_with(k, "shac-")) then
-                table.insert(snakeHeadsSelect, k)
+        if #snakeHeadsSelect == 0 then
+            for k, _ in pairs(snakeHeads) do
+                if not (Utils.string_starts_with(k, "bwc-") or Utils.string_starts_with(k, "bfl-") or Utils.string_starts_with(k, "shac-")) then
+                    table.insert(snakeHeadsSelect, k)
+                    table.sort(snakeHeadsSelect)
+                end
             end
         end
-        for k, _ in pairs(snakeTails) do
-            if not (Utils.string_starts_with(k, "bwc-") or Utils.string_starts_with(k, "bfl-") or Utils.string_starts_with(k, "shac-")) then
-                table.insert(snakeTailsSelect, k)
+        if #snakeTailsSelect == 0 then
+            for k, _ in pairs(snakeTails) do
+                if not (Utils.string_starts_with(k, "bwc-") or Utils.string_starts_with(k, "bfl-") or Utils.string_starts_with(k, "shac-")) then
+                    table.insert(snakeTailsSelect, k)
+                    table.sort(snakeTailsSelect)
+                end
             end
         end
 

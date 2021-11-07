@@ -22,7 +22,7 @@ local function rotatedRectangle( mode, x, y, w, h, rx, ry, segments, r, ox, oy )
 end
 
 -- Constructor function
-function Board.new( opt )
+function Board.new( opt, windowWidth, windowHeight )
     local self = setmetatable( {}, Board )
     opt = opt or {}
 
@@ -33,7 +33,7 @@ function Board.new( opt )
     -- The size of the gap between tiles
     self.outlineSize = opt.outlineSize or 1
 
-    self:resize(screenWidth, screenHeight)
+    self:resize(windowWidth, windowHeight)
 
     return self
 end
@@ -43,7 +43,7 @@ function Board:draw( state )
     if config.appearance.enableBloom then
         self:drawBloom(state)
     else
-        self:drawRaw(state, true)
+        self:drawRaw(state, true, true)
     end
 end
 
@@ -60,9 +60,9 @@ function Board:drawBloom( state )
 
     -- base, quarter scale base without bg
     love.graphics.setCanvas( self.scene )
-    self:drawRaw( state, true )
+    self:drawRaw( state, true, true )
     love.graphics.setCanvas( self.bloomscene )
-    self:drawRaw( state, false )
+    self:drawRaw( state, false, true )
     love.graphics.setColor( 1, 1, 1, 1 )
     local blendmode, blendalphamode = love.graphics.getBlendMode()
     love.graphics.setBlendMode( "alpha", "premultiplied" )
@@ -117,12 +117,12 @@ function Board:drawGrid()
 end
 
 -- Draws the game board without a bloom filter
-function Board:drawRaw( state, draw_grid )
+function Board:drawRaw( state, draw_grid, draw_vignette )
     local time = love.timer.getTime()
 
     -- Grid
     if draw_grid then
-        if config.appearance.enableVignette then
+        if config.appearance.enableVignette and draw_vignette then
             self.bgVignette( function() self:drawGrid() end )
         else
             self:drawGrid()
@@ -383,7 +383,7 @@ end
 function Board:resize(windowWidth, windowHeight)
 
     -- Size of the game board
-    self.boardWidth = windowWidth - 256
+    self.boardWidth = windowWidth
     self.boardHeight = windowHeight
 
     -- Compute the width and height of each tile

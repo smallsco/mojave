@@ -38,7 +38,8 @@ end
 function WrappedRules:moveSnakes(state, moves)
     StandardRules.moveSnakes(self, state, moves)
 
-    for _, snake in pairs(state.snakes) do
+    for i=1, #state.snakes do
+        local snake = state.snakes[i]
         snake.body[1].x = replace(snake.body[1].x, 0, state.width - 1)
         snake.body[1].y = replace(snake.body[1].y, 0, state.height - 1)
     end

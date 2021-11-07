@@ -33,6 +33,10 @@ Under Constrictor rules, there is no food on the board. Instead, snakes will gro
 
 Wrapped
 Under Wrapped rules, if a snake crosses the edge of the board, instead of being killed, it will re-enter the board from the opposite edge.
+
+Custom
+Custom games make use of a pre-set template to pre-place food, hazards, and snakes at the start of the game. They are played using Standard rules, however, hazard damage can be customized in a manner similar to Royale games.
+
         ]])
         imgui.Text("\n")
     end

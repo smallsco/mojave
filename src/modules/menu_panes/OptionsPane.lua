@@ -59,7 +59,7 @@ Changes will not take effect until the "Save Changes" button below is pressed.
             config.appearance.vignetteColor = {imgui.ColorEdit3("Vignette Color", unpack(config.appearance.vignetteColor))}
         end
 
-        config.appearance.enableBloom = imgui.Checkbox( "Bloom Filter", config.appearance.enableBloom )
+        config.appearance.enableBloom = imgui.Checkbox( "Bloom Effect", config.appearance.enableBloom )
         imgui.SameLine()
         config.appearance.enableAnimation = imgui.Checkbox( "Animations", config.appearance.enableAnimation )
 
@@ -93,16 +93,6 @@ Changes will not take effect until the "Save Changes" button below is pressed.
         config.gameplay.startSize = imgui.InputInt( "Start Size             ", config.gameplay.startSize)
         imgui.SameLine()
         config.gameplay.maxTurns = imgui.InputInt( "Turn Limit (0 to disable)", config.gameplay.maxTurns)
-        imgui.PopItemWidth()
-        imgui.Text( "\n" )
-    end
-
-    -- Royale Gameplay Options
-    if imgui.CollapsingHeader( "Royale", { "DefaultOpen" } ) then
-        imgui.PushItemWidth(imgui.GetWindowContentRegionWidth() * 0.15)
-        config.royale.shrinkEveryNTurns = imgui.InputInt( "Shrink every N Turns", config.royale.shrinkEveryNTurns)
-        imgui.SameLine()
-        config.royale.damagePerTurn = imgui.InputInt( "Damage Per Turn", config.royale.damagePerTurn)
         imgui.PopItemWidth()
         imgui.Text( "\n" )
     end

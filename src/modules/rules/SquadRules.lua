@@ -41,7 +41,8 @@ function SquadRules:resurrectSquadBodyCollisions(state)
         return
     end
 
-    for _, snake in pairs(state.snakes) do
+    for i=1, #state.snakes do
+        local snake = state.snakes[i]
         if snake.eliminatedCause == Snake.ELIMINATION_CAUSES.EliminatedByCollision then
             if snake.eliminatedBy == "" then
                 error("Snake eliminated by collision and eliminatedby is not set")
@@ -59,9 +60,11 @@ function SquadRules:shareSquadAttributes(state)
         return
     end
 
-    for _, snake in pairs(state.snakes) do
+    for i=1, #state.snakes do
+        local snake = state.snakes[i]
         if snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
-            for _, other in pairs(state.snakes) do
+            for j=1, #state.snakes do
+                local other = state.snakes[j]
                 if self:areSnakesOnSameSquad(snake, other) then
                     if self.SharedHealth then
                         if snake.health < other.health then
@@ -92,9 +95,9 @@ end
 
 function SquadRules:isGameOver(state)
     local snakesRemaining = {}
-    for _, snake in pairs(state.snakes) do
-        if snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
-            table.insert(snakesRemaining, snake)
+    for i=1, #state.snakes do
+        if state.snakes[i].eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
+            snakesRemaining[#snakesRemaining + 1] = state.snakes[i]
         end
     end
 

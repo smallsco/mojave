@@ -2,13 +2,19 @@ local GamePane = {}
 
 -- Module Variables
 local columnWidthIsSet = false
+local customBoardCanvas
+local customBoardPreview
 local newGameType = 1
+local lastSelectedCustomGame = 0
+local selectedCustomGame = 1
 local selectedSnake = 1
 local selectedSquad = 1
 local snakesForGame = {}
 local squadsForGame = {}
 local createGameOK = true
 local createGameError = ''
+
+local cg_names, cg_defs = CustomGameDefinitions.getDefinitions()
 
 function GamePane.draw()
 
@@ -28,35 +34,133 @@ function GamePane.draw()
             newGameType = imgui.RadioButton( "Constrictor", newGameType, GameThread.RULES_CONSTRICTOR )
             imgui.SameLine()
             newGameType = imgui.RadioButton( "Wrapped", newGameType, GameThread.RULES_WRAPPED )
+            imgui.SameLine()
+            newGameType = imgui.RadioButton( "Custom", newGameType, GameThread.RULES_CUSTOM )
             imgui.Text( "\n" )
         end
 
-        -- Board Size
-        if imgui.CollapsingHeader( "Board Size", { "DefaultOpen" } ) then
-            config.gameplay.boardSize = imgui.RadioButton( "Small (7x7)", config.gameplay.boardSize, 1 )
-            imgui.SameLine()
-            config.gameplay.boardSize = imgui.RadioButton( "Medium (11x11)", config.gameplay.boardSize, 2 )
-            imgui.SameLine()
-            config.gameplay.boardSize = imgui.RadioButton( "Large (19x19)", config.gameplay.boardSize, 3 )
-            imgui.SameLine()
-            config.gameplay.boardSize = imgui.RadioButton( "Custom Board Size", config.gameplay.boardSize, 4 )
-            if config.gameplay.boardSize == 1 then
-                config.gameplay.boardWidth = 7
-                config.gameplay.boardHeight = 7
-            elseif config.gameplay.boardSize == 2 then
-                config.gameplay.boardWidth = 11
-                config.gameplay.boardHeight = 11
-            elseif config.gameplay.boardSize == 3 then
-                config.gameplay.boardWidth = 19
-                config.gameplay.boardHeight = 19
-            else
-                imgui.PushItemWidth(imgui.GetWindowContentRegionWidth() * 0.33)
-                config.gameplay.boardWidth = imgui.InputInt( "Board Width", config.gameplay.boardWidth )
-                imgui.SameLine()
-                config.gameplay.boardHeight = imgui.InputInt( "Board Height", config.gameplay.boardHeight )
-                imgui.PopItemWidth()
+        if newGameType == GameThread.RULES_CUSTOM then
+
+            -- Custom Game Selection
+            if imgui.CollapsingHeader( "Custom Game", { "DefaultOpen" } ) then
+                selectedCustomGame = imgui.Combo( "Custom Game Mode", selectedCustomGame, cg_names, #cg_names )
             end
-            imgui.Text( "\n" )
+
+            -- If we've selected a different custom game preset, regenerate the board preview
+            if lastSelectedCustomGame ~= selectedCustomGame then
+                lastSelectedCustomGame = selectedCustomGame
+                customBoardCanvas = love.graphics.newCanvas(screenWidth/3, screenHeight/3)
+                customBoardPreview = Board({
+                    width=cg_defs[selectedCustomGame].definition.width,
+                    height=cg_defs[selectedCustomGame].definition.height
+                }, screenWidth/3, screenHeight/3)
+            end
+
+            -- Draw a preview of the custom game board
+            love.graphics.setCanvas(customBoardCanvas)
+            customBoardPreview:drawRaw({
+                food=cg_defs[selectedCustomGame].definition.food_spawns,
+                hazards=cg_defs[selectedCustomGame].definition.hazard_spawns,
+                snakes={}
+            }, true, false)
+            love.graphics.setCanvas()
+            imgui.Image(
+                customBoardCanvas,
+                screenWidth/3,
+                screenHeight/3,
+                1, 0, 0, 1,
+                1, 1, 1, 1
+            )
+
+        else
+
+            -- Board Size
+            if imgui.CollapsingHeader( "Board Size", { "DefaultOpen" } ) then
+                config.gameplay.boardSize = imgui.RadioButton( "Small (7x7)", config.gameplay.boardSize, 1 )
+                imgui.SameLine()
+                config.gameplay.boardSize = imgui.RadioButton( "Medium (11x11)", config.gameplay.boardSize, 2 )
+                imgui.SameLine()
+                config.gameplay.boardSize = imgui.RadioButton( "Large (19x19)", config.gameplay.boardSize, 3 )
+                imgui.SameLine()
+                config.gameplay.boardSize = imgui.RadioButton( "Custom Board Size", config.gameplay.boardSize, 4 )
+                if config.gameplay.boardSize == 1 then
+                    config.gameplay.boardWidth = 7
+                    config.gameplay.boardHeight = 7
+                elseif config.gameplay.boardSize == 2 then
+                    config.gameplay.boardWidth = 11
+                    config.gameplay.boardHeight = 11
+                elseif config.gameplay.boardSize == 3 then
+                    config.gameplay.boardWidth = 19
+                    config.gameplay.boardHeight = 19
+                else
+                    imgui.PushItemWidth(imgui.GetWindowContentRegionWidth() * 0.33)
+                    config.gameplay.boardWidth = imgui.InputInt( "Board Width", config.gameplay.boardWidth )
+                    imgui.SameLine()
+                    config.gameplay.boardHeight = imgui.InputInt( "Board Height", config.gameplay.boardHeight )
+                    imgui.PopItemWidth()
+                end
+            end
+
+        end
+        imgui.Text( "\n" )
+
+        -- Hazard Configuration
+        if newGameType == GameThread.RULES_ROYALE or newGameType == GameThread.RULES_CUSTOM then
+            if imgui.CollapsingHeader( "Hazard Settings", { "DefaultOpen" } ) then
+
+                -- Damage
+                imgui.Text("Damage: ")
+                imgui.SameLine()
+                config.royale.damagePreset = imgui.RadioButton("Mild", config.royale.damagePreset, 1)
+                imgui.SameLine()
+                config.royale.damagePreset = imgui.RadioButton("Medium", config.royale.damagePreset, 2)
+                imgui.SameLine()
+                config.royale.damagePreset = imgui.RadioButton("Spicy", config.royale.damagePreset, 3)
+                imgui.SameLine()
+                config.royale.damagePreset = imgui.RadioButton("Lethal", config.royale.damagePreset, 4)
+                imgui.SameLine()
+                config.royale.damagePreset = imgui.RadioButton("Custom##rdpCustom", config.royale.damagePreset, 5)
+                if config.royale.damagePreset == 1 then
+                    config.royale.damagePerTurn = 4
+                elseif config.royale.damagePreset == 2 then
+                    config.royale.damagePerTurn = 14
+                elseif config.royale.damagePreset == 3 then
+                    config.royale.damagePerTurn = 49
+                elseif config.royale.damagePreset == 4 then
+                    config.royale.damagePerTurn = 99
+                else
+                    imgui.PushItemWidth(imgui.GetWindowContentRegionWidth() * 0.15)
+                    imgui.SameLine()
+                    config.royale.damagePerTurn = imgui.InputInt( "##rdpCustomValue", config.royale.damagePerTurn)
+                    imgui.PopItemWidth()
+                end
+
+                -- Speed
+                if newGameType == GameThread.RULES_ROYALE then
+                    imgui.Text("Speed: ")
+                    imgui.SameLine()
+                    config.royale.speedPreset = imgui.RadioButton("Slow", config.royale.speedPreset, 1)
+                    imgui.SameLine()
+                    config.royale.speedPreset = imgui.RadioButton("Normal", config.royale.speedPreset, 2)
+                    imgui.SameLine()
+                    config.royale.speedPreset = imgui.RadioButton("Fast", config.royale.speedPreset, 3)
+                    imgui.SameLine()
+                    config.royale.speedPreset = imgui.RadioButton("Custom##rspCustom", config.royale.speedPreset, 4)
+                    if config.royale.speedPreset == 1 then
+                        config.royale.shrinkEveryNTurns = 35
+                    elseif config.royale.speedPreset == 2 then
+                        config.royale.shrinkEveryNTurns = 25
+                    elseif config.royale.speedPreset == 3 then
+                        config.royale.shrinkEveryNTurns = 15
+                    else
+                        imgui.PushItemWidth(imgui.GetWindowContentRegionWidth() * 0.15)
+                        imgui.SameLine()
+                        config.royale.shrinkEveryNTurns = imgui.InputInt( "##rspCustomValue", config.royale.shrinkEveryNTurns)
+                        imgui.PopItemWidth()
+                    end
+                end
+                imgui.Text( "\n" )
+            end
         end
 
         -- Available Squads
@@ -243,19 +347,40 @@ function GamePane.draw()
                     collectgarbage()
                     Menu.stopBGM()
                     createGameOK, createGameError = pcall(function()
-                        -- TODO: isolate "default" options in config from per-game options
-                        activeGame = Game({
-                            width = config.gameplay.boardWidth,
-                            height = config.gameplay.boardHeight,
-                            snakes = snakesForGame,
-                            rules = newGameType,
-                            squad_map = squadsForGame,
-                            max_turns = config.gameplay.maxTurns,
-                            timeout = config.gameplay.responseTime,
-                            human_timeout = config.gameplay.humanResponseTime,
-                            food_spawns = {},
-                            hazard_spawns = {}
-                        })
+                        -- TODO: migrate gameplay options to game setup screen
+                        if newGameType == GameThread.RULES_CUSTOM then
+                            activeGame = Game({
+                                width = cg_defs[selectedCustomGame].definition.width,
+                                height = cg_defs[selectedCustomGame].definition.height,
+                                rules = cg_defs[selectedCustomGame].definition.rules or GameThread.RULES_STANDARD,
+                                food_spawns = cg_defs[selectedCustomGame].definition.food_spawns or {},
+                                hazard_spawns = cg_defs[selectedCustomGame].definition.hazard_spawns or {},
+                                start_positions = cg_defs[selectedCustomGame].definition.start_positions or {},
+                                snakes = snakesForGame,
+                                squad_map = squadsForGame,
+                                shrink_every_n_turns = config.royale.shrinkEveryNTurns,
+                                hazard_damage_per_turn = config.royale.damagePerTurn,
+                                max_turns = config.gameplay.maxTurns,
+                                timeout = config.gameplay.responseTime,
+                                human_timeout = config.gameplay.humanResponseTime
+                            })
+                        else
+                            activeGame = Game({
+                                width = config.gameplay.boardWidth,
+                                height = config.gameplay.boardHeight,
+                                rules = newGameType,
+                                food_spawns = {},
+                                hazard_spawns = {},
+                                start_positions = {},
+                                snakes = snakesForGame,
+                                squad_map = squadsForGame,
+                                shrink_every_n_turns = config.royale.shrinkEveryNTurns,
+                                hazard_damage_per_turn = config.royale.damagePerTurn,
+                                max_turns = config.gameplay.maxTurns,
+                                timeout = config.gameplay.responseTime,
+                                human_timeout = config.gameplay.humanResponseTime
+                            })
+                        end
                     end)
                     if not createGameOK then
                         imgui.OpenPopup( "CreateGameError" )

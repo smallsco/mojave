@@ -3,6 +3,8 @@ local BoardState = {}
 BoardState.SnakeMaxHealth = config.gameplay.maxHealth
 BoardState.SnakeStartSize = config.gameplay.startSize
 
+local format = string.format
+
 -- Generates an empty, but fully initialized board state
 function BoardState.newBoardState(width, height)
     return {
@@ -45,8 +47,8 @@ end
 function BoardState.placeSnakesFixed(state, snakes)
     -- Add snakes to state
     state.snakes = Utils.deepcopy(snakes)
-    for _, snake in pairs(state.snakes) do
-        snake.health = BoardState.SnakeMaxHealth
+    for i=1, #state.snakes do
+        state.snakes[i].health = BoardState.SnakeMaxHealth
     end
 
     -- Create eight start points
@@ -63,38 +65,32 @@ function BoardState.placeSnakesFixed(state, snakes)
     }
 
     -- Sanity check
-    local numSnakes = 0
-    for _, _ in pairs(state.snakes) do
-        numSnakes = numSnakes + 1
-    end
-    if numSnakes > #start_points then
+    if #state.snakes > #start_points then
         local err = 'Sorry, a maximum of %s snakes are supported for this board configuration.'
-        error(string.format(err, #start_points), 0)
+        error(format(err, #start_points), 0)
     end
 
     -- Randomly order them
     Utils.shuffle(start_points)
 
     -- Assign to snakes in order given
-    local i = 1
-    for _, snake in pairs(state.snakes) do
+    for i=1, #state.snakes do
+        local snake = state.snakes[i]
         for j=1, BoardState.SnakeStartSize do
-            table.insert(snake.body, start_points[i])
+            snake.body[#snake.body + 1] = start_points[i]
         end
-        i = i + 1
     end
 end
 
 function BoardState.placeSnakesRandomly(state, snakes)
     -- Add snakes to state
     state.snakes = Utils.deepcopy(snakes)
-    for _, snake in pairs(state.snakes) do
-        snake.health = BoardState.SnakeMaxHealth
+    for i=1, #state.snakes do
+        state.snakes[i].health = BoardState.SnakeMaxHealth
     end
 
-    local i = 1
-    for _, snake in pairs(state.snakes) do
-
+    for i=1, #state.snakes do
+        local snake = state.snakes[i]
         local unoccupiedPoints = BoardState.getEvenUnoccupiedPoints(state)
         if #unoccupiedPoints <= 0 then
             error("Sorry, there is not enough room on the board to place snakes.")
@@ -103,17 +99,17 @@ function BoardState.placeSnakesRandomly(state, snakes)
         local point = unoccupiedPoints[love.math.random(#unoccupiedPoints)]
 
         for j=1, BoardState.SnakeStartSize do
-            table.insert(snake.body, point)
+            snake.body[#snake.body + 1] = point
         end
-        i = i + 1
     end
 end
 
 -- Adds a single snake to the board with the given body coordinates
 function BoardState.placeSnake(state, snake, body)
-    state.snakes[snake.id] = Utils.deepcopy(snake)
-    state.snakes[snake.id].health = BoardState.SnakeMaxHealth
-    state.snakes[snake.id].body = body
+    local idx = #state.snakes + 1
+    state.snakes[idx] = Utils.deepcopy(snake)
+    state.snakes[idx].health = BoardState.SnakeMaxHealth
+    state.snakes[idx].body = body
 end
 
 -- Initializes the array of food based on the size of the board and the number of snakes.
@@ -121,18 +117,14 @@ function BoardState.placeFoodAutomatically(state)
     if BoardState.isKnownBoardSize(state) then
         BoardState.placeFoodFixed(state)
     else
-        local numSnakes = 0
-        for _, _ in pairs(state.snakes) do
-            numSnakes = numSnakes + 1
-        end
-        BoardState.placeFoodRandomly(state, numSnakes)
+        BoardState.placeFoodRandomly(state, #state.snakes)
     end
 end
 
 function BoardState.placeFoodFixed(state)
     -- Place 1 food within exactly 2 moves of each snake
-    for _, snake in pairs(state.snakes) do
-        local snakeHead = snake.body[1]
+    for i=1, #state.snakes do
+        local snakeHead = state.snakes[i].body[1]
         local possibleFoodLocations = {
             {x=snakeHead.x - 1, y=snakeHead.y - 1},
             {x=snakeHead.x - 1, y=snakeHead.y + 1},
@@ -141,16 +133,17 @@ function BoardState.placeFoodFixed(state)
         }
         local availableFoodLocations = {}
 
-        for i, point in ipairs(possibleFoodLocations) do
+        for j=1, #possibleFoodLocations do
+            local point = possibleFoodLocations[j]
             local isOccupiedAlready = false
-            for _, food in ipairs(state.food) do
-                if food.x == point.x and food.y == point.y then
+            for k=1, #state.food do
+                if state.food[k].x == point.x and state.food[k].y == point.y then
                     isOccupiedAlready = true
                     break
                 end
             end
             if not isOccupiedAlready then
-                table.insert(availableFoodLocations, point)
+                availableFoodLocations[#availableFoodLocations + 1] = point
             end
         end
 
@@ -160,14 +153,15 @@ function BoardState.placeFoodFixed(state)
 
         -- Select randomly from available locations
         local placedFood = availableFoodLocations[love.math.random(#availableFoodLocations)]
-        table.insert(state.food, placedFood)
+        state.food[#state.food + 1] = placedFood
     end
 
     -- Finally, always place 1 food in center of board for dramatic purposes
     local isCenterOccupied = true
     local centerCoord = {x=(state.width - 1)/2, y=(state.height - 1)/2}
     local unoccupiedPoints = BoardState.getUnoccupiedPoints(state, true)
-    for _, point in ipairs(unoccupiedPoints) do
+    for i=1, #unoccupiedPoints do
+        local point = unoccupiedPoints[i]
         if point.x == centerCoord.x and point.y == centerCoord.y then
             isCenterOccupied = false
             break
@@ -176,7 +170,7 @@ function BoardState.placeFoodFixed(state)
     if isCenterOccupied then
         error("Sorry, there is not enough room on the board to place food.")
     end
-    table.insert(state.food, centerCoord)
+    state.food[#state.food + 1] = centerCoord
 end
 
 -- Adds up to num new food to the board in random unoccupied squares
@@ -185,7 +179,7 @@ function BoardState.placeFoodRandomly(state, num)
         local unoccupiedPoints = BoardState.getUnoccupiedPoints(state, false)
         if #unoccupiedPoints > 0 then
             local newFood = unoccupiedPoints[love.math.random(#unoccupiedPoints)]
-            table.insert(state.food, newFood)
+            state.food[#state.food + 1] = newFood
         end
     end
 end
@@ -215,14 +209,16 @@ function BoardState.getUnoccupiedPoints(state, includePossibleMoves)
     end
 
     -- add food
-    for _, food in ipairs(state.food) do
+    for i=1, #state.food do
+        local food = state.food[i]
         pointIsOccupied[food.x + 1][food.y + 1] = true
     end
 
     -- add snakes
-    for _, snake in pairs(state.snakes) do
-        if snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
-            for i, body_point in ipairs(snake.body) do
+    for i=1, #state.snakes do
+        if state.snakes[i].eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
+            for j=1, #state.snakes[i].body do
+                local body_point = state.snakes[i].body[j]
 
                 -- There's a crash that can occur here because adding food takes place in between moving snakes
                 -- and eliminating them. So if a snake is out-of-bounds but not yet eliminated, that body part
@@ -234,14 +230,15 @@ function BoardState.getUnoccupiedPoints(state, includePossibleMoves)
                 if body_point.x >= 0 and body_point.y >= 0 and body_point.x < state.width and body_point.y < state.height then
 
                     pointIsOccupied[body_point.x + 1][body_point.y + 1] = true
-                    if i == 1 and not includePossibleMoves then
+                    if j == 1 and not includePossibleMoves then
                         local nextMovePoints = {
                             {x = body_point.x - 1, y = body_point.y},
                             {x = body_point.x + 1, y = body_point.y},
                             {x = body_point.x, y = body_point.y - 1},
                             {x = body_point.x, y = body_point.y + 1}
                         }
-                        for _, next_point in ipairs(nextMovePoints) do
+                        for k=1, #nextMovePoints do
+                            local next_point = nextMovePoints[k]
                             if next_point.x > 0 and next_point.x < state.width then
                                 if next_point.y > 0 and next_point.y < state.height then
                                     pointIsOccupied[next_point.x + 1][next_point.y + 1] = true
@@ -259,7 +256,7 @@ function BoardState.getUnoccupiedPoints(state, includePossibleMoves)
     for x = 1, state.width do
         for y = 1, state.height do
             if not pointIsOccupied[x][y] then
-                table.insert(unoccupiedPoints, {x=x-1, y=y-1})
+                unoccupiedPoints[#unoccupiedPoints + 1] = {x=x-1, y=y-1}
             end
         end
     end
@@ -275,9 +272,10 @@ function BoardState.getEvenUnoccupiedPoints(state)
     -- Create a new array to hold points that are even
     local evenUnoccupiedPoints = {}
 
-    for _, point in ipairs(unoccupiedPoints) do
+    for i=1, #unoccupiedPoints do
+        local point = unoccupiedPoints[i]
         if (point.x + point.y) % 2 == 0 then
-            table.insert(evenUnoccupiedPoints, point)
+            evenUnoccupiedPoints[#evenUnoccupiedPoints + 1] = point
         end
     end
     return evenUnoccupiedPoints

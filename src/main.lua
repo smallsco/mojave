@@ -21,6 +21,7 @@ snakeHeads, snakeTails = nil
 rightPane = nil
 Utils = nil
 Board = nil
+CustomGameDefinitions = nil
 Game = nil
 Menu = nil
 Shaders = nil
@@ -71,6 +72,7 @@ function love.load()
 
     -- Internal Modules Pt.2
     Board = require 'modules.Board'
+    CustomGameDefinitions = require 'modules.CustomGameDefinitions'
     Game = require 'modules.Game'
     GameThread = require 'modules.GameThread'
     Shaders = require 'modules.Shaders'

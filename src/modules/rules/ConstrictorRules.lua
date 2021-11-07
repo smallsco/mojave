@@ -32,7 +32,8 @@ function ConstrictorRules:applyConstrictorRules(state)
     state.food = {}
 
     -- Set all snakes to max health and ensure they grow next turn
-    for _, snake in pairs(state.snakes) do
+    for i=1, #state.snakes do
+        local snake = state.snakes[i]
         snake.health = BoardState.SnakeMaxHealth
 
         local tail = snake.body[#snake.body]

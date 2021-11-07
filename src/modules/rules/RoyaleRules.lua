@@ -7,11 +7,16 @@ setmetatable( RoyaleRules, {
   end,
 })
 
+local floor = math.floor
+local time = os.time
+local random = math.random
+local randomseed = math.randomseed
+
 function RoyaleRules.new( opt )
     local self = setmetatable( StandardRules(opt), RoyaleRules )
     opt = opt or {}
 
-    self.seed = opt.random_seed or os.time()
+    self.seed = opt.random_seed or time()
     self.ShrinkEveryNTurns = opt.shrink_every_n_turns or 25
 
     return self
@@ -40,14 +45,14 @@ function RoyaleRules:populateHazards(state, turn)
 
     -- We use the pure Lua math.random() function instead of the love.math.random()
     -- function because we need to be able to control the seed.
-    math.randomseed(self.seed)
+    randomseed(self.seed)
 
-    local numShrinks = math.floor(turn / self.ShrinkEveryNTurns)
+    local numShrinks = floor(turn / self.ShrinkEveryNTurns)
     local minX, maxX = 0, state.width - 1
     local minY, maxY = 0, state.height - 1
 
     for i=1, numShrinks do
-        local case = math.random(4)
+        local case = random(4)
         if case == 1 then
             minX = minX + 1
         elseif case == 2 then
@@ -63,7 +68,7 @@ function RoyaleRules:populateHazards(state, turn)
     for x=0, state.width-1 do
         for y=0, state.height-1 do
             if x < minX or x > maxX or y < minY or y > maxY then
-                table.insert(hazards, {x=x, y=y})
+                hazards[#hazards + 1] = {x=x, y=y}
             end
         end
     end

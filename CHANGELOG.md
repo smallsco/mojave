@@ -1,5 +1,15 @@
 ## CHANGELOG
 
+### v3.4 (2021-11-07)
+
+* Custom game modes are now supported! These modes are often featured on Snake Pit Live and include Bridges, Dots, Rings, and Lines.
+* Moved hazard damage and speed settings to the game creation screen, displayed for Royale (speed + damage) and Custom (damage only) games.
+* Added the "source" parameter to API calls, which will always return "custom" as Mojave doesn't have leagues.
+* The heads/tails lists are now sorted alphabetically when adding a Robosnake or human-controlled snake.
+* Modified some internal data structures for improved performance and maintainability.
+* Renamed "Bloom Filter" option to "Bloom Effect".
+* Added additional head and tail images.
+
 ### v3.3.1 (2021-10-09)
 
 * You can now use the function keys on your keyboard to control Mojave:

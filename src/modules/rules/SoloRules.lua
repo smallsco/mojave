@@ -15,8 +15,8 @@ function SoloRules.new( opt )
 end
 
 function SoloRules:isGameOver(state)
-    for _, snake in pairs(state.snakes) do
-        if snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
+    for i=1, #state.snakes do
+        if state.snakes[i].eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
             return false
         end
     end

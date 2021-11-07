@@ -34,6 +34,19 @@ function Game.new( opt )
 
     self.drawExitDialogOnNextFrame = false
 
+    -- Convert snakes from a dict to a list.
+    -- This will allow us to use indexed loops instead of pairs()
+    -- which is much, much faster.
+    local snakes_list = {}
+    for _, snake in pairs(self.opt.snakes) do
+        snakes_list[#snakes_list + 1] = snake
+    end
+
+    -- Also sort them by name now so we don't have to do it later.
+    table.sort(snakes_list, function(i, j)
+        return i.name:lower() < j.name:lower()
+    end)
+
     -- Create game thread
     self.thread = love.thread.newThread("thread.lua")
     self.channel = love.thread.getChannel("game")
@@ -45,22 +58,26 @@ function Game.new( opt )
 
     self.thread:start({
         rules = self.opt.rules,
-        snakes = self.opt.snakes,
+        snakes = snakes_list,
         width = self.opt.width,
         height = self.opt.height,
         food_spawns = self.opt.food_spawns,
         hazard_spawns = self.opt.hazard_spawns,
+        start_positions = self.opt.start_positions,
         squad_map = self.opt.squad_map,
+        shrink_every_n_turns = self.opt.shrink_every_n_turns,
+        hazard_damage_per_turn = self.opt.hazard_damage_per_turn,
         max_turns = self.opt.max_turns,
         timeout = self.opt.timeout,
         human_timeout = self.opt.human_timeout
     })
 
     -- Create an empty board
+    -- subtract 256 pixels from width to make room for the stats area
     self.board = Board({
         width = self.opt.width,
         height = self.opt.height
-    })
+    }, screenWidth-256, screenHeight)
     self.timer = 0
     self.latencyHistory = {}
     self.history = {}
@@ -79,7 +96,8 @@ function Game.new( opt )
 
     -- Wait for starting state from game thread
     self.state = self.channel:demand()
-    for _, snake in pairs(self.state.snakes) do
+    for i=1, #self.state.snakes do
+        local snake = self.state.snakes[i]
         setmetatable(snake, Snake)
         self.latencyHistory[snake.id] = {}
         table.insert(self.latencyHistory[snake.id], snake.latency)
@@ -168,8 +186,9 @@ function Game:checkNeedPlaySound(index)
     end
 
     -- Snake Death
-    for id, snake in pairs(current_state.snakes) do
-        if snake.eliminatedCause ~= prev_state.snakes[id].eliminatedCause then
+    for i=1, #current_state.snakes do
+        local snake = current_state.snakes[i]
+        if snake.eliminatedCause ~= prev_state.snakes[i].eliminatedCause then
             SFXSnakeDeath:stop()
             SFXSnakeDeath:play()
             break
@@ -179,7 +198,8 @@ function Game:checkNeedPlaySound(index)
     -- Snake Eat
     -- Note: We intentionally don't check against length here - we don't want
     -- to play a sound in game modes where snakes can grow without eating :)
-    for _, snake in pairs(current_state.snakes) do
+    for i=1, #current_state.snakes do
+        local snake = current_state.snakes[i]
         if snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
             local head = snake.body[1]
             for _, food in ipairs(prev_state.food) do
@@ -277,17 +297,8 @@ function Game:draw()
 
         -- Snake List
         imgui.Columns( 2, "snakeList", false )
-        local snakeIDsByName = {}
-        for id, _ in pairs(self.state.snakes) do
-            table.insert(snakeIDsByName, id)
-        end
-        table.sort(snakeIDsByName, function(i, j)
-            local name_i = self.state.snakes[i].name
-            local name_j = self.state.snakes[j].name
-            return name_i:lower() < name_j:lower()
-        end)
-        for _, id in ipairs(snakeIDsByName) do
-            local snake = self.state.snakes[id]
+        for i=1, #self.state.snakes do
+            local snake = self.state.snakes[i]
 
             -- Head/Tail Preview, Debug Button, and Latency Graph
             imgui.PushStyleVar( "FramePadding", 4, 0 )
@@ -369,17 +380,31 @@ function Game:draw()
                 imgui.TextColored( 1, 0, 0, 1, "Ran out of health" )
                 imgui.PopTextWrapPos()
             elseif snake.eliminatedCause == Snake.ELIMINATION_CAUSES.EliminatedByHeadToHeadCollision then
+                local eliminatedSnakeName
+                for j=1, #self.state.snakes do
+                    if self.state.snakes[j].id == snake.eliminatedBy then
+                        eliminatedSnakeName = self.state.snakes[j].name
+                        break
+                    end
+                end
                 imgui.PushTextWrapPos(xpos + imgui.GetColumnWidth()*0.9)
                 imgui.TextColored( 1, 0, 0, 1, string.format(
                     "Lost head to head with %s",
-                    self.state.snakes[snake.eliminatedBy].name
+                    eliminatedSnakeName
                 ))
                 imgui.PopTextWrapPos()
             elseif snake.eliminatedCause == Snake.ELIMINATION_CAUSES.EliminatedByCollision then
+                local eliminatedSnakeName
+                for j=1, #self.state.snakes do
+                    if self.state.snakes[j].id == snake.eliminatedBy then
+                        eliminatedSnakeName = self.state.snakes[j].name
+                        break
+                    end
+                end
                 imgui.PushTextWrapPos(xpos + imgui.GetColumnWidth()*0.9)
                 imgui.TextColored( 1, 0, 0, 1, string.format(
                     "Ran into %s's body",
-                    self.state.snakes[snake.eliminatedBy].name
+                    eliminatedSnakeName
                 ))
                 imgui.PopTextWrapPos()
             elseif snake.eliminatedCause == Snake.ELIMINATION_CAUSES.EliminatedBySelfCollision then
@@ -443,7 +468,7 @@ end
 
 -- Resize callback
 function Game:resize(width, height)
-    self.board:resize(width, height)
+    self.board:resize(width-256, height)
 end
 
 -- Cleanly shut down the game thread and clear the message queues
@@ -475,7 +500,8 @@ function Game:update( dt )
     -- as they become available.
     local nextState = self.channel:pop()
     if nextState then
-        for _, snake in pairs(nextState.snakes) do
+        for i=1, #nextState.snakes do
+            local snake = nextState.snakes[i]
             setmetatable(snake, Snake)
             table.insert(self.latencyHistory[snake.id], snake.latency)
         end

@@ -6,6 +6,10 @@ setmetatable( StandardRules, {
   end,
 })
 
+local format = string.format
+local insert = table.insert
+local sort = table.sort
+
 function StandardRules.new( opt )
     local self = setmetatable( {}, StandardRules )
     opt = opt or {}
@@ -34,19 +38,21 @@ end
 
 function StandardRules:moveSnakes(state, moves)
     -- Sanity check that all non-eliminated snakes have moves and bodies.
-    for _, snake in pairs(state.snakes) do
+    for i=1, #state.snakes do
+        local snake = state.snakes[i]
         if snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
             if #snake.body == 0 then
-                error(string.format("Snake '%s' has a body length of 0", snake.name))
+                error(format("Snake '%s' has a body length of 0", snake.name))
             end
             local move = moves[snake.id]
             if not move then
-                error(string.format("Snake '%s' does not have a move", snake.name))
+                error(format("Snake '%s' does not have a move", snake.name))
             end
         end
     end
 
-    for _, snake in pairs(state.snakes) do
+    for i=1, #state.snakes do
+        local snake = state.snakes[i]
         if snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
             local move = moves[snake.id]
             local newHead = {}
@@ -86,14 +92,15 @@ function StandardRules:moveSnakes(state, moves)
             end
 
             -- Append new head, pop old tail
-            table.insert(snake.body, 1, newHead)
-            table.remove(snake.body)
+            insert(snake.body, 1, newHead)
+            snake.body[#snake.body] = nil
         end
     end
 end
 
 function StandardRules:reduceSnakeHealth(state)
-    for _, snake in pairs(state.snakes) do
+    for i=1, #state.snakes do
+        local snake = state.snakes[i]
         if snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
             snake.health = snake.health - 1
         end
@@ -101,16 +108,17 @@ function StandardRules:reduceSnakeHealth(state)
 end
 
 function StandardRules:maybeDamageHazards(state)
-    for _, snake in pairs(state.snakes) do
+    for i=1, #state.snakes do
+        local snake = state.snakes[i]
         if snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
             local head = snake.body[1]
-            for _, p in ipairs(state.hazards) do
-                if head.x == p.x and head.y == p.y then
+            for j=1, #state.hazards do
+                if head.x == state.hazards[j].x and head.y == state.hazards[j].y then
 
                     -- If there's a food in this square, don't reduce health
                     local foundFood = false
-                    for _, food in ipairs(state.food) do
-                        if food.x == p.x and food.y == p.y then
+                    for k=1, #state.food do
+                        if state.food[k].x == state.hazards[j].x and state.food[k].y == state.hazards[j].y then
                             foundFood = true
                         end
                     end
@@ -135,22 +143,21 @@ end
 function StandardRules:maybeEliminateSnakes(state)
     -- First order snake indices by length.
     -- In multi-collision scenarios we want to always attribute elimination to the longest snake.
-    local snakeIDsByLength = {}
-    for _, snake in pairs(state.snakes) do
-        table.insert(snakeIDsByLength, snake.id)
+    local snakesByLength = {}
+    for i=1, #state.snakes do
+        insert(snakesByLength, state.snakes[i])
     end
-    table.sort(snakeIDsByLength, function(i, j)
-        local len_i = #state.snakes[i].body
-        local len_j = #state.snakes[j].body
-        return len_i > len_j
+    sort(snakesByLength, function(i, j)
+        return #i.body > #j.body
     end)
 
     -- Iterate over all non-eliminated snakes and eliminate the ones
     -- that are out of health or have moved out of bounds.
-    for _, snake in pairs(state.snakes) do
+    for i=1, #state.snakes do
+        local snake = state.snakes[i]
         if snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
             if #snake.body <= 0 then
-                error(string.format("Snake '%s' has a body length of 0", snake.name))
+                error(format("Snake '%s' has a body length of 0", snake.name))
             end
             if self:snakeIsOutOfHealth(snake) then
                 snake.eliminatedCause = Snake.ELIMINATION_CAUSES.EliminatedByOutOfHealth
@@ -163,19 +170,20 @@ function StandardRules:maybeEliminateSnakes(state)
     -- Next, look for any collisions. Note we apply collision eliminations
     -- after this check so that snakes can collide with each other and be properly eliminated.
     local collisionEliminations = {}
-    for _, snake in pairs(state.snakes) do
+    for i=1, #state.snakes do
+        local snake = state.snakes[i]
         if snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
             if #snake.body <= 0 then
-                error(string.format("Snake '%s' has a body length of 0", snake.name))
+                error(format("Snake '%s' has a body length of 0", snake.name))
             end
 
             -- Check for self-collisions first
             if self:snakeHasBodyCollided(snake, snake) then
-                table.insert(collisionEliminations, {
+                collisionEliminations[#collisionEliminations + 1] = {
                     id = snake.id,
                     cause = Snake.ELIMINATION_CAUSES.EliminatedBySelfCollision,
                     by = snake.id
-                })
+                }
 
                 -- I'm so, so sorry.
                 -- Lua doesn't have a continue statment, so the options here were:
@@ -188,15 +196,15 @@ function StandardRules:maybeEliminateSnakes(state)
 
             -- Check for body collisions with other snakes second
             local hasBodyCollided = false
-            for i=1, #snakeIDsByLength do
-                local other = state.snakes[snakeIDsByLength[i]]
+            for j=1, #snakesByLength do
+                local other = snakesByLength[j]
                 if other.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
                     if snake.id ~= other.id and self:snakeHasBodyCollided(snake, other) then
-                        table.insert(collisionEliminations, {
+                        collisionEliminations[#collisionEliminations + 1] = {
                             id = snake.id,
                             cause = Snake.ELIMINATION_CAUSES.EliminatedByCollision,
                             by = other.id
-                        })
+                        }
                         hasBodyCollided = true
                         break
                     end
@@ -210,15 +218,15 @@ function StandardRules:maybeEliminateSnakes(state)
 
             -- Check for head-to-heads last
             local hasHeadCollided = false
-            for i=1, #snakeIDsByLength do
-                local other = state.snakes[snakeIDsByLength[i]]
+            for j=1, #snakesByLength do
+                local other = snakesByLength[j]
                 if other.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
                     if snake.id ~= other.id and self:snakeHasLostHeadToHead(snake, other) then
-                        table.insert(collisionEliminations, {
+                        collisionEliminations[#collisionEliminations + 1] = {
                             id = snake.id,
                             cause = Snake.ELIMINATION_CAUSES.EliminatedByHeadToHeadCollision,
                             by = other.id
-                        })
+                        }
                         hasHeadCollided = true
                         break
                     end
@@ -235,11 +243,12 @@ function StandardRules:maybeEliminateSnakes(state)
     end
 
     -- Apply collision elimimations
-    for _, elimination in ipairs(collisionEliminations) do
-        for _, snake in pairs(state.snakes) do
-            if snake.id == elimination.id then
-                snake.eliminatedCause = elimination.cause
-                snake.eliminatedBy = elimination.by
+    for i=1, #collisionEliminations do
+        for j=1, #state.snakes do
+            local snake = state.snakes[j]
+            if snake.id == collisionEliminations[i].id then
+                snake.eliminatedCause = collisionEliminations[i].cause
+                snake.eliminatedBy = collisionEliminations[i].by
             end
         end
     end
@@ -251,11 +260,11 @@ function StandardRules:snakeIsOutOfHealth(snake)
 end
 
 function StandardRules:snakeIsOutOfBounds(snake, width, height)
-    for _, point in ipairs(snake.body) do
-        if point.x < 0 or point.x >= width then
+    for i=1, #snake.body do
+        if snake.body[i].x < 0 or snake.body[i].x >= width then
             return true
         end
-        if point.y < 0 or point.y >= height then
+        if snake.body[i].y < 0 or snake.body[i].y >= height then
             return true
         end
     end
@@ -281,18 +290,19 @@ end
 
 function StandardRules:maybeFeedSnakes(state)
     local newFood = {}
-    for _, food in ipairs(state.food) do
+    for i=1, #state.food do
         local foodHasBeenEaten = false
-        for _, snake in pairs(state.snakes) do
+        for j=1, #state.snakes do
+            local snake = state.snakes[j]
             if snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated and #snake.body ~= 0 then
-                if snake.body[1].x == food.x and snake.body[1].y == food.y then
+                if snake.body[1].x == state.food[i].x and snake.body[1].y == state.food[i].y then
                     self:feedSnake(snake)
                     foodHasBeenEaten = true
                 end
             end
         end
         if not foodHasBeenEaten then
-            table.insert(newFood, food)
+            newFood[#newFood + 1] = state.food[i]
         end
     end
 
@@ -306,7 +316,7 @@ end
 
 function StandardRules:growSnake(snake)
     if #snake.body > 0 then
-        table.insert(snake.body, snake.body[#snake.body])
+        snake.body[#snake.body + 1] = snake.body[#snake.body]
     end
 end
 
@@ -321,8 +331,8 @@ end
 
 function StandardRules:isGameOver(state)
     local numSnakesRemaining = 0
-    for _, snake in pairs(state.snakes) do
-        if snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
+    for i=1, #state.snakes do
+        if state.snakes[i].eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
             numSnakesRemaining = numSnakesRemaining + 1
         end
     end
