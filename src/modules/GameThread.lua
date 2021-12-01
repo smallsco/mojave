@@ -264,6 +264,7 @@ function GameThread:buildMoveJson2018(snake)
 end
 
 -- Construct the JSON for a move request to a modern API snake
+-- TODO: break this down into separate API v0 and API v1 functions
 function GameThread:buildMoveJson(snake)
     local move_json = {}
 
@@ -307,6 +308,14 @@ function GameThread:buildMoveJson(snake)
     }
     for i=1, #self.state.snakes do
         local other_snake = self.state.snakes[i]
+        local customizations = {
+            head=other_snake.headSrc,
+            tail=other_snake.tailSrc,
+            color=Utils.color_to_hex(other_snake.color)
+        }
+        if snake.apiversion == 0 then
+            customizations = nil
+        end
         local snake_json = {
             id=other_snake.id,
             name=other_snake.name,
@@ -316,13 +325,22 @@ function GameThread:buildMoveJson(snake)
             health=other_snake.health,
             shout=other_snake.shout or "",
             latency=tostring(other_snake.latency),
-            squad=tostring(other_snake.squad or "")
+            squad=tostring(other_snake.squad or ""),
+            customizations=customizations
         }
         if other_snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
             table.insert(move_json.board.snakes, snake_json)
         end
     end
 
+    local customizations = {
+        head=snake.headSrc,
+        tail=snake.tailSrc,
+        color=Utils.color_to_hex(snake.color)
+    }
+    if snake.apiversion == 0 then
+        customizations = nil
+    end
     move_json.you = {
         id=snake.id,
         name=snake.name,
@@ -332,7 +350,8 @@ function GameThread:buildMoveJson(snake)
         health=snake.health,
         shout=snake.shout or "",
         latency=tostring(snake.latency),
-        squad=tostring(snake.squad or "")
+        squad=tostring(snake.squad or ""),
+        customizations=customizations
     }
 
     return json.encode(move_json)

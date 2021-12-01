@@ -2,7 +2,7 @@ local Utils = {}
 local ffi = require 'ffi'
 
 -- Version constant
-Utils.MOJAVE_VERSION = '3.4'
+Utils.MOJAVE_VERSION = '3.4.1'
 
 -- Shared Library Hashes (used for library updates)
 -- If these change, we'll re-extract the corresponding library when the app starts.
@@ -266,6 +266,17 @@ function Utils.color_from_hex( value )
         tonumber( "0x" .. value:sub( 5, 6 ) )/255,
         1
     }
+end
+
+-- Turns an RGB color back into a hexadecimal value
+function Utils.color_to_hex( value )
+    if type(value) == "table" then
+        return string.format("#%x%x%x", value[1]*255, value[2]*255, value[3]*255)
+    elseif Utils.HTML_COLORS[value] then
+        return Utils.HTML_COLORS[value]
+    else
+        return value
+    end
 end
 
 -- Clones a table recursively.

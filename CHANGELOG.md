@@ -1,5 +1,8 @@
 ## CHANGELOG
 
+### v3.4.1 (2021-11-30)
+* Added the `customizations` field to the JSON sent to API v1 snakes.
+
 ### v3.4 (2021-11-07)
 
 * Custom game modes are now supported! These modes are often featured on Snake Pit Live and include Bridges, Dots, Rings, and Lines.
