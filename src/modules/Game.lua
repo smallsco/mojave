@@ -56,6 +56,20 @@ function Game.new( opt )
     -- not the actual game rules, just an int
     self.rules = self.opt.rules
 
+    -- If this is a squads game, colorize the snake heads/tails by squad
+    if self.rules == GameThread.RULES_SQUADS then
+        for _, snake in ipairs(snakes_list) do
+            snake.squadHeadImg = snake:colorize(
+                snakeHeads[snake.headSrc]:clone(),
+                config.squads["squad" .. self.opt.squad_map[snake.id] .. "Color"]
+            )
+            snake.squadTailImg = snake:colorize(
+                snakeTails[snake.tailSrc]:clone(),
+                config.squads["squad" .. self.opt.squad_map[snake.id] .. "Color"]
+            )
+        end
+    end
+
     self.thread:start({
         rules = self.opt.rules,
         snakes = snakes_list,
@@ -99,6 +113,12 @@ function Game.new( opt )
     for i=1, #self.state.snakes do
         local snake = self.state.snakes[i]
         setmetatable(snake, Snake)
+
+        if snake.apiversion == 0 or snake.type == Snake.TYPES.API_OLD then
+            snake.headImg = snake:colorize(snakeHeads[snake.headSrc]:clone())
+            snake.tailImg = snake:colorize(snakeTails[snake.tailSrc]:clone())
+        end
+
         self.latencyHistory[snake.id] = {}
         table.insert(self.latencyHistory[snake.id], snake.latency)
     end
@@ -312,14 +332,11 @@ function Game:draw()
             end
             imgui.PopStyleVar()
             local snakeHeight = imgui.GetTextLineHeight() * 2
-            local headImg = snakeHeads[snake.headSrc]
-            local tailImg = snakeTails[snake.tailSrc]
-            local sr, sg, sb, sa
+            local headImg = snake.headImg
+            local tailImg = snake.tailImg
             if snake.squad then
-                sr, sg, sb = unpack(config.squads["squad" .. snake.squad .. "Color"])
-                sa = 1
-            else
-                sr, sg, sb, sa = unpack(Utils.color_from_hex(snake.color))
+                headImg = snake.squadHeadImg
+                tailImg = snake.squadTailImg
             end
             local head_scale_ratio = headImg:getHeight() / snakeHeight
             local tail_scale_ratio = tailImg:getHeight() / snakeHeight
@@ -327,8 +344,7 @@ function Game:draw()
                 tailImg,
                 tailImg:getWidth() / tail_scale_ratio,
                 snakeHeight,
-                1,0,0,1,
-                sr, sg, sb, sa
+                1, 0, 0, 1
             )
             if imgui.IsItemHovered() then
                 self:drawLatency(snake)
@@ -338,8 +354,7 @@ function Game:draw()
                 headImg,
                 headImg:getWidth() / head_scale_ratio,
                 snakeHeight,
-                0, 0, 1, 1,
-                sr, sg, sb, sa
+                0, 0, 1, 1
             )
             if imgui.IsItemHovered() then
                 self:drawLatency(snake)
@@ -503,6 +518,10 @@ function Game:update( dt )
         for i=1, #nextState.snakes do
             local snake = nextState.snakes[i]
             setmetatable(snake, Snake)
+            if snake.apiversion == 0 or snake.type == Snake.TYPES.API_OLD then
+                snake.headImg = snake:colorize(snakeHeads[snake.headSrc]:clone())
+                snake.tailImg = snake:colorize(snakeTails[snake.tailSrc]:clone())
+            end
             table.insert(self.latencyHistory[snake.id], snake.latency)
         end
         table.insert(self.history, nextState)

@@ -1,6 +1,12 @@
 ## CHANGELOG
 
+### v3.5 (2021-12-12)
+
+* Substantially rewrote the head and tail loader and renderer in order to support non-monochrome head and tail images.
+* Added additional head and tail images.
+
 ### v3.4.1 (2021-11-30)
+
 * Added the `customizations` field to the JSON sent to API v1 snakes.
 
 ### v3.4 (2021-11-07)

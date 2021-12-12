@@ -181,12 +181,16 @@ function Board:drawRaw( state, draw_grid, draw_vignette )
     for _, snake in pairs(state.snakes) do
 
         -- Get color
-        local sr, sg, sb, sa
+        local sr, sg, sb, sa, headImg, tailImg
         if snake.squad then
             sr, sg, sb = unpack(config.squads["squad" .. snake.squad .. "Color"])
             sa = 1
+            headImg = snake.squadHeadImg
+            tailImg = snake.squadTailImg
         else
             sr, sg, sb, sa = unpack(Utils.color_from_hex(snake.color))
+            headImg = snake.headImg
+            tailImg = snake.tailImg
         end
         if snake.eliminatedCause ~= Snake.ELIMINATION_CAUSES.NotEliminated then
             sa = 32/255
@@ -259,16 +263,16 @@ function Board:drawRaw( state, draw_grid, draw_vignette )
         elseif headDir == 'left' then
             headScaleX = -headScaleX
         end
-        love.graphics.setColor(sr, sg, sb, sa)
+        love.graphics.setColor(1, 1, 1, sa)
         love.graphics.draw(
-            snakeHeads[snake.headSrc],
+            headImg,
             1 + (snake.body[1].x * self.tileWidth) + ((self.tileWidth - self.cellWidth) / 2) + ( self.cellWidth / 2 ),
             1 + ((self.numTilesY - 1 - snake.body[1].y) * self.tileHeight) + ((self.tileHeight - self.cellHeight) / 2) + ( self.cellHeight / 2 ),
             headRot,
             headScaleX,
             headScaleY,
-            snakeHeads[snake.headSrc]:getWidth() / 2,
-            snakeHeads[snake.headSrc]:getHeight() / 2
+            headImg:getWidth() / 2,
+            headImg:getHeight() / 2
         )
         love.graphics.setColor(1, 1, 1, 1)
 
@@ -359,16 +363,16 @@ function Board:drawRaw( state, draw_grid, draw_vignette )
             if config.appearance.fadeOutTails and snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
                 sa = 105 / 255
             end
-            love.graphics.setColor(sr, sg, sb, sa)
+            love.graphics.setColor(1, 1, 1, sa)
             love.graphics.draw(
-                snakeTails[snake.tailSrc],
+                tailImg,
                 1 + (snake.body[#snake.body].x * self.tileWidth) + ((self.tileWidth - self.cellWidth) / 2) + ( self.cellWidth / 2 ),
                 1 + ((self.numTilesY - 1 - snake.body[#snake.body].y) * self.tileHeight) + ((self.tileHeight - self.cellHeight) / 2) + ( self.cellHeight / 2 ),
                 tailRot,
                 tailScaleX,
                 tailScaleY,
-                snakeTails[snake.tailSrc]:getWidth() / 2,
-                snakeTails[snake.tailSrc]:getHeight() / 2
+                tailImg:getWidth() / 2,
+                tailImg:getHeight() / 2
             )
             love.graphics.setColor(1, 1, 1, 1)
         end

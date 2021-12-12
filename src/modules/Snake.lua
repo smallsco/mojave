@@ -57,10 +57,30 @@ function Snake.new(opt)
     self.url = opt.url or ""
     self.headSrc = opt.headSrc or ""
     self.tailSrc = opt.tailSrc or ""
+    self.headImg = nil
+    self.tailImg = nil
     self.color = opt.color or ""
     self.apiversion = tonumber(opt.apiversion) or -1
 
     return self
+end
+
+-- Generates a colorized head/tail image for the snake.
+function Snake:colorize(imgdata, color)
+    if not color then
+        color = Utils.color_from_hex(self.color)
+    end
+    imgdata:mapPixel(function(x, y, r, g, b, a)
+        if r == 0 and g == 0 and b == 0 then
+            r = color[1]
+            g = color[2]
+            b = color[3]
+        end
+        return r, g, b, a
+    end)
+    local img = love.graphics.newImage(imgdata, {mipmaps = true})
+    img:setMipmapFilter('linear', 100)
+    return img
 end
 
 -- Removes this snake from the app.
@@ -135,6 +155,7 @@ function Snake:refresh()
             else
                 self.tailSrc = "default"
             end
+
             self.apiversion = tonumber(data.apiversion)
         end
 
@@ -147,6 +168,11 @@ function Snake:refresh()
             )
             warn = warn .. "You may proceed, but if the API is not backwards-compatible, then things may break."
         end
+    end
+
+    if (self.type == Snake.TYPES.API and self.apiversion > 0) or self.type == Snake.TYPES.ROBOSNAKE or self.type == Snake.TYPES.HUMAN then
+        self.headImg = self:colorize(snakeHeads[self.headSrc]:clone())
+        self.tailImg = self:colorize(snakeTails[self.tailSrc]:clone())
     end
 
     -- Update snakes.json with the newly added snake.

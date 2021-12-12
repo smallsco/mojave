@@ -175,25 +175,20 @@ function SnakesPane.draw()
             -- Body Preview
             if (snake.type == Snake.TYPES.API and snake.apiversion > 0) or snake.type == Snake.TYPES.ROBOSNAKE or snake.type == Snake.TYPES.HUMAN then
                 local snakeHeight = imgui.GetTextLineHeight() * 2
-                local headImg = snakeHeads[snake.headSrc]
-                local tailImg = snakeTails[snake.tailSrc]
-                local head_scale_ratio = headImg:getHeight() / snakeHeight
-                local tail_scale_ratio = tailImg:getHeight() / snakeHeight
-                local sr, sg, sb, sa = unpack(Utils.color_from_hex(snake.color))
+                local head_scale_ratio = snake.headImg:getHeight() / snakeHeight
+                local tail_scale_ratio = snake.tailImg:getHeight() / snakeHeight
                 imgui.Image(
-                        tailImg,
-                        tailImg:getWidth() / tail_scale_ratio,
+                        snake.tailImg,
+                        snake.tailImg:getWidth() / tail_scale_ratio,
                         snakeHeight,
-                        1, 0, 0, 1,
-                        sr, sg, sb, sa
+                        1, 0, 0, 1
                 )
                 imgui.SameLine(0,0)
                 imgui.Image(
-                        headImg,
-                        headImg:getWidth() / head_scale_ratio,
+                        snake.headImg,
+                        snake.headImg:getWidth() / head_scale_ratio,
                         snakeHeight,
-                        0, 0, 1, 1,
-                        sr, sg, sb, sa
+                        0, 0, 1, 1
                 )
             else
                 imgui.Text("Not\navailable")

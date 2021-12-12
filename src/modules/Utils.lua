@@ -2,7 +2,7 @@ local Utils = {}
 local ffi = require 'ffi'
 
 -- Version constant
-Utils.MOJAVE_VERSION = '3.4.1'
+Utils.MOJAVE_VERSION = '3.5'
 
 -- Shared Library Hashes (used for library updates)
 -- If these change, we'll re-extract the corresponding library when the app starts.
@@ -411,6 +411,12 @@ function Utils.get_or_create_snakes()
     end
     for _, snake in pairs(snakes) do
         setmetatable(snake, Snake)
+
+        -- Regenerate the colorized head/tail since that isn't in the JSON
+        if (snake.type == Snake.TYPES.API and snake.apiversion > 0) or snake.type == Snake.TYPES.ROBOSNAKE or snake.type == Snake.TYPES.HUMAN then
+            snake.headImg = snake:colorize(snakeHeads[snake.headSrc]:clone())
+            snake.tailImg = snake:colorize(snakeTails[snake.tailSrc]:clone())
+        end
     end
 
     return snakes
@@ -524,46 +530,40 @@ function Utils.load_heads_and_tails(in_thread)
 
     for _, png in ipairs(head_pngs) do
         if Utils.string_ends_with(png, '.png') then
-            local imgdata, img
+            local imgdata
             if in_thread then
-                img = true
+                imgdata = true
             else
                 imgdata = love.image.newImageData(string.format("images/heads/%s", png))
-                imgdata:mapPixel(Utils.invert)
-                img = love.graphics.newImage(imgdata, {mipmaps = true})
-                img:setMipmapFilter('linear', 100)
             end
             local name = png:sub(0, #png-4)
-            heads[name] = img
+            heads[name] = imgdata
             if Utils.string_starts_with(name, 'bfl-') or Utils.string_starts_with(name, 'bwc-') then
                 name = name:sub(5, #name)
-                heads[name] = img
+                heads[name] = imgdata
             elseif Utils.string_starts_with(name, 'shac-') then
                 name = name:sub(6, #name)
-                heads[name] = img
+                heads[name] = imgdata
             end
         end
     end
 
     for _, png in ipairs(tail_pngs) do
         if Utils.string_ends_with(png, '.png') then
-            local imgdata, img
+            local imgdata
             if in_thread then
-                img = true
+                imgdata = true
             else
                 imgdata = love.image.newImageData(string.format("images/tails/%s", png))
-                imgdata:mapPixel(Utils.invert)
-                img = love.graphics.newImage(imgdata, {mipmaps = true})
-                img:setMipmapFilter('linear', 100)
             end
             local name = png:sub(0, #png-4)
-            tails[name] = img
+            tails[name] = imgdata
             if Utils.string_starts_with(name, 'bfl-') or Utils.string_starts_with(name, 'bwc-') then
                 name = name:sub(5, #name)
-                tails[name] = img
+                tails[name] = imgdata
             elseif Utils.string_starts_with(name, 'shac-') then
                 name = name:sub(6, #name)
-                tails[name] = img
+                tails[name] = imgdata
             end
         end
     end

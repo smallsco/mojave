@@ -79,6 +79,9 @@ function love.load()
     Snake = require 'modules.Snake'
     Menu = require 'modules.Menu'
 
+    -- Load snake head and tail images
+    snakeHeads, snakeTails = Utils.load_heads_and_tails()
+
     -- Init config
     config = Utils.get_or_create_config()
     snakes = Utils.get_or_create_snakes()
@@ -94,9 +97,6 @@ function love.load()
         love.window.setFullscreen( config.appearance.fullscreen )
     end
     screenWidth, screenHeight = love.graphics.getDimensions()
-
-    -- Load snake head and tail images
-    snakeHeads, snakeTails = Utils.load_heads_and_tails()
 
     -- Display Splash Screen
     splash = o_ten_one({ background={ 0, 0, 0 } }) 
