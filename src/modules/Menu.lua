@@ -75,7 +75,7 @@ function Menu.draw()
 
     -- Footer text
     love.graphics.setFont( defaultFont )
-    love.graphics.printf( "©2017-2021 Scott Small and contributors", 0, screenHeight-25, screenWidth, "center" )
+    love.graphics.printf( "©2017-2022 Scott Small and contributors", 0, screenHeight-25, screenWidth, "center" )
     love.graphics.print( Utils.MOJAVE_VERSION, screenWidth-40, screenHeight-25 )
 
     -- Render Main Menu

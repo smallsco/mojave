@@ -234,7 +234,7 @@ Mojave would not be possible:
 
 **Battlesnake concept, assets, and rules**  
 Copyright ©2015-2018 Techdrop Labs, Inc. (d/b/a Dyspatch)  
-Copyright ©2018-2021 Battlesnake Inc.  
+Copyright ©2018-2022 Battlesnake Inc.  
 License: AGPL 3.0  
 <https://www.battlesnake.com>  
 <https://github.com/BattlesnakeOfficial/exporter/tree/master/render/assets>
@@ -250,7 +250,7 @@ License: Public Domain
 <https://love2d.org/forums/viewtopic.php?f=4&t=3733&start=20#p38666>  
 
 **Dear ImGui**  
-Copyright ©2014-2021 Omar Cornut  
+Copyright ©2014-2022 Omar Cornut  
 License: MIT  
 <https://github.com/ocornut/imgui>  
 
@@ -264,7 +264,7 @@ License: Public Domain
 <https://opengameart.org/content/game-icons>  
 
 **libcurl**  
-Copyright ©1996-2021 Daniel Stenberg  
+Copyright ©1996-2022 Daniel Stenberg  
 License: MIT  
 <https://curl.se/libcurl/>  
 
@@ -274,7 +274,7 @@ License: Public Domain
 <https://luapower.com/libcurl>  
 
 **LÖVE**  
-Copyright ©2006-2021 LÖVE Development Team  
+Copyright ©2006-2022 LÖVE Development Team  
 License: ZLIB  
 <https://love2d.org>  
 
@@ -329,7 +329,7 @@ Extra special thanks to:
 
 ## License
 Mojave  
-Copyright ©2017-2021 Scott Small and contributors
+Copyright ©2017-2022 Scott Small and contributors
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the [GNU General Public License](LICENSE) as published by

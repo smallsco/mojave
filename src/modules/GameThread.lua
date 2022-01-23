@@ -94,6 +94,21 @@ function GameThread.new(opt)
     -- Note: Lua arrays start at 1, so turn 0 is at index 1, turn 1 is at index 2, etc.
     local initial_state = BoardState.newBoardState(opt.width, opt.height)
 
+    -- Place snakes on the board
+    if #opt.start_positions > 0 then
+        if #opt.start_positions < #opt.snakes then
+            error("Not enough start positions for the number of snakes in game")
+        end
+
+        -- Manually place snakes
+        for i=1, #opt.snakes do
+            BoardState.placeSnake(initial_state, opt.snakes[i], {opt.start_positions[i], opt.start_positions[i], opt.start_positions[i]})
+        end
+    else
+        -- Automatically place snakes
+        BoardState.placeSnakesAutomatically(initial_state, opt.snakes)
+    end
+
     -- Automatically place food on the board, unless we're placing some manually
     if #opt.food_spawns == 0 then
         BoardState.placeFoodAutomatically(initial_state)
@@ -111,21 +126,6 @@ function GameThread.new(opt)
         if hazard.turn == 0 and not self:isPointOccupied(initial_state, hazard.x, hazard.y) then
             table.insert(initial_state.hazards, {x=hazard.x, y=hazard.y})
         end
-    end
-
-    -- Place snakes on the board
-    if #opt.start_positions > 0 then
-        if #opt.start_positions < #opt.snakes then
-            error("Not enough start positions for the number of snakes in game")
-        end
-
-        -- Manually place snakes
-        for i=1, #opt.snakes do
-            BoardState.placeSnake(initial_state, opt.snakes[i], {opt.start_positions[i], opt.start_positions[i], opt.start_positions[i]})
-        end
-    else
-        -- Automatically place snakes
-        BoardState.placeSnakesAutomatically(initial_state, opt.snakes)
     end
 
     self.state = self.rules:modifyInitialBoardState(initial_state)

@@ -54,41 +54,25 @@ function StandardRules:moveSnakes(state, moves)
     for i=1, #state.snakes do
         local snake = state.snakes[i]
         if snake.eliminatedCause == Snake.ELIMINATION_CAUSES.NotEliminated then
-            local move = moves[snake.id]
+            local appliedMove = moves[snake.id]
+            if appliedMove ~= "up" and appliedMove ~= "down" and appliedMove ~= "left" and appliedMove ~= "right" then
+                appliedMove = self:getDefaultMove(snake.body)
+            end
+
             local newHead = {}
-            if move == "down" then
-                newHead.x = snake.body[1].x
-                newHead.y = snake.body[1].y - 1
-            elseif move == "left" then
-                newHead.x = snake.body[1].x - 1
-                newHead.y = snake['body'][1].y
-            elseif move == "right" then
-                newHead.x = snake.body[1].x + 1
-                newHead.y = snake.body[1].y
-            elseif move == "up" then
+            -- Guaranteed to be one of these options given the clause above
+            if appliedMove == "up" then
                 newHead.x = snake.body[1].x
                 newHead.y = snake.body[1].y + 1
-            else
-                -- Default to up
-                local dx = 0
-                local dy = 1
-
-                -- If neck is available, use neck to determine last direction
-                if #snake.body >= 2 then
-                    dx = snake.body[1].x - snake.body[2].x
-                    dy = snake.body[1].y - snake.body[2].y
-                    if dy > 1 then dy = -1 end
-                    if dy < -1 then dy = 1 end
-                    if dx > 1 then dx = -1 end
-                    if dx < -1 then dx = 1 end
-                    if dx == 0 and dy == 0 then
-                        dy = 1  -- Move up if no last move was made
-                    end
-                end
-
-                -- Apply
-                newHead.x = snake.body[1].x + dx
-                newHead.y = snake.body[1].y + dy
+            elseif appliedMove == "down" then
+                newHead.x = snake.body[1].x
+                newHead.y = snake.body[1].y - 1
+            elseif appliedMove == "left" then
+                newHead.x = snake.body[1].x - 1
+                newHead.y = snake.body[1].y
+            elseif appliedMove == "right" then
+                newHead.x = snake.body[1].x + 1
+                newHead.y = snake.body[1].y
             end
 
             -- Append new head, pop old tail
@@ -96,6 +80,37 @@ function StandardRules:moveSnakes(state, moves)
             snake.body[#snake.body] = nil
         end
     end
+end
+
+function StandardRules:getDefaultMove(snakeBody)
+    if #snakeBody >= 2 then
+        -- Use neck to determine last move made
+        local head = snakeBody[1]
+        local neck = snakeBody[2]
+
+        -- Situations where neck is next to head
+        if head.x == neck.x + 1 then
+            return "right"
+        elseif head.x == neck.x - 1 then
+            return "left"
+        elseif head.y == neck.y + 1 then
+            return "up"
+        elseif head.y == neck.y - 1 then
+            return "down"
+        end
+
+        -- Consider the wrapped case using zero azis to anchor
+        if head.x == 0 and neck.x > 0 then
+            return "right"
+        elseif neck.x == 0 and head.x > 0 then
+            return "left"
+        elseif head.y == 0 and neck.y > 0 then
+            return "up"
+        elseif neck.y == 0 and head.y > 0 then
+            return "down"
+        end
+    end
+    return "up"
 end
 
 function StandardRules:reduceSnakeHealth(state)

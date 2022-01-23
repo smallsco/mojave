@@ -5,12 +5,12 @@ friendlyPackageName="$packageName"
 # Who made this? (Yes, change this to your name.)
 author="Scott Small and contributors"
 # Copyright year (ex 2014-2015 or 2015)
-copyrightYear="2017-2021"
+copyrightYear="2017-2022"
 # A unique identifier for your package.
 # (It should be fine to leave this as its default.)
 identifier="org.scottsmall.mojave3"
 # Current version (of your program)
-version="3.5"
+version="3.5.1"
 
 ###### Important! ONLY USE ABSOLUATE PATHS ######
 # Where to place the resulting executables.

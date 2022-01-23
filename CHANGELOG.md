@@ -1,5 +1,13 @@
 ## CHANGELOG
 
+### v3.5.1 (2022-01-23)
+
+* Fixed a regression bug introduced in version 3.4 that would cause starting food to fail to spawn on fixed board sizes.
+* Ported changes from the latest version of the official Battlesnake Rules (v1.0.26):
+    * Default move is correctly applied when using the Wrapped ruleset.
+        * (Mojave already supported this, but we now do it the same way as the official rules).
+    * On fixed board sizes, food will only spawn on locations away from the center of the board.
+
 ### v3.5 (2021-12-12)
 
 * Substantially rewrote the head and tail loader and renderer in order to support non-monochrome head and tail images.

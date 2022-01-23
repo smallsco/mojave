@@ -3,6 +3,7 @@ local BoardState = {}
 BoardState.SnakeMaxHealth = config.gameplay.maxHealth
 BoardState.SnakeStartSize = config.gameplay.startSize
 
+local abs = math.abs
 local format = string.format
 
 -- Generates an empty, but fully initialized board state
@@ -122,7 +123,9 @@ function BoardState.placeFoodAutomatically(state)
 end
 
 function BoardState.placeFoodFixed(state)
-    -- Place 1 food within exactly 2 moves of each snake
+    local centerCoord = {x=(state.width - 1)/2, y=(state.height - 1)/2}
+
+    -- Place 1 food within exactly 2 moves of each snake, but never towards the center
     for i=1, #state.snakes do
         local snakeHead = state.snakes[i].body[1]
         local possibleFoodLocations = {
@@ -131,19 +134,36 @@ function BoardState.placeFoodFixed(state)
             {x=snakeHead.x + 1, y=snakeHead.y - 1},
             {x=snakeHead.x + 1, y=snakeHead.y + 1},
         }
-        local availableFoodLocations = {}
 
+        -- Remove any positions already occupied by food or closer to center
+        local availableFoodLocations = {}
         for j=1, #possibleFoodLocations do
-            local point = possibleFoodLocations[j]
+            local p = possibleFoodLocations[j]
             local isOccupiedAlready = false
             for k=1, #state.food do
-                if state.food[k].x == point.x and state.food[k].y == point.y then
+                local food = state.food[k]
+                if food.x == p.x and food.y == p.y then
                     isOccupiedAlready = true
                     break
                 end
             end
             if not isOccupiedAlready then
-                availableFoodLocations[#availableFoodLocations + 1] = point
+
+                -- Food must be away from center on at least one axis
+                local isFarFromCenter = false
+                if p.x < snakeHead.x and snakeHead.x < centerCoord.x then
+                    isFarFromCenter = true
+                elseif centerCoord.x < snakeHead.x and snakeHead.x < p.x then
+                    isFarFromCenter = true
+                elseif p.y < snakeHead.y and snakeHead.y < centerCoord.y then
+                    isFarFromCenter = true
+                elseif centerCoord.y < snakeHead.y and snakeHead.y < p.y then
+                    isFarFromCenter = true
+                end
+                if isFarFromCenter then
+                    availableFoodLocations[#availableFoodLocations + 1] = p
+                end
+
             end
         end
 
@@ -158,7 +178,6 @@ function BoardState.placeFoodFixed(state)
 
     -- Finally, always place 1 food in center of board for dramatic purposes
     local isCenterOccupied = true
-    local centerCoord = {x=(state.width - 1)/2, y=(state.height - 1)/2}
     local unoccupiedPoints = BoardState.getUnoccupiedPoints(state, true)
     for i=1, #unoccupiedPoints do
         local point = unoccupiedPoints[i]
@@ -184,15 +203,22 @@ function BoardState.placeFoodRandomly(state, num)
     end
 end
 
-function BoardState.isKnownBoardSize(state)
-    if state.width == 7 and state.height == 7 then
-        return true
-    elseif state.width == 11 and state.height == 11 then
-        return true
-    elseif state.width == 19 and state.height == 19 then
-        return true
+function BoardState.getEvenUnoccupiedPoints(state)
+
+    -- Start by getting unoccupied points
+    local unoccupiedPoints = BoardState.getUnoccupiedPoints(state, true)
+
+    -- Create a new array to hold points that are even
+    local evenUnoccupiedPoints = {}
+
+    for i=1, #unoccupiedPoints do
+        local point = unoccupiedPoints[i]
+        if (point.x + point.y) % 2 == 0 then
+            evenUnoccupiedPoints[#evenUnoccupiedPoints + 1] = point
+        end
     end
-    return false
+    return evenUnoccupiedPoints
+
 end
 
 function BoardState.getUnoccupiedPoints(state, includePossibleMoves)
@@ -264,22 +290,19 @@ function BoardState.getUnoccupiedPoints(state, includePossibleMoves)
     return unoccupiedPoints
 end
 
-function BoardState.getEvenUnoccupiedPoints(state)
+function BoardState.getDistanceBetweenPoints(a, b)
+    return abs(a.x - b.x) + abs(a.y - b.y)
+end
 
-    -- Start by getting unoccupied points
-    local unoccupiedPoints = BoardState.getUnoccupiedPoints(state, true)
-
-    -- Create a new array to hold points that are even
-    local evenUnoccupiedPoints = {}
-
-    for i=1, #unoccupiedPoints do
-        local point = unoccupiedPoints[i]
-        if (point.x + point.y) % 2 == 0 then
-            evenUnoccupiedPoints[#evenUnoccupiedPoints + 1] = point
-        end
+function BoardState.isKnownBoardSize(state)
+    if state.width == 7 and state.height == 7 then
+        return true
+    elseif state.width == 11 and state.height == 11 then
+        return true
+    elseif state.width == 19 and state.height == 19 then
+        return true
     end
-    return evenUnoccupiedPoints
-
+    return false
 end
 
 return BoardState
