@@ -51,7 +51,8 @@ Apple Silicon users: Mojave has not been tested on the M1. It won't work nativel
 Unfortunately, with each new Mac OS update, Apple makes it increasingly difficult to install and run software that has not been code signed by a member of their developer program. If you still have trouble launching the game despite following the above instructions, you can try running it using LÖVE 11.3 directly via the alternate installation instructions below:
 
 #### Mac OS Alternate Installation
-* You will then need to download and install [LÖVE](https://www.love2d.org) 11.3 for Mac OS.
+* You will then need to download and install [LÖVE 11.3](https://github.com/love2d/love/releases/tag/11.3) for Mac OS.
+	* **DO NOT USE LOVE 11.4 OR GREATER, IT IS NOT COMPATIBLE AND THE GAME WILL CRASH**
 * Once you have installed that, you can download the latest version of Mojave from the [Releases](https://github.com/smallsco/mojave/releases) page and extract the zip file somewhere on your computer. **Download the *Linux* version, not the Mac OS version!**
 * Open the `Mojave-x.y.z.love` file to start playing!
 
@@ -64,9 +65,10 @@ Unfortunately, with each new Mac OS update, Apple makes it increasingly difficul
 ### Linux
 * For Linux users, any recent distribution should work.
 * First, you will need to install the libcurl development package for your distribution:
-	* For Ubuntu/Debian: `sudo apt-get install libcurl4-openssl-dev`
-	* For Fedora/Centos: `sudo yum install libcurl-devel`
-* You will then need to download and install [LÖVE](https://www.love2d.org) 11.3 for your Linux distribution. You can do this via your package manager, or download a package directly from the [LÖVE web site](https://www.love2d.org).
+    * For Ubuntu/Debian: `sudo apt-get install libcurl4-openssl-dev`
+    * For Fedora/Centos: `sudo yum install libcurl-devel`
+* You will then need to download and install [LÖVE 11.3](https://github.com/love2d/love/releases/tag/11.3) for your Linux distribution. You can do this via your package manager, or download a package directly from the [LÖVE web site](https://www.love2d.org).
+	* **DO NOT USE LOVE 11.4 OR GREATER, IT IS NOT COMPATIBLE AND THE GAME WILL CRASH**
 * Once you have installed that, you can download the latest version of Mojave from the [Releases](https://github.com/smallsco/mojave/releases) page and extract the zip file somewhere on your computer.
 * Open the `Mojave-x.y.z.love` file to start playing!
 
