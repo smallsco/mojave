@@ -290,6 +290,14 @@ function Board:drawRaw( state, draw_grid, draw_vignette )
                 local py = snake.body[i-1].y - snake.body[i].y
                 local ax = snake.body[i].x - snake.body[i+1].x
                 local ay = snake.body[i].y - snake.body[i+1].y
+                if py > 1 then py = -1 end
+                if py < -1 then py = 1 end
+                if px > 1 then px = -1 end
+                if px < -1 then px = 1 end
+                if ay > 1 then ay = -1 end
+                if ay < -1 then ay = 1 end
+                if ax > 1 then ax = -1 end
+                if ax < -1 then ax = 1 end
 
                 if (px == ax and py == ay) or (px + ax == 0) or (py + ay == 0) or (not config.appearance.curveOnTurns) then
                     -- Draw a rectangle if the snake body is straight

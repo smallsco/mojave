@@ -1,5 +1,9 @@
 ## CHANGELOG
 
+### v3.5.2 (2022-01-28)
+
+* Fixed visual glitches when playing games in Wrapped mode with the "Curve on Turns" option enabled.
+
 ### v3.5.1 (2022-01-23)
 
 * Fixed a regression bug introduced in version 3.4 that would cause starting food to fail to spawn on fixed board sizes.
